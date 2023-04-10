@@ -2,9 +2,6 @@ import os
 import re
 import tools
 # 关键词匹配字幕
-# def getSrt():
-#
-#
 
 def getSrt():
     # 匹配的关键字，这里假设匹配文件名中包含"abc"的视频文件和字幕文件

@@ -1,9 +1,5 @@
 import os
-import re
 import shutil
-import subprocess
-# from PIL import Image
-import ffmpeg
 import tools
 
 def get_video_duration_sorted():
