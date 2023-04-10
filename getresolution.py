@@ -1,7 +1,6 @@
 import os
 from PIL import Image
 import cv2
-import sys
 import tools
 
 def get_low_resolution_media_files():

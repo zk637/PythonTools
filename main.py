@@ -1,17 +1,10 @@
 # This is a sample Python script.
-import os
-import re
-import shutil
-import sys
-import shlex
 import atexit
 import fileSize
 import filecount
 import fileduration
 import getresolution
 import removefolder
-import subprocess
-import logging
 import srt
 import datetime
 from loggerconifg import Logger
