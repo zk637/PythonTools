@@ -45,9 +45,9 @@ if __name__ == '__main__':
     #  10、获取文件在大小区间下的列表                       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
-    #  13、获取生成给定目录下的视频缩略图 TODO
-    #  14、获取给定目录中在检索目录下匹配列表的文件
-    #  15、取传入目录下所有与文件名一致的jpg创建并移入.ts文件夹"""
+    #  13、获取给定目录中在检索目录下匹配列表的文件
+    #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 目前只支持 *keyword*匹配"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -66,9 +66,9 @@ if __name__ == '__main__':
             10: fileSize.filter_files_by_size,
             11: fileduration.get_video_duration_sorted,
             12: fileduration.print_video_info_list,
-            13: fileduration.generate_video_thumbnail,
-            14: fileduration.check_files_in_folder,
-            15: fileduration.compare_and_move_files
+            13: fileduration.check_files_in_folder,
+            14: fileduration.compare_and_move_files,
+            15: fileduration.get_file_paths_with_rules
         }
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -86,9 +86,9 @@ if __name__ == '__main__':
     #  10、获取文件在大小区间下的列表                       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
-    #  13、获取生成给定目录下的视频缩略图 TODO
-    #  14、获取给定目录中在检索目录下匹配列表的文件
-    #  15、取传入目录下所有与文件名一致的jpg创建并移入.ts文件夹""")
+    #  13、获取给定目录中在检索目录下匹配列表的文件
+    #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件夹
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 目前只支持 *keyword*匹配""")
 
         input_logger = InputLogger(out_put)
         input_logger.start_logging()

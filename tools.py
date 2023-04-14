@@ -56,6 +56,26 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
+def read_rules_from_file():
+    filename = "file_name_rules.txt"
+    if not os.path.exists(filename):
+        with open(filename, "w") as f:
+            print("规则文件不存在，已创建空文件 file_name_rules.txt")
+        return []
+
+    with open(filename, encoding='utf-8') as f:
+        try:
+            content = f.read().strip()
+        except Exception as e:
+            print("Exception:", e)
+
+    if not content:
+        print("file_name_rules规则文件为空")
+        return []
+
+    rules = [rule.strip() for rule in content.split(",")]
+    return rules
+
 def get_video_details(path):
     """获取视频文件的详细信息"""
 
