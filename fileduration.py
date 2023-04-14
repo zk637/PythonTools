@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tools
 
@@ -93,7 +94,7 @@ def check_files_in_folder(file_list):
 
 
 def compare_and_move_files():
-    excluded_extensions = ['.dll', '.mp4']
+    excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
     print("请输入需要对比的文件夹")
     folder_path = tools.process_input_str("")
     jpg_files = []
@@ -142,5 +143,29 @@ def compare_and_move_files():
                     #     print(f'{f_path}')
                     # finally:
                     #     print(f'{file}n')
+
+def get_file_paths_with_rules():
+    """
+    获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表
+    :param folder: 文件夹路径
+    :return: 符合规则的文件路径列表
+    """
+    print("请输入需要对比的文件夹")
+    folder_path = tools.process_input_str("")
+    paths = []
+    file_name_rules = tools.read_rules_from_file()
+    # print(f"规则列表：{file_name_rules}")
+    try:
+        for root, dirs, files in os.walk(folder_path):
+            for file_name in files:
+                full_path = os.path.join(root, file_name)
+                for rule in file_name_rules:
+                    regex_pattern = '.*{}.*'.format(re.escape(rule.strip()))
+                    if re.search(regex_pattern, file_name):
+                        paths.append(full_path)
+                        break
+        print('\n'.join(paths))
+    except Exception as e:
+        print(e)
 
 
