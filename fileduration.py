@@ -93,7 +93,7 @@ def check_files_in_folder(file_list):
 
 
 def compare_and_move_files():
-    excluded_extensions = ['.dll', '.mp4']
+    excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
     print("请输入需要对比的文件夹")
     folder_path = tools.process_input_str("")
     jpg_files = []
