@@ -19,9 +19,9 @@ the following is a list of existing functions
     #  10、获取文件在大小区间下的列表                       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
-    #  13、获取生成给定目录下的视频缩略图 `TODO`
-    #  14、获取给定目录中在检索目录下匹配列表的文件
-    #  15、取传入目录下所有与文件名一致的jpg创建并移入.ts文件夹
+    #  13、获取给定目录中在检索目录下匹配列表的文件
+    #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 目前只支持 *keyword*匹配
 
     1. Obtain the file size code==01 in the same subdirectory
     2. Obtain the file size code==02 in different subdirectories
@@ -35,9 +35,10 @@ the following is a list of existing functions
     10.Get the list of files in the size range code==10
     11. Take the duration of all video files in the folder and sort the output code==11
     12. Get the "size "," duration ", "bitrate "," resolution "under the given folder [sort needs to change the value of x [2]]
-    13. Get TODO to generate the video thumbnail in the given directory   `TODO`
-    14. Get the files in the given directory that match the list under the search directory
-    15. Take all the jpg files from the passed directory that match the file name and move them to the.ts folder
+    13. Get the files in the given directory that match the list under the search directory
+    14. Take all the jpg files from the passed directory that match the file name and move them to the.ts folder
+    15. Gets the paths to all files in a folder and returns a list of file paths whose file names match the specified rules. Currently, only *keyword* matches are supported
+    
    
 
   
