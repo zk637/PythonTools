@@ -96,7 +96,7 @@ if __name__ == '__main__':
         print("--------------------------------------------------In--------------------------------------------------")
         try:
             user_input = int(input("Enter a number: "))
-            if user_input == 1 or user_input == 2 or user_input == 14:
+            if user_input == 1 or user_input == 2 or user_input == 13:
                 # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
                 file_paths = []
                 while True:
