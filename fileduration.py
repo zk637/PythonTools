@@ -159,9 +159,12 @@ def get_file_paths_with_rules():
         for root, dirs, files in os.walk(folder_path):
             for file_name in files:
                 full_path = os.path.join(root, file_name)
+                # add comparison of folder name with the specified rules
+                folder_name = os.path.basename(os.path.normpath(root))
                 for rule in file_name_rules:
                     regex_pattern = '.*{}.*'.format(re.escape(rule.strip()))
-                    if re.search(regex_pattern, file_name):
+                    # check if either file name or folder name matches the rule
+                    if (re.search(regex_pattern, file_name)) or (re.search(regex_pattern, folder_name)):
                         paths.append(full_path)
                         break
         print('\n'.join(paths))
