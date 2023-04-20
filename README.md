@@ -21,7 +21,7 @@ the following is a list of existing functions
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
     #  13、获取给定目录中在检索目录下匹配列表的文件
     #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件
-    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 目前只支持 *keyword*匹配
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 支持文件名规则匹配 目前只支持 *keyword*匹配
 
     1. Obtain the file size code==01 in the same subdirectory
     2. Obtain the file size code==02 in different subdirectories
