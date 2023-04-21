@@ -47,52 +47,56 @@ def find_subtitle():
     # 没有找到匹配的字幕文件
     return None
 
+
 def find_matching_subtitles():
-        print("请输入视频路径")
-        video_path = tools.process_intput_strr("").strip()
-        print("请输入字幕文件夹路径")
-        subtitles_folder = tools.process_input_str("").strip()
+    print("请输入视频路径")
+    video_path = tools.process_intput_strr("").strip()
+    print("请输入字幕文件夹路径")
+    subtitles_folder = tools.process_input_str("").strip()
 
-        # 遍历字幕文件夹获取所有的字幕文件路径
-        subtitle_files = tools.get_file_paths(subtitles_folder)
+    # 遍历字幕文件夹获取所有的字幕文件路径
+    # subtitle_files = tools.get_file_paths(subtitles_folder)
+    subtitle_files = tools.get_file_paths_limit(subtitles_folder,".ts",".srt",".ass",".ssa",".vtt",".sub",".sub",".smi",".mpl",".rt",""
+                                ".dfxp",".lrc",".pjs",".usf",".rtf",".sup",".pgs",".sub",".sup")
+    # 匹配视频关键字获取对应的字幕文件
+    video_file = os.path.basename(video_path)
+    match = re.search(r"\b\w+\b|\((.*?)\)", video_file)
+    keyword = match.group(0)
+    match2 = re.search(r"(.+)(?=\.\w+$)", video_file)
+    keyword2 = match2.group(0)
+    # 构造字幕文件名的正则表达式
+    # subtitle_pattern = re.compile(f".*{keyword}.*\.srt$")
+    # subtitle_pattern2 =re.compile(f".*{keyword2}.*\.srt$")
+    subtitle_pattern = re.compile(f".*{keyword}.*")
+    subtitle_pattern2 = re.compile(f".*{keyword2}.*")
+    print(subtitle_pattern)
+    # subtitle_pattern = re.compile(f"^{keyword}.*\.srt$")
+    # 遍历字幕文件夹，查找匹配的字幕文件
+    precise_matching_subtitles = []  # 用于保存精确匹配的字幕文件路径的列表
+    slur_matching_subtitles = []  # 用于保存模糊匹配的字幕文件路径的列表
+    for filename in subtitle_files:
+        if subtitle_pattern2.search(filename):
+            subtitle_path = os.path.join(subtitles_folder, filename)
+            precise_matching_subtitles.append(subtitle_path)
+        elif subtitle_pattern.search(filename):
+            subtitle_path = os.path.join(subtitles_folder, filename)
+            slur_matching_subtitles.append(subtitle_path)
 
-        # 匹配视频关键字获取对应的字幕文件
-        video_file = os.path.basename(video_path)
-        match = re.search(r"\b\w+\b|\((.*?)\)", video_file)
-        keyword = match.group(0)
-
-        # 构造字幕文件名的正则表达式
-
-        keyword_escaped = re.escape(keyword)
-        # subtitle_pattern = re.compile(f"^{keyword_escaped}.*\\.srt$")
-        subtitle_pattern = re.compile(f".*{keyword}.*\.srt$")
-        print(subtitle_pattern)
-        # subtitle_pattern = re.compile(f"^{keyword}.*\.srt$")
-        # 遍历字幕文件夹，查找匹配的字幕文件
-        subtitle_path = None
-        while not subtitle_path:
-            for filename in subtitle_files:
-                if subtitle_pattern.match(filename):
-                    subtitle_path = os.path.join(subtitles_folder, filename)
-                    break
-
-            if subtitle_path is None:
-                # 没有找到匹配的字幕文件
-                print("没有找到匹配的字幕文件。")
-                return None
-            else:
-                # 尝试打开字幕文件，如果文件已被占用，则设置 subtitle_path 为 None 并重试
-                try:
-                    with open(subtitle_path, "r", encoding="utf-8") as f:
-                        pass
-                except IOError:
-                    subtitle_path = None
-
-        # 获取视频文件所在路径的前一级路径
-        parent_folder = os.path.dirname(video_path)
-        shutil.copy(subtitle_path, parent_folder)
-        print(f"找到匹配的字幕文件：{subtitle_path}")
-        return parent_folder
+    if not precise_matching_subtitles and not slur_matching_subtitles:
+        # 没有找到匹配的字幕文件
+        print("没有找到匹配的字幕文件。")
+    else:
+        # 打印匹配的字幕文件路径列表，并在每个路径后添加换行符
+        if slur_matching_subtitles:
+            print("模糊匹配的字幕文件：")
+            for subtitle_path in slur_matching_subtitles:
+                print(subtitle_path)
+            print()  # 打印空行以实现换行效果
+        if precise_matching_subtitles:
+            print("精确匹配的字幕文件：")
+            for subtitle_path in precise_matching_subtitles:
+                print(subtitle_path)
+            print()  # 打印空行以实现换行效果
 
 # 复制字幕文件到新创建的文件夹下
 def find_matching_subtitles_create():
@@ -103,7 +107,8 @@ def find_matching_subtitles_create():
     subtitles_folder = tools.process_input_str("").strip()
 
     # 遍历字幕文件夹获取所有的字幕文件路径
-    subtitle_files = tools.get_file_paths(subtitles_folder)
+    subtitle_files = tools.get_file_paths_limit(subtitles_folder,".ts",".srt",".ass",".ssa",".vtt",".sub",".sub",".smi",".mpl",".rt",""
+                                ".dfxp",".lrc",".pjs",".usf",".rtf",".sup",".pgs",".sub",".sup")
 
     # 匹配视频关键字获取对应的字幕文件
     video_file = os.path.basename(video_path)
@@ -114,7 +119,7 @@ def find_matching_subtitles_create():
 
     keyword_escaped = re.escape(keyword)
     # subtitle_pattern = re.compile(f"^{keyword_escaped}.*\\.srt$")
-    subtitle_pattern = re.compile(f".*{keyword}.*\.srt$")
+    subtitle_pattern = re.compile(f".*{keyword}.*")
     print(subtitle_pattern)
     # subtitle_pattern = re.compile(f"^{keyword}.*\.srt$")
     # 遍历字幕文件夹，查找匹配的字幕文件

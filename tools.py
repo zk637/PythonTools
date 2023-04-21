@@ -39,8 +39,8 @@ def get_file_paths_limit(folder, *extensions):
             if file.endswith(tuple(extensions)):
                 path = os.path.join(root, file)
                 paths.append(path)
-                if not paths:
-                    print("未找到任何文件")
+    if not paths:
+        print("未找到任何文件")
     return paths
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
