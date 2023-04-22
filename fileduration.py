@@ -9,7 +9,11 @@ def get_video_duration_sorted():
     folder = tools.process_input_str("")
     print("是否纯净输出y/n")
     flag=input()
-    paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
+    # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
+    paths = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
     durations = []
     for path in paths:
         duration = tools.get_video_duration(path)
@@ -32,7 +36,11 @@ def print_video_info_list():
     folder = tools.process_input_str("")
     print("是否纯净输出y/n")
     flag=input()
-    folder = tools.get_file_paths_limit(folder, '.mp4', '.avi', ".mov", ".wmv", ".mkv")
+    # folder = tools.get_file_paths_limit(folder, '.mp4', '.avi', ".mov", ".wmv", ".mkv")
+    folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
     if not folder:
         print("文件为空，需检查条件或参数！")
         return

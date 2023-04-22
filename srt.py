@@ -17,7 +17,10 @@ def getSrt():
     path_list = []
     for video_file in os.listdir(video_folder):
         # 判断是否为视频文件
-        if video_file.endswith((".mp4", ".mkv", ".avi", ".mov")):
+        if video_file.endswith(('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')):
             # 获取视频文件名中包含关键字的部分
             video_name = os.path.splitext(video_file)[0]
             if keywords in video_name:
@@ -25,7 +28,8 @@ def getSrt():
                 subtitle_path = get_file_paths(subtitle_folder)
                 for subtitle_file in subtitle_path:
                     # 判断是否为字幕文件
-                    if subtitle_file.endswith((".srt", ".ass", ".ssa")):
+                    if subtitle_file.endswith((".ts",".srt",".ass",".ssa",".vtt",".sub",".sub",".smi",".mpl",".rt",""
+                                ".dfxp",".lrc",".pjs",".usf",".rtf",".sup",".pgs",".sub",".sup")):
                         # 获取字幕文件名中包含关键字的部分
                         subtitle_name = os.path.splitext(os.path.basename(subtitle_file))[0]
                         if keywords in subtitle_name:
