@@ -39,8 +39,8 @@ def get_file_paths_limit(folder, *extensions):
             if file.endswith(tuple(extensions)):
                 path = os.path.join(root, file)
                 paths.append(path)
-                if not paths:
-                    print("未找到任何文件")
+    if not paths:
+        print("未找到任何文件")
     return paths
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
@@ -92,19 +92,31 @@ def get_video_details(path):
     return duration, bitrate, width, height
 
 def get_video_info_list(paths):
-    """获取视频文件的信息列表"""
     video_info_list = []
     max_path_len = 0
+    # 属性编码字典
+    attribute_map = {
+        1: 'size',
+        2: 'duration',
+        3: 'bitrate',
+    }
+    # 手动录入排序属性的数字
+    print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
+    sort_index = int(input("") or 3)
+
     for path in paths:
         try:
             duration, bitrate, width, height = get_video_details(path)
             size = os.path.getsize(path) / (1024*1024)
             video_info_list.append((path, size, duration, bitrate, width, height))
             max_path_len = max(max_path_len, len(path))
-            video_info_list.sort(key=lambda x: x[3])  # 按时长排序
+            video_info_list.sort(key=lambda x: x[sort_index])  # 按比特率排序
         except Exception as e:
             print(f"处理文件 {path} 时出错：{e}")
             continue
+    sort_attribute = attribute_map.get(sort_index)
+    print(sort_attribute)
+
     return video_info_list, max_path_len
 
 def get_file_count(folder):
