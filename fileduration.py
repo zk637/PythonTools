@@ -1,6 +1,11 @@
+import ctypes
 import os
 import re
 import shutil
+import subprocess
+import sys
+
+
 import tools
 
 def get_video_duration_sorted():
@@ -180,3 +185,119 @@ def get_file_paths_with_rules():
         print(e)
 
 
+# def compare_file_and_folder_names():
+#     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3','.ts']
+#     print("请输入源文件夹路径:")
+#     source_folder_path = input("")
+#     print("请输入目标文件夹路径:")
+#     target_folder_path = input("")
+#     source_files_list = []
+#     target_folders_list = []
+#     same_list = []
+#
+#     for root, dirs, files in os.walk(source_folder_path):
+#         for file in files:
+#             file_path = os.path.join(root, file)
+#             file_name = os.path.splitext(file)[0]
+#             file_extension = os.path.splitext(file)[1]
+#             if file_extension not in excluded_extensions:
+#                 source_files_list.append(file_name)
+#
+#     for root, dirs, files in os.walk(target_folder_path):
+#         for folder in dirs:
+#             target_folder_name = os.path.basename(folder)
+#             if target_folder_name in source_files_list:
+#                 source_file_path = os.path.join(source_folder_path, target_folder_name)
+#                 target_folder_path = os.path.join(target_folder_path, target_folder_name)
+#                 same_list.append((source_file_path, target_folder_path))
+#
+#     print("源文件:")
+#     for item in same_list:
+#         print("文件路径: " + item[0])
+#     print("目标文件夹:")
+#     for item in same_list:
+#         print("文件夹路径: " + item[1])
+
+
+def create_symbolic_links():
+
+    def is_admin():
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False
+
+    # 检查是否是管理员权限，如果不是则重新运行脚本作为管理员
+    # if not is_admin():
+    #     print("当前没有管理员权限，将尝试申请管理员权限...")
+    #     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+    #     ctypes.windll.user32.PostQuitMessage(0)
+    #     sys.exit()
+    if not is_admin():
+        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
+        # 构建运行命令列表
+        tools.set_cmd_title("Tool_User")
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+        # 在新的进程中运行命令，等待命令执行完毕
+        print("程序将重新启动...")
+        #重定向
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        # 用当前的可执行文件和命令行参数替代当前进程
+        os.execl(sys.executable, *([sys.executable] + sys.argv))
+        sys.exit()
+
+    excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
+    print("请输入源文件夹路径:")
+    source_folder_path = input("")
+    print("请输入目标文件夹路径:")
+    target_folder_path = input("")
+    source_files_list = []
+    same_list = []
+
+    for root, dirs, files in os.walk(source_folder_path):
+        for file in files:
+            source_files_list.append(os.path.join(root, file))
+
+    for root, dirs, files in os.walk(target_folder_path):
+        for folder in dirs:
+            target_folder_name = os.path.basename(folder)
+            target_folder_path = os.path.join(root, folder)
+            file_name = os.path.splitext(target_folder_name)[0]
+            same_name_files = []
+            for source_file in source_files_list:
+                source_file_base = os.path.splitext(os.path.basename(source_file))[0]
+                if source_file_base not in excluded_extensions and source_file != target_folder_path and source_file_base == file_name:
+                    same_name_files.append(source_file)
+            if same_name_files:
+                same_list.append((same_name_files, target_folder_path))
+
+    print("为以下目标文件建立符号链接:")
+    for item in same_list:
+        for source_file in item[0]:
+            target_dir = item[1]
+            cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)), source_file]
+            print('\n' + '-' * 50)
+            print("\n"+"执行命令: " + ' '.join(cmd)+"\n")
+            try:
+                subprocess.call(cmd, shell=True)
+                output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+                print("result: " + output+"\n")
+                print("源文件路径: " + source_file)
+                print("目标文件夹路径: " + target_dir)
+            except subprocess.CalledProcessError as e:
+                print("符号链接创建失败: " + str(e))
+    print("输入空格结束程序")
+    input_str = input("")
+    if input_str.isspace():
+        sys.exit()
+    else:
+        print("非空格，程序继续.....")
+
+# for target_folder in target_folders_lists:
+#     file_name=os.path.splitext(os.path.basename(target_folder))[0]
+#     same_name_files=[]
+#     for source_file in source_files_lists:
+#         source_file_base = os.path.splitext(os.path.basename(source_file))[0]
+#         if source_file_base not in excluded_extensions and source_file != target_folder and source_file_base == file_name:
+#             same_name_files.append(source_file)

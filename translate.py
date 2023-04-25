@@ -150,11 +150,11 @@ def find_matching_subtitles_create():
     target_folder = os.path.join(parent_folder, video_file_no_ext)
     os.makedirs(target_folder, exist_ok=True)
 
-    # 将字幕文件复制到目标文件夹中
-    target_subtitle_path = os.path.join(target_folder, os.path.basename(subtitle_path))
-    shutil.copy(subtitle_path, target_subtitle_path)
+    # # 将字幕文件复制到目标文件夹中
+    # target_subtitle_path = os.path.join(target_folder, os.path.basename(subtitle_path))
+    # shutil.copy(subtitle_path, target_subtitle_path)
 
     print(f"找到匹配的字幕文件：{subtitle_path}")
-    return target_subtitle_path
+    # return target_subtitle_path
 
 
