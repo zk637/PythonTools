@@ -1,5 +1,8 @@
 # This is a sample Python script.
 import atexit
+import os
+import subprocess
+
 import fileSize
 import filecount
 import fileduration
@@ -44,10 +47,11 @@ if __name__ == '__main__':
     #  9、获取文件列表下的文件数量                           code==09
     #  10、获取文件在大小区间下的列表                       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
-    #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
-    #  13、获取给定目录中在检索目录下匹配列表的文件
-    #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件
-    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）"""
+    #  12、12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
+    #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
+    #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
+    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -68,7 +72,9 @@ if __name__ == '__main__':
             12: fileduration.print_video_info_list,
             13: fileduration.check_files_in_folder,
             14: fileduration.compare_and_move_files,
-            15: fileduration.get_file_paths_with_rules
+            15: fileduration.get_file_paths_with_rules,
+            16: fileduration.create_symbolic_links
+            # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -85,11 +91,11 @@ if __name__ == '__main__':
     #  9、获取文件列表下的文件数量                           code==09
     #  10、获取文件在大小区间下的列表                       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
-    #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率[排序需修改x [2]的值】
-    #  13、获取给定目录中在检索目录下匹配列表的文件
-    #  14、取传入目录下所有与文件名一致的jpg创建并移入.ts文件夹
-    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）""")
-
+    #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
+    #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
+    #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
+    #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
+    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")

@@ -1,3 +1,4 @@
+import ctypes
 import os
 import ffmpeg
 import subprocess
@@ -165,6 +166,10 @@ def getbitratesort(files):
     files_bitrate.sort(key=lambda x: x[1], reverse=True)
     sorted_files = [file_path for file_path, _ in files_bitrate]
     return sorted_files
+
+# 设置 cmd 窗口的标题
+def set_cmd_title(title):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 def capture_output_to_file(func):
     def wrapper(*args, **kwargs):
