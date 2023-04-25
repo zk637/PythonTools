@@ -3,7 +3,7 @@
 =======
 
 
-主要包含了文件夹多级和视频文件及字幕相关操作，由python编写。当前仅由命令行控制，以下是现有的功能列表
+主要包含了多级文件夹和视频文件及字幕相关操作，由python编写。当前仅由命令行控制，以下是现有的功能列表
 It mainly includes folder multilevel retrieval of video files and video subtitles related operations,make in python currently only controlled by the command line, 
 the following is a list of existing functions
 
