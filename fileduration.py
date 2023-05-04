@@ -220,33 +220,7 @@ def get_file_paths_with_rules():
 
 
 def create_symbolic_links():
-
-    def is_admin():
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
-
-    # 检查是否是管理员权限，如果不是则重新运行脚本作为管理员
-    # if not is_admin():
-    #     print("当前没有管理员权限，将尝试申请管理员权限...")
-    #     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-    #     ctypes.windll.user32.PostQuitMessage(0)
-    #     sys.exit()
-    if not is_admin():
-        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
-        # 构建运行命令列表
-        tools.set_cmd_title("Tool_User")
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-        # 在新的进程中运行命令，等待命令执行完毕
-        print("程序将重新启动...")
-        #重定向
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        # 用当前的可执行文件和命令行参数替代当前进程
-        os.execl(sys.executable, *([sys.executable] + sys.argv))
-        sys.exit()
-
+    tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
     print("请输入源文件夹路径:")
     source_folder_path = input("")
@@ -280,12 +254,13 @@ def create_symbolic_links():
             print('\n' + '-' * 50)
             print("\n"+"执行命令: " + ' '.join(cmd)+"\n")
             try:
-                subprocess.call(cmd, shell=True)
-                output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-                print("result: " + output+"\n")
+                # os.system(" ".join(cmd))
+                subprocess.check_call(cmd, shell=True)
+                # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+                # print("result: " + output+"\n")
                 print("源文件路径: " + source_file)
                 print("目标文件夹路径: " + target_dir)
-            except subprocess.CalledProcessError as e:
+            except Exception as e:
                 print("符号链接创建失败: " + str(e))
     print("输入空格结束程序")
     input_str = input("")
@@ -301,3 +276,40 @@ def create_symbolic_links():
 #         source_file_base = os.path.splitext(os.path.basename(source_file))[0]
 #         if source_file_base not in excluded_extensions and source_file != target_folder and source_file_base == file_name:
 #             same_name_files.append(source_file)
+
+def same_file_createsymbolic_links():
+    tools.admin_process()
+    # 定义一个路径列表
+    source_files = []
+    while True:
+        print("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        source_file = input().strip()
+        if not source_file:
+            break
+        source_files.append(source_file)
+
+    # 指定目标目录
+    print("请输入要创建的目标目录：")
+    target_dir = input().strip()
+
+    # 遍历路径列表，为每个文件创建符号链接
+    for source_file in source_files:
+        # 构建mklink命令行
+        # cmd = ['mklink', '"' + os.path.join(target_dir, os.path.basename(source_file)) + '"', '"' + source_file + '"']
+        cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''), source_file.replace('"','')]
+        print('\n' + '-' * 50)
+        print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+        try:
+            subprocess.check_call(cmd, shell=True)
+            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+            # print("result: " + output + "\n")
+            print("源文件路径: " + source_file)
+            print("目标文件夹路径: " + target_dir)
+        except Exception as e:
+            print("符号链接创建失败: " + str(e))
+    print("输入空格结束程序")
+    input_str = input("")
+    if input_str.isspace():
+        sys.exit()
+    else:
+        print("非空格，程序继续.....")

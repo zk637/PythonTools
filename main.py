@@ -51,7 +51,8 @@ if __name__ == '__main__':
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
-    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）"""
+    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -73,7 +74,8 @@ if __name__ == '__main__':
             13: fileduration.check_files_in_folder,
             14: fileduration.compare_and_move_files,
             15: fileduration.get_file_paths_with_rules,
-            16: fileduration.create_symbolic_links
+            16: fileduration.create_symbolic_links,
+            17: fileduration.same_file_createsymbolic_links
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
@@ -95,7 +97,8 @@ if __name__ == '__main__':
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
-    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）""")
+    #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
