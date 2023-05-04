@@ -3,6 +3,8 @@ import os
 import ffmpeg
 import subprocess
 import contextlib
+import sys
+
 
 def process_input_list():
     file_paths = []
@@ -178,4 +180,32 @@ def capture_output_to_file(func):
             with contextlib.redirect_stdout(f):
                 func(*args, **kwargs)
     return wrapper
+
+def admin_process():
+    def is_admin():
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False
+
+        # 检查是否是管理员权限，如果不是则重新运行脚本作为管理员
+        # if not is_admin():
+        #     print("当前没有管理员权限，将尝试申请管理员权限...")
+        #     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+        #     ctypes.windll.user32.PostQuitMessage(0)
+        #     sys.exit()
+
+    if not is_admin():
+        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
+        # 构建运行命令列表
+        set_cmd_title("Tool_User")
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+        # 在新的进程中运行命令，等待命令执行完毕
+        print("程序将重新启动...")
+        # 重定向
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        # 用当前的可执行文件和命令行参数替代当前进程
+        os.execl(sys.executable, *([sys.executable] + sys.argv))
+        sys.exit()
 
