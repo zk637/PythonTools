@@ -110,6 +110,8 @@ def compare_and_move_files():
     excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
     print("请输入需要对比的文件夹")
     folder_path = tools.process_input_str("")
+    print("是否保留多个后缀比较【默认保留】")
+    model = str(input("") or 'y')
     jpg_files = []
     non_jpg_files = []
     for root, dirs, files in os.walk(folder_path):
@@ -121,7 +123,11 @@ def compare_and_move_files():
             elif file_extension not in excluded_extensions:
                 non_jpg_files.append(file_path)
     for non_jpg_file in non_jpg_files:
-        file_name = os.path.splitext(os.path.basename(non_jpg_file))[0]
+        if (model.lower()=='y'):
+            file_name = os.path.basename(non_jpg_file)
+        else:
+            file_name = os.path.splitext(os.path.basename(non_jpg_file))[0]
+
         same_name_files = []
         for jpg_file in jpg_files:
             jpg_file_base = os.path.splitext(os.path.basename(jpg_file))[0]
