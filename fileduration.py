@@ -284,25 +284,39 @@ def create_symbolic_links():
 #             same_name_files.append(source_file)
 
 def same_file_createsymbolic_links():
-    tools.admin_process()
-    # 定义一个路径列表
-    source_files = []
-    while True:
-        print("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        source_file = input().strip()
-        if not source_file:
-            break
-        source_files.append(source_file)
 
+    tools.admin_process()
+    # 定义源路径列表
+    source_dirs = []
+    while True:
+        print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        input_str = input()
+        if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
+            break
+        input_list = input_str.split('\n')  # 将输入字符串转换为列表，按行分割
+        for path in input_list:
+            if path.startswith('"') and path.endswith('"'):
+                path = path[1:-1]  # 去除引号
+            source_dirs.append(path)
     # 指定目标目录
     print("请输入要创建的目标目录：")
     target_dir = input().strip()
-
-    # 遍历路径列表，为每个文件创建符号链接
-    for source_file in source_files:
+    # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
+    files, folders = tools.get_listunder_fileandfolder(source_dirs)
+    # # 输出结果
+    # print('Files:')
+    # for file_path in files:
+    #     print(file_path)
+    # print('Folders:')
+    # for folder_path in folders:
+    #     print(folder_path)
+    # 遍历路径列表，为每个文件或文件夹创建符号链接
+    for source_file in files:
+        print("文件符号链接")
         # 构建mklink命令行
         # cmd = ['mklink', '"' + os.path.join(target_dir, os.path.basename(source_file)) + '"', '"' + source_file + '"']
-        cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''), source_file.replace('"','')]
+        cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''),
+               source_file.replace('"', '')]
         print('\n' + '-' * 50)
         print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
         try:
@@ -313,6 +327,24 @@ def same_file_createsymbolic_links():
             print("目标文件夹路径: " + target_dir)
         except Exception as e:
             print("符号链接创建失败: " + str(e))
+
+    for source_file in folders:
+        print("文件夹符号链接")
+        # 构建mklink命令行
+        # cmd = ['mklink', '"' + os.path.join(target_dir, os.path.basename(source_file)) + '"', '"' + source_file + '"']
+        cmd = ['mklink', '/d', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''),
+               source_file.replace('"', '')]
+        print('\n' + '-' * 50)
+        print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+        try:
+            subprocess.check_call(cmd, shell=True)
+            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+            # print("result: " + output + "\n")
+            print("源文件路径: " + source_file)
+            print("目标文件夹路径: " + target_dir)
+        except Exception as e:
+            print("符号链接创建失败: " + str(e))
+
     print("输入空格结束程序")
     input_str = input("")
     if input_str.isspace():

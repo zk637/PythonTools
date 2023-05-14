@@ -5,7 +5,7 @@ import subprocess
 import contextlib
 import sys
 
-
+#输入参数为列表
 def process_input_list():
     file_paths = []
     while True:
@@ -15,11 +15,13 @@ def process_input_list():
         file_paths.append(path.strip('"'))
     return file_paths
 
+#输入参数为字符串
 def process_input_str(s):
     str =""
     str=input()
     return str
 
+#输入字符串且有“”包裹
 def process_intput_strr(s):
     str=""
     str=input().replace('"', '')
@@ -59,7 +61,21 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
+#分别获取输入列表中的文件路径和文件夹路径
+def get_listunder_fileandfolder(source_dirs):
+    files = []
+    folders = []
+    for source_dir_path in source_dirs:
+        # 获取每个路径的绝对路径
+        abs_path = os.path.abspath(source_dir_path)
+        if os.path.isfile(abs_path):
+            files.append(abs_path)
+        else:
+            folders.append(abs_path)
+    return files,folders
+
 def read_rules_from_file():
+
     filename = "file_name_rules.txt"
     if not os.path.exists(filename):
         with open(filename, "w") as f:
