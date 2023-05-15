@@ -79,21 +79,28 @@ def generate_video_thumbnail():
 def check_files_in_folder(file_list):
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
-    folder = input()
-
+    folder_path = input()
     # 将 file_list 中的双引号去除
     file_list = [file.strip('"') for file in file_list]
 
-    # 获取 file_list 中的文件名
-    file_names = [os.path.basename(file) for file in file_list]
+    # 获取 file_list 中的文件名和文件夹名
+    file_names, folder_names = tools.get_listunder_fileandfolder(file_list)
 
     paths = []
-    for root, _, files in os.walk(folder):
+    for root, dirs, files in os.walk(folder_path):
+        # 如果需要比较文件夹名，则只保留需要比较的文件夹
+        for dir in dirs:
+            for name in folder_names:
+                if (os.path.basename(dir).lower()) == (os.path.basename(name).lower()):
+                    path = os.path.join(root, dir)
+                    paths.append(path)
+    for root, dirs, files in os.walk(folder_path):
+        # 如果需要比较文件夹名，则只保留需要比较的文件夹
         for file in files:
-            if file.lower() in [name.lower() for name in file_names]:
-                path = os.path.join(root, file)
-                paths.append(path)
-
+            for name in file_names:
+                if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
+                    path = os.path.join(root, file)
+                    paths.append(path)
     if not paths:
         # 如果没有找到匹配的文件，则输出提示信息并返回 None
         print("没有找到匹配的文件。")
