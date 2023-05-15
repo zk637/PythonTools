@@ -52,12 +52,12 @@ if __name__ == '__main__':
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
-    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）"""
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
     while True:
         # 需要重复执行的代码
         # ...
         def default_method():
-            print("Invalid input")
+            print("Invalid input\n")
         methods = {
             1: fileSize.get_total_file_size,
             2: fileSize.def_get_total_size,
@@ -98,13 +98,13 @@ if __name__ == '__main__':
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
-    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）""")
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
-        print("# 输入对应的编号")
+        print("# 输入对应的编号\n")
         print("--------------------------------------------------In--------------------------------------------------")
         try:
-            user_input = int(input("Enter a number: "))
+            user_input = int(input("Enter a number: \n"))
             if user_input == 1 or user_input == 2 or user_input == 13:
                 # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
                 file_paths = []
