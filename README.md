@@ -24,6 +24,7 @@ the following is a list of existing functions
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
+    #  18、判断指定文件夹下的压缩文件是否加密
     
     1. Obtain the file size code==01 in the same subdirectory
     2. Obtain the file size code==02 in different subdirectories
@@ -42,7 +43,7 @@ the following is a list of existing functions
     15. Gets the paths to all files in a folder and returns a list of file paths whose file names match the specified rules. Currently, only *keyword* matches are supported
     16. Obtain all paths in the two directories. If the file name of the source file is the same as the folder name of the target file, create a symbolic link (administrator permission is required).
     17. Create symbolic links in the specified directory for the specified file list (administrator permission required). Support file and folder mixing ""
-    
+    18. Check whether the compressed files in the specified folder are encrypted
    
 
   
