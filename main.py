@@ -10,6 +10,7 @@ import getresolution
 import removefolder
 import srt
 import datetime
+import zippackage
 from loggerconifg import Logger
 from loggerconifg import InputLogger
 from loggerconifg import createog
@@ -52,12 +53,13 @@ if __name__ == '__main__':
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
-    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
+    #  18、判断指定文件夹下的压缩文件是否加密"""
     while True:
         # 需要重复执行的代码
         # ...
         def default_method():
-            print("Invalid input\n")
+            print("Invalid input")
         methods = {
             1: fileSize.get_total_file_size,
             2: fileSize.def_get_total_size,
@@ -75,13 +77,13 @@ if __name__ == '__main__':
             14: fileduration.compare_and_move_files,
             15: fileduration.get_file_paths_with_rules,
             16: fileduration.create_symbolic_links,
-            17: fileduration.same_file_createsymbolic_links
+            17: fileduration.same_file_createsymbolic_links,
+            18: zippackage.check_zip_password
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-        print(f"-------------------------------------当前时间是: {time_str}-------------------------------------")
-
+        print(f"\n-------------------------------------当前时间是: {time_str}-------------------------------------")
         print("""       1、获取相同子目录下的文件大小            code==01
     #  2、获取不同子目录下的文件大小         code==02
     #  3、使用关键词来查找字幕文件           code==03
@@ -98,11 +100,12 @@ if __name__ == '__main__':
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
-    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合""")
+    #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
+    #  18、判断指定文件夹下的压缩文件是否加密 """)
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
-        print("# 输入对应的编号\n")
-        print("--------------------------------------------------In--------------------------------------------------")
+        print("# 输入对应的编号")
+        print("--------------------------------------------------In-----------------------------------------------------")
         try:
             user_input = int(input("Enter a number: \n"))
             if user_input == 1 or user_input == 2 or user_input == 13:
@@ -121,17 +124,15 @@ if __name__ == '__main__':
                 input_logger.stop_logging()
                 input_logger.close()
                 print(
-                    f"--------------------------------------------------End--------------------------------------------------")
+                    f"--------------------------------------------------End----------------------------------------------------")
             else:
                 methods.get(user_input, default_method)()
                 print(
-                    f"--------------------------------------------------End--------------------------------------------------")
-                input_logger.stop_logging()
-                input_logger.close()
-            print(
-                f"--------------------------------------------------End--------------------------------------------------")
-            print("是否继续执行？(Y/N)")
-            user_input = input("是否继续执行？(Y/N)")
+                    f"--------------------------------------------------End----------------------------------------------------")
+            input_logger.stop_logging()
+            input_logger.close()
+            print("是否继续执行？(Y/N)\n")
+            user_input = input()
             if user_input.lower() == "y":
                 # 继续执行，回到程序开头
                 continue

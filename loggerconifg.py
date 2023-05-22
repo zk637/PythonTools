@@ -74,4 +74,4 @@ class InputLogger:
 
 
 def exit_handler():
-    sys.stderr.write('\n' + '-' * 50 + 'End' + '-' * 50)
+    sys.stderr.write('\n' + '-' * 50 + 'End' + '-' * 52)
