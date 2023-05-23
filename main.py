@@ -1,8 +1,5 @@
 # This is a sample Python script.
 import atexit
-import os
-import subprocess
-
 import fileSize
 import filecount
 import fileduration

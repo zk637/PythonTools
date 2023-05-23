@@ -1,9 +1,7 @@
-import os
 import py7zr
 import patoolib
 import rarfile
 import tools
-
 
 
 def check_zip_password():

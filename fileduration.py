@@ -183,15 +183,24 @@ def get_file_paths_with_rules():
     # print(f"规则列表：{file_name_rules}")
     try:
         for root, dirs, files in os.walk(folder_path):
-            for file_name in files:
-                full_path = os.path.join(root, file_name)
-                # add comparison of folder name with the specified rules
-                folder_name = os.path.basename(os.path.normpath(root))
+            for folder_name in dirs:
+                folder_full_path = os.path.join(root, folder_name)
                 for rule in file_name_rules:
-                    regex_pattern = '.*{}.*'.format(re.escape(rule.strip()))
-                    # check if either file name or folder name matches the rule
-                    if (re.search(regex_pattern, file_name)) or (re.search(regex_pattern, folder_name)):
-                        paths.append(full_path)
+                    regex_pattern = r'^' + re.escape(rule) + r'$'
+                    if not rule:
+                        continue
+                    if re.search(regex_pattern, folder_name):
+                        paths.append(folder_full_path)
+                        break
+            for file_name in files:
+                file_full_path = os.path.join(root, file_name)
+                file_name_without_ext, file_ext = os.path.splitext(file_name)
+                for rule in file_name_rules:
+                    regex_pattern = r'^' + re.escape(rule) + r'$'
+                    if not rule:
+                        continue
+                    if re.search(regex_pattern, file_name_without_ext):
+                        paths.append(file_full_path)
                         break
         print('\n'.join(paths))
     except Exception as e:
