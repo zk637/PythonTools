@@ -51,7 +51,8 @@ if __name__ == '__main__':
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
-    #  18、判断指定文件夹下的压缩文件是否加密"""
+    #  18、判断指定文件夹下的压缩文件是否加密
+    #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -75,7 +76,8 @@ if __name__ == '__main__':
             15: fileduration.get_file_paths_with_rules,
             16: fileduration.create_symbolic_links,
             17: fileduration.same_file_createsymbolic_links,
-            18: zippackage.check_zip_password
+            18: zippackage.check_zip_password,
+            19: zippackage.extract_archive
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
@@ -98,7 +100,8 @@ if __name__ == '__main__':
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
-    #  18、判断指定文件夹下的压缩文件是否加密 """)
+    #  18、判断指定文件夹下的压缩文件是否加密 
+    #  19、判断指定文件夹下的压缩文件是否加密-精确兼容强(支持7z分卷格式）""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")

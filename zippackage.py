@@ -1,3 +1,9 @@
+import datetime
+import os
+import subprocess
+import shutil
+import sys
+
 import py7zr
 import patoolib
 import rarfile
@@ -7,35 +13,47 @@ import tools
 def check_zip_password():
     print("请输入需要检索的文件夹")
     var = input()
+    print("是否处理7zip格式？ y/n")
+    zipflag = input()
+    if str(zipflag).lower() == 'y':
+        print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
+        flag = input() or 'r'
+        flag = str(flag)
     rar_lists = []
-    sevenzip_lists=[]
+    sevenzip_lists = []
     # final_lists_rar=[]
     # final_lists_7z=[]
-    final_lists=[]
-    ex_final_lists=[]
+    final_lists = []
+    ex_final_lists = []
     # final_list=tools.get_zippartfile(var)
-    file_paths = tools.get_file_paths_limit(var, ".zip",  ".gz", "xz", ".bz2", ".tar", ".tar.gz",
-                                           ".tar.xz",
-                                           ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx")
-    sevenzip_lists=tools.get_file_paths_limit(var,".7z")
-    rar_lists=tools.get_file_paths_limit(var,".rar")
+    file_paths = tools.get_file_paths_limit(var, ".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
+                                            ".tar.xz",
+                                            ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx")
+    sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
+    rar_lists = tools.get_file_paths_limit(var, ".rar")
+    # file_paths = tools.get_file_paths_limit(var, ".zip")
+    # sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
+    # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
-    for sevenzip_list in sevenzip_lists:
-        try:
-            with py7zr.SevenZipFile(sevenzip_list, mode='r') as archive:
-                if archive.needs_password():
-                    final_lists.append(sevenzip_list)
-                    # print(f'{sevenzip_list} 存在密码')
-                else:
-                    ex_final_lists.append(sevenzip_list)
-                    # print(f'{sevenzip_list} 没有密码')
-        except py7zr.exceptions.Bad7zFile:
-            print(f'{sevenzip_list} 不是有效的7z压缩文件')
-
+    if zipflag.lower() == 'y':
+        # print(datetime.datetime.now())
+        for sevenzip_list in sevenzip_lists:
+            try:
+                if os.access(sevenzip_list, mode=os.W_OK):
+                    with py7zr.SevenZipFile(sevenzip_list, mode=flag) as archive:
+                        if archive.needs_password():
+                            final_lists.append(sevenzip_list)
+                            # print(f'{sevenzip_list} 存在密码')
+                        else:
+                            ex_final_lists.append(sevenzip_list)
+                            # print(f'{sevenzip_list} 没有密码')
+            except py7zr.exceptions.Bad7zFile as e:
+                pass
+                print(f'{sevenzip_list} 不是有效的7z压缩文件')
     for file_path in file_paths:
         try:
-            patoolib.test_archive(file_path ,verbosity=-1)
+            patoolib.test_archive(file_path, verbosity=-1)
             # patoolib.test_archive(file_path, program=f'D:\\Softwere green\\winrar\\WinRAR.exe' ,verbosity=-1)
             # patoolib.test_archive(file_path, program=f"D:\\Green software\\7-Zip\\7zFM.exe" ,verbosity=-1)
             ex_final_lists.append(file_path)
@@ -49,7 +67,7 @@ def check_zip_password():
             else:
                 print(file_path + "发生错误：")
                 print(e)
-
+                pass
     for rar_list in rar_lists:
         try:
             rf = rarfile.RarFile(rar_list)
@@ -62,6 +80,7 @@ def check_zip_password():
         except Exception as e:
             print(rar_list + "发生错误：")
             print(e)
+            pass
     """遍历结果"""
     print("--------------------------------------------------无密码----------------------------------------------------")
     for ex_final_list in ex_final_lists:
@@ -69,6 +88,81 @@ def check_zip_password():
     print("--------------------------------------------------有密码----------------------------------------------------")
     for final_list in final_lists:
         print(final_list)
+    # print(datetime.datetime.now())
+
+
+def extract_archive():
+    print("请输入文件夹")
+    folder = input()
+    password = "password"
+    # filelists = tools.get_file_paths(folder)
+    filelists = tools.get_file_paths_limit(folder, ".7z", ".rar", ".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
+                                           ".tar.xz",
+                                           ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx")
+    # folder=tools.get_file_paths(folder)
+    file_parts_lists = tools.get_files_matching_pattern(folder,r'.*.[^.]*0[^.]*$')
+    final_lists = []
+    ex_lists = []
+    print(datetime.datetime.now())
+    print("正在执行：压缩文件的加密判断...")
+    if hasattr(sys, '_MEIPASS'):
+        # 打包后的 exe 运行环境
+        exe_path = sys.executable
+        target_path = os.path.join(os.path.dirname(exe_path), '7z.exe')
+    else:
+        # 非打包调试环境
+        target_path = os.path.join(os.getcwd(), '7z.exe')
+
+    if not os.path.exists(target_path):
+        # 从打包后的 exe 文件中复制
+        source_path = os.path.join(sys._MEIPASS, '7z.exe')
+        shutil.copy2(source_path, target_path)
+    for filelist in filelists:
+        try:
+            # command = f'cmd_zip.bat "{filelist}"'
+            # path_to_7z=os.path.join("\\lib\\7z.exe")
+            command = f'7z t -p "{filelist}"'
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as err:
+            output = err.output
+
+        output = output.decode('gbk')
+
+        if  "ERROR: Wrong password" in output or "Data Error" in output:
+            final_lists.append(filelist)
+            # print(f"Wrong password for {filelist}")
+        else:
+            ex_lists.append(filelist)
+
+    print("正在执行：分卷压缩文件的加密判断...")
+    for file_parts_list in file_parts_lists:
+        try:
+            # command = f'cmd_zip.bat "{filelist}"'
+            command = f'7z t -p "{file_parts_list}"'
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+        except subprocess.CalledProcessError as err:
+            output = err.output
+
+        output = output.decode('gbk')
+
+        if "ERROR: Wrong password" in output or "Data Error" in output:
+            final_lists.append(file_parts_list)
+            # print(f"Wrong password for {filelist}")
+        else:
+            ex_lists.append(file_parts_list)
+
+    if ex_lists:
+        print(
+            "--------------------------------------------------无密码----------------------------------------------------")
+        for ex_list in ex_lists:
+            print(ex_list)
+    if final_lists:
+        print(
+            "--------------------------------------------------有密码----------------------------------------------------")
+        for final_list in final_lists:
+            print(final_list)
+    print(datetime.datetime.now())
+
 
 
 
