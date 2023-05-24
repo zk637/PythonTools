@@ -1,5 +1,7 @@
 import ctypes
 import os
+import re
+
 import ffmpeg
 import subprocess
 import contextlib
@@ -60,6 +62,17 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             path = os.path.join(root, file)
             paths.append(path)
     return paths
+
+# 通用指定后缀模糊匹配工具
+def get_files_matching_pattern(folder_path,reg):
+    files = []
+    for root, dirs, filenames in os.walk(folder_path):
+        for filename in filenames:
+            if re.search(reg, filename):
+                file_path = os.path.join(root, filename)
+                files.append(file_path)
+    return files
+
 
 #分别获取输入列表中的文件路径和文件夹路径
 def get_listunder_fileandfolder(source_dirs):
