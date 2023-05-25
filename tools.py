@@ -73,6 +73,144 @@ def get_files_matching_pattern(folder_path,reg):
                 files.append(file_path)
     return files
 
+def get_same_namefile(folder_path):
+    all_files = []  # 用于保存所有文件路径
+
+    # 获取所有文件路径
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for file_name in filenames:
+            file_path = os.path.join(dirpath, file_name)
+            all_files.append(file_path)
+
+    # 获取至少有两个相同文件名的路径
+    same_name_files = []
+    for file_path in all_files:
+        file_name = os.path.basename(file_path)
+        same_name = [path for path in all_files if os.path.basename(path) == file_name]
+
+        if len(same_name) > 1 and same_name not in same_name_files:
+            same_name_files.append(same_name)
+
+    # 返回至少有两个相同文件名的路径
+    return [path for file_paths in same_name_files for path in file_paths]
+
+def get_same_namefile(folder_path):
+    all_files = []  # 用于保存所有文件路径
+
+    # 获取所有文件路径
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for file_name in filenames:
+            file_path = os.path.join(dirpath, file_name)
+            all_files.append(file_path)
+
+    # 获取至少有两个相同文件名的路径
+    file_name_dict = {}
+    for file_path in all_files:
+        file_name = os.path.basename(file_path)
+        file_name_dict.setdefault(file_name, []).append(file_path)
+
+    same_name_files = [path for name, paths in file_name_dict.items() if len(paths) > 1 for path in paths]
+
+    # 返回至少有两个相同文件名的路径
+    return same_name_files
+
+#通用去重工具
+def DelRepat(data,key):
+    new_data= []
+    values =[]
+    for d in data:
+        if d[key] not in values:
+            new_data.append(d)
+            values.append(d[key])
+    return new_data
+
+
+
+def remove_duplicate_files(file_list):
+    files_by_name = {}
+    for file_path in file_list:
+        name, ext = os.path.splitext(file_path)
+        parts = name.split(".")
+        file_name = parts[0]
+        file_dir = ".".join(parts[1:])
+        if file_name not in files_by_name:
+            files_by_name[file_name] = {"dirs": {file_dir}, "paths": {file_path}}
+        else:
+            files_by_name[file_name]["dirs"].add(file_dir)
+            files_by_name[file_name]["paths"].add(file_path)
+    unique_files = []
+    for file_data in files_by_name.values():
+        if len(file_data["dirs"]) == 1:
+            unique_files.append(list(file_data["paths"])[0])
+        else:
+            for file_path in file_data["paths"]:
+                path, file_name = os.path.split(file_path)
+                if file_name.endswith(tuple(file_data["dirs"])):
+                    unique_files.append(file_path)
+                    break
+    return unique_files
+def remove_duplicate_files(file_list):
+    files_by_name = {}
+    for file_path in file_list:
+        name, ext = os.path.splitext(file_path)
+        parts = name.split(".")
+        file_name = parts[0]
+        file_dir = ".".join(parts[1:])
+        if file_name not in files_by_name:
+            files_by_name[file_name] = {"dirs": {file_dir}, "paths": {file_path}}
+        else:
+            files_by_name[file_name]["dirs"].add(file_dir)
+            files_by_name[file_name]["paths"].add(file_path)
+    unique_files = []
+    for file_name, file_data in files_by_name.items():
+        if len(file_data["dirs"]) == 1:
+            unique_files.extend(list(file_data["paths"]))
+        else:
+            all_paths = list(file_data["paths"])
+            unique_files.extend(all_paths)
+    return unique_files
+#留重工具
+def keep_duplicate_files(file_list):
+    # A dictionary to store files by their names
+    files_by_name = {}
+    # Traverse all the files
+    for file_path in file_list:
+        # Extract the name and extension of the file
+        name, ext = os.path.splitext(os.path.basename(file_path))
+        # Count the number of times the name appears
+        if name not in files_by_name:
+            files_by_name[name] = {'count': 0, 'paths': []}
+        files_by_name[name]['count'] += 1
+        files_by_name[name]['paths'].append(file_path)
+
+    ique_files = []
+    # Traverse the dictionary
+    for name, info in files_by_name.items():
+        # If the name appears more than once
+        if info['count'] > 1:
+            # Add all the paths to the result list
+            ique_files.extend(info['paths'])
+    return ique_files
+# -------------------------------
+
+
+def remove_duplicate_files(file_list):
+    files_by_name = {}
+    for file_path in file_list:
+        name, ext = os.path.splitext(os.path.basename(file_path))
+        if name not in files_by_name:
+            files_by_name[name] = [file_path]
+        else:
+            files_by_name[name].append(file_path)
+    unique_files = []
+    for file_name, file_paths in files_by_name.items():
+        if len(file_paths) > 1:
+            # 删除重复的路径，只保留其中一个
+            unique_files.append(file_paths[0])
+        else:
+            # 文件名只出现了一次，直接添加路径
+            unique_files.extend(file_paths)
+    return unique_files
 
 #分别获取输入列表中的文件路径和文件夹路径
 def get_listunder_fileandfolder(source_dirs):
@@ -238,3 +376,96 @@ def admin_process():
         os.execl(sys.executable, *([sys.executable] + sys.argv))
         sys.exit()
 
+def create_groups(lists,reg):
+    lists_by_reg ={}
+    for list in lists:
+        try:
+            path,temeame=os.path.splitext(list)
+            var=os.path.basename(list)
+            tempfilename=os.path.basename(list).split('.')[0]
+            # tempfilename=tempfilename.index(1)
+        except Exception as e:
+            print(e)
+        try:
+            if path not in lists_by_reg:
+                # 构建正则
+                regf=re.compile(f""+tempfilename+reg+"")
+                match=re.search(regf,var,flags=0)
+            if not match:
+                lists_by_reg[tempfilename] = {'count': 0, 'path': [], 'name': []}
+            lists_by_reg[tempfilename]['count']+=1
+            lists_by_reg[tempfilename]['path'].append(list)
+            lists_by_reg[tempfilename]['name'].append(var)
+        except Exception as e:
+            print(e)
+    ique_files = []
+    # Traverse the dictionary
+    for name, info in lists_by_reg.items():
+        # If the name appears more than once
+        if info['count'] > 1:
+            # Add all the paths to the result list
+            ique_files.extend(info['path'])
+    return ique_files
+
+#----------------------------------------------------------
+def register_findone(lists, reg):
+    lists_by_reg = {}
+    # Traverse all the files
+    final_name=os.path.basename(lists[0]).split('.')[0]
+    # print(lists[0])
+    for file_path in lists:
+        try:
+            tempfilename = os.path.basename(file_path).split('.')[0]
+            if tempfilename not in lists_by_reg:
+                lists_by_reg[tempfilename] = {
+                    'count': 0,
+                    'path': [],
+                    'name': []
+                }
+            regf = re.compile(tempfilename + reg)
+            match = regf.search(os.path.basename(file_path))
+            if match and not final_name!=tempfilename:
+                lists_by_reg[tempfilename]['count'] += 1
+                lists_by_reg[tempfilename]['path'].append(file_path)
+                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+        except Exception as e:
+            print(e)
+
+    # Traverse the dictionary
+    ique_files = []
+    for tempfilename, info in lists_by_reg.items():
+        # If the name appears more than once
+        if info['count'] > 1:
+            # Add all the paths to the result list
+            ique_files.extend(info['path'])
+    return ique_files
+
+def register_find(lists, reg):
+    lists_by_reg = {}
+    for file_path in lists:
+        try:
+            tempfilename = os.path.basename(file_path).split('.')[0]
+            # Create an entry in the dictionary if it does not exist
+            if tempfilename not in lists_by_reg:
+                lists_by_reg[tempfilename] = {
+                    'count': 0,
+                    'path': [],
+                    'name': []
+                }
+            regf = re.compile(tempfilename + reg)
+            match = regf.search(os.path.basename(file_path))
+            if match :
+                lists_by_reg[tempfilename]['count'] += 1
+                lists_by_reg[tempfilename]['path'].append(file_path)
+                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+        except Exception as e:
+            print(e)
+
+    # Traverse the dictionary
+    ique_files = []
+    for tempfilename, info in lists_by_reg.items():
+        # If the name appears more than once
+        if info['count'] > 1:
+            # Add all the paths to the result list
+            ique_files.extend(info['path'])
+    return ique_files

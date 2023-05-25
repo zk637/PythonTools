@@ -77,7 +77,8 @@ if __name__ == '__main__':
             16: fileduration.create_symbolic_links,
             17: fileduration.same_file_createsymbolic_links,
             18: zippackage.check_zip_password,
-            19: zippackage.extract_archive
+            19: zippackage.extract_archive,
+            20: zippackage.ziptest
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
