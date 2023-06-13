@@ -248,18 +248,18 @@ def read_rules_from_file():
 
 def get_video_details(path):
     """获取视频文件的详细信息"""
-
-    probe = ffmpeg.probe(path)
-    video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-    # duration = float(video_stream['duration']) * 60
-    duration = float(probe["format"]["duration"]) * 60
-    bitrate = int(probe["format"]['bit_rate'])
-    width = int(video_stream['width'])
-    height = int(video_stream['height'])
-    # bitrate = int(video_stream['bit_rate'])
-    # width = int(video_stream['width'])
-    # height = int(video_stream['height'])
-    return duration, bitrate, width, height
+    if os.path.exists(path):
+        probe = ffmpeg.probe(path)
+        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        # duration = float(video_stream['duration']) * 60
+        duration = float(probe["format"]["duration"]) * 60
+        bitrate = int(probe["format"]['bit_rate'])
+        width = int(video_stream['width'])
+        height = int(video_stream['height'])
+        # bitrate = int(video_stream['bit_rate'])
+        # width = int(video_stream['width'])
+        # height = int(video_stream['height'])
+        return duration, bitrate, width, height
 
 def get_video_info_list(paths):
     video_info_list = []
@@ -292,6 +292,37 @@ def get_video_info_list(paths):
 def get_file_count(folder):
     """获取文件夹下所有文件的数量"""
     return len(get_file_paths(folder))
+
+    # 获取用户输入的文件名列表和路径
+def get_list_files(path):
+    """
+    获取指定路径下包括子目录的所有文件路径
+    """
+    files = []
+    # 递归遍历路径下所有文件和文件夹
+    for root, dirs, filenames in os.walk(path):
+        for filename in filenames:
+            files.append(os.path.join(root, filename))
+    return files
+
+def get_list_dirs(path):
+    """
+    获取指定路径下的所有子目录路径
+    """
+    dirs = []
+    for subdir in os.listdir(path):
+        dir_path = os.path.join(path, subdir)
+        if os.path.isdir(dir_path):
+            dirs.append(dir_path)
+            subdirs = get_list_dirs(dir_path)
+            if subdirs:
+                dirs.extend(subdirs)
+    return dirs
+
+def get_sort_list(rules):
+    sorted_rules = sorted(rules, key=len)
+    for rule in sorted_rules:
+        print(f'{len(rule)}: {rule}')
 
 def get_video_duration(video_path):
     """获取视频时长"""
