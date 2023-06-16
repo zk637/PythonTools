@@ -403,3 +403,25 @@ def same_file_createsymbolic_links():
         sys.exit()
     else:
         print("非空格，程序继续.....")
+
+
+def get_exclude_suffix_list():
+    file_paths_list=[]
+    while True:
+        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        path=input()
+        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        if not path:
+            break
+        file_paths_list.append(path)
+    print("输入需要排除的后缀")
+    excluded_extensions=input()
+    matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+
+    if matching_files:
+        print("Matching files:")
+        for file_path in matching_files:
+            print(file_path)
+    else:
+        print("No matching files found")
+    return None

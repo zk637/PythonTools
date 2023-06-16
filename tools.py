@@ -50,6 +50,39 @@ def get_file_paths_limit(folder, *extensions):
         print("未找到任何文件")
     return paths
 
+def find_matching_files(paths, *extensions):
+    """获取指定路径列表下所有与指定后缀不匹配的文件路径"""
+    extensions = [e.lower() for e in extensions]  # 将所有后缀名转换为小写
+    matching_files = []
+    print("是否检索文件夹Y/N（默认不检索）")
+    try:
+        flag = input() or "n"
+    except Exception as e:
+        flag = "n"
+    try:
+        for path in paths:
+            if os.path.isfile(path):
+                path, ext = os.path.splitext(path)
+                if ext.lower() in extensions:
+                    continue
+                dir_path = os.path.dirname(path)
+                for filename in os.listdir(dir_path):
+                    if not filename.startswith(os.path.basename(path)) or filename.lower().endswith(tuple(extensions)):
+                        continue
+                    matching_files.append(os.path.join(dir_path, filename))
+            elif os.path.isdir(path):
+                if flag.lower()=='y':
+                    for root, dirs, files in os.walk(path):
+                        for filename in files:
+                            path, ext = os.path.splitext(filename)
+                            if ext.lower() not in extensions:
+                                matching_files.append(os.path.join(root, filename))
+            else:
+                raise ValueError(f"{path} is not a valid directory or file path")
+    except Exception as e:
+        print(e)
+        return matching_files
+
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
     """获取文件夹下的文件路径并排除后缀和文件夹"""
     paths = []

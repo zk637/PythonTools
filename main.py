@@ -53,7 +53,8 @@ if __name__ == '__main__':
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
     #  18、判断指定文件夹下的压缩文件是否加密
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
-    #  20、获取符合录入文件名的文件路径"""
+    #  20、获取符合录入文件名的文件路径
+    #  21、获取不在指定后缀的文件路径（输入为路径列表）"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -79,13 +80,14 @@ if __name__ == '__main__':
             17: fileduration.same_file_createsymbolic_links,
             18: zippackage.check_zip_password,
             19: zippackage.extract_archive,
-            20: fileduration.get_file_paths_with_name
+            20: fileduration.get_file_paths_with_name,
+            21: fileduration.get_exclude_suffix_list
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
         print(f"\n-------------------------------------当前时间是: {time_str}-------------------------------------")
-        print(    """1、获取相同子目录下的文件大小            code==01
+        print("""       1、获取相同子目录下的文件大小            code==01
     #  2、获取不同子目录下的文件大小         code==02
     #  3、使用关键词来查找字幕文件           code==03
     #  4、匹配视频目录下对应的字幕文件并返回列表  code==04
@@ -104,7 +106,8 @@ if __name__ == '__main__':
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
     #  18、判断指定文件夹下的压缩文件是否加密
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
-    #  20、获取符合录入文件名的文件路径""")
+    #  20、获取符合录入文件名的文件路径
+    #  21、获取不在指定后缀的文件路径（输入为路径列表）""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
