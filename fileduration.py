@@ -95,7 +95,7 @@ def check_files_in_folder(file_list):
                     path = os.path.join(root, dir)
                     paths.append(path)
     for root, dirs, files in os.walk(folder_path):
-        # 如果需要比较文件夹名，则只保留需要比较的文件夹
+        # 如果需要比较文件名，则只保留需要比较的文件名
         for file in files:
             for name in file_names:
                 if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
@@ -196,9 +196,10 @@ def get_file_paths_with_rules():
                 file_full_path = os.path.join(root, file_name)
                 file_name_without_ext, file_ext = os.path.splitext(file_name)
                 for rule in file_name_rules:
-                    regex_pattern = r'^' + re.escape(rule) + r'$'
+                    regex_pattern = r'^.*' + re.escape(rule) + r'.*$'
                     if not rule:
                         continue
+                    print(regex_pattern)
                     if re.search(regex_pattern, file_name_without_ext):
                         paths.append(file_full_path)
                         break
@@ -206,6 +207,41 @@ def get_file_paths_with_rules():
     except Exception as e:
         print(e)
 
+def get_file_paths_with_name():
+    # 获取用户输入的文件名列表和路径
+    print(r"请输入需要检索的文件夹路径：")
+    folderpath = input()
+    found_files = []
+
+    filenames_list=[]
+    while True:
+        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        path=input()
+        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        if not path:
+            break
+        filenames_list.append(path)
+    # 获取指定路径下及其子目录下的所有文件路径
+    files_in_folder = tools.get_list_files(folderpath)
+    # 获取指定路径下的所有子目录路径
+    dirs_in_folder = tools.get_list_dirs(folderpath)
+
+    # 对比用户输入的文件名和指定路径下的所有文件中的文件名，找到匹配的文件
+    for filename in filenames_list:
+        for file in files_in_folder:
+            if os.path.splitext(os.path.basename(file))[0] == filename:
+                found_files.append(file)
+        for subdir in dirs_in_folder:
+            if os.path.splitext(os.path.basename(subdir))[0] == filename:
+                    found_files.append(subdir)
+
+    # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
+    if len(found_files) > 0:
+        print("找到的文件有:")
+        for file in found_files:
+            print(file)
+    else:
+        print("这些文件都不存在！")
 
 # def compare_file_and_folder_names():
 #     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3','.ts']
@@ -367,3 +403,25 @@ def same_file_createsymbolic_links():
         sys.exit()
     else:
         print("非空格，程序继续.....")
+
+
+def get_exclude_suffix_list():
+    file_paths_list=[]
+    while True:
+        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        path=input()
+        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        if not path:
+            break
+        file_paths_list.append(path)
+    print("输入需要排除的后缀")
+    excluded_extensions=input()
+    matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+
+    if matching_files:
+        print("Matching files:")
+        for file_path in matching_files:
+            print(file_path)
+    else:
+        print("No matching files found")
+    return None
