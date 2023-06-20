@@ -12,13 +12,23 @@ def get_video_duration_sorted():
     """获取文件夹下所有视频文件的时长并排序输出"""
     print("请输入视频文件夹")
     folder = tools.process_input_str("")
+    folder_flag=True
+    if not os.path.isdir(folder):
+        folder_flag=False
+        paths = []
+        while True:
+            path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            if not path:
+                break
+            paths.append(path.strip('"'))
     print("是否纯净输出y/n")
     flag=input()
-    # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
-    paths = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+    if folder_flag:
+        # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
+        paths = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
     durations = []
     for path in paths:
         duration = tools.get_video_duration(path)
@@ -199,7 +209,7 @@ def get_file_paths_with_rules():
                     regex_pattern = r'^.*' + re.escape(rule) + r'.*$'
                     if not rule:
                         continue
-                    print(regex_pattern)
+                    # print(regex_pattern)
                     if re.search(regex_pattern, file_name_without_ext):
                         paths.append(file_full_path)
                         break
@@ -424,4 +434,10 @@ def get_exclude_suffix_list():
             print(file_path)
     else:
         print("No matching files found")
+    return None
+
+
+def get_filepathsort():
+    rules=[]
+    tools.get_sort_list(rules)
     return None

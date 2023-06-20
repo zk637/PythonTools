@@ -355,7 +355,8 @@ def get_list_dirs(path):
 def get_sort_list(rules):
     sorted_rules = sorted(rules, key=len)
     for rule in sorted_rules:
-        print(f'{len(rule)}: {rule}')
+        print(f'{rule}')
+        # print(f'{len(rule)}: {rule}')
 
 def get_video_duration(video_path):
     """获取视频时长"""
