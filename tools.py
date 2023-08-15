@@ -3,6 +3,7 @@ import os
 import re
 
 import ffmpeg
+import filetype
 import subprocess
 import contextlib
 import sys
@@ -46,6 +47,17 @@ def get_file_paths_limit(folder, *extensions):
             if file.endswith(tuple(extensions)):
                 path = os.path.join(root, file)
                 paths.append(path)
+    if not paths:
+        print("未找到任何文件")
+    return paths
+
+def get_file_paths_list_limit(file_paths_list, *extensions):
+    """获取文件列表中指定后缀的所有文件的路径"""
+    paths = []
+    for file_path in file_paths_list:
+        file_ext = os.path.splitext(file_path)[1].lower().replace('"', '')
+        if file_ext in extensions:
+            paths.append(file_path)
     if not paths:
         print("未找到任何文件")
     return paths
@@ -157,7 +169,62 @@ def DelRepat(data,key):
             values.append(d[key])
     return new_data
 
+#检查文件类型是否合法
+# def check_file_access(file_paths):
+#     for file_path in file_paths:
+#         try:
+#             kind = filetype.guess(file_path)
+#             if kind is None:
+#                 print(f"Cannot determine file type: {file_path}")
+#             else:
+#                 print(f"File type: {kind.mime}")
+#         except Exception as e:
+#             print(e)
+def check_file_access(file_paths):
+    results = {
+        'cannot_determine_type': [],
+        'has_file_type': [],
+        'no_type_determined': [],
+        'error_files': []
+    }
 
+    for file_path in file_paths:
+        try:
+            kind = filetype.guess(file_path)
+            if kind is None:
+                results['cannot_determine_type'].append(file_path)
+            else:
+                results['has_file_type'].append({'file_path': file_path, 'file_type': kind.mime})
+        except Exception as e:
+            results['error_files'].append({'file_path': file_path, 'error_message': str(e)})
+
+    # Output files with "Cannot determine file type" error
+    if results['cannot_determine_type']:
+        print("Errors with 'Cannot determine file type':")
+        for file_path in results['cannot_determine_type']:
+            print(file_path)
+        print("_" * 30)  # Print a line to separate categories
+
+    # Output files with successful "File type" determined
+    if results['has_file_type']:
+        print("Files with 'File type':")
+        for file_data in results['has_file_type']:
+            print(f"{file_data['file_path']} (File type: {file_data['file_type']})")
+        print("_" * 30)  # Print a line to separate categories
+
+    # Output files where no type determined
+    if results['no_type_determined']:
+        print("Files with no type determined:")
+        for file_path in results['no_type_determined']:
+            print(file_path)
+        print("_" * 30)  # Print a line to separate categories
+
+    # Output files with errors
+    if results['error_files']:
+        print("Files with errors:")
+        for file_data in results['error_files']:
+            print(f"{file_data['file_path']}\nError: {file_data['error_message']}")
+        print("_" * 30)  # Print a line to separate categories
 
 def remove_duplicate_files(file_list):
     files_by_name = {}
@@ -412,6 +479,27 @@ def capture_output_to_file(func):
             with contextlib.redirect_stdout(f):
                 func(*args, **kwargs)
     return wrapper
+
+
+# import wx
+#
+# class Frame(wx.Frame):
+#
+#     def __init__(self):  # ,pos=(0,0)
+#         wx.Frame.__init__(self, None, title=u"", pos=(10, 10), size=(1340, 670),
+#                           style=wx.SIMPLE_BORDER | wx.TRANSPARENT_WINDOW)
+#         self.Center(wx.CURSOR_WAIT)
+#         self.SetMaxSize((1340, 670))
+#         self.SetMinSize((1340, 670))
+#         self.panel = wx.Panel(self, size=(1340, 670))
+#         self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+#
+#         Close_Button = wx.Button(self.panel, label=u"关闭", pos=(1240, 0), size=(100, 45))
+#
+#         self.Bind(wx.EVT_BUTTON, self.OnClose, Close_Button)
+#
+#     def OnClose(self, event):
+#         self.Destroy()
 
 def admin_process():
     def is_admin():

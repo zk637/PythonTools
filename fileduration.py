@@ -47,15 +47,34 @@ def get_video_duration_sorted():
 
 def print_video_info_list():
     """输出视频文件的大小、时长、比特率和分辨率"""
-    print("请输入视频文件夹")
-    folder = tools.process_input_str("")
-    print("是否纯净输出y/n")
-    flag=input()
-    # folder = tools.get_file_paths_limit(folder, '.mp4', '.avi', ".mov", ".wmv", ".mkv")
-    folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag=input() or 'n'
+    if flag.lower()=='y':
+        # 新增方法：获取文件路径列表
+        file_paths_list = []
+
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            if not path:
+                break
+            file_paths_list.append(path.replace('"',''))
+        print("是否纯净输出y/n")
+        flag = input()
+        folder=tools.get_file_paths_list_limit(file_paths_list,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
             '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
         '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
         '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+    else:
+        print("请输入视频文件夹")
+        folder = tools.process_input_str("")
+        print("是否纯净输出y/n")
+        flag = input()
+        folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
     if not folder:
         print("文件为空，需检查条件或参数！")
         return
@@ -440,4 +459,13 @@ def get_exclude_suffix_list():
 def get_filepathsort():
     rules=[]
     tools.get_sort_list(rules)
+    return None
+
+
+def getfiletypeislegal():
+    print("请输入文件夹路径:")
+    source_folder_path = input("")
+    path=tools.get_file_paths(source_folder_path)
+    # print(path)
+    tools.check_file_access(path)
     return None
