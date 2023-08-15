@@ -28,6 +28,8 @@ the following is a list of existing functions
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取符合录入文件名的文件路径
     #  21、获取不在指定后缀的文件路径（输入为路径列表）
+    #  22、过滤规则格式化
+    #  23、校验文件是否合法
     
     1. Obtain the file size code==01 in the same subdirectory
     2. Obtain the file size code==02 in different subdirectories
@@ -50,6 +52,7 @@ the following is a list of existing functions
     19. determine whether the compressed file under the specified folder is encrypted - accurate (support 7z volume format)
     20. Get the file path that matches the input file name
     21. get the file path that is not the specified suffix (input as the path list)
-   
+    # 22, filter rule formatting
+    # 23. Check whether the file is legitimate
 
   
