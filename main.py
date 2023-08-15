@@ -55,7 +55,8 @@ if __name__ == '__main__':
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取符合录入文件名的文件路径
     #  21、获取不在指定后缀的文件路径（输入为路径列表）
-    #  22、过滤规则格式化"""
+    #  22、过滤规则格式化
+    #  23、校验文件是否合法"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -83,7 +84,8 @@ if __name__ == '__main__':
             19: zippackage.extract_archive,
             20: fileduration.get_file_paths_with_name,
             21: fileduration.get_exclude_suffix_list,
-            22: fileduration.get_filepathsort
+            22: fileduration.get_filepathsort,
+            23: fileduration.getfiletypeislegal
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
@@ -110,7 +112,8 @@ if __name__ == '__main__':
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取符合录入文件名的文件路径
     #  21、获取不在指定后缀的文件路径（输入为路径列表）
-    #  22、过滤规则格式化""")
+    #  22、过滤规则格式化
+    #  23、校验文件是否合法""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
