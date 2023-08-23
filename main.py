@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #  7、通过视频目录查找符合区间条件分辨率的媒体文件          code==07
     #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表   code==08
     #  9、获取文件列表下的文件数量                           code==09
-    #  10、获取文件在大小区间下的列表                       code==10
+    #  10、获取文件在大小区间下的列表或在修改时间区间下的列表       code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
@@ -72,7 +72,7 @@ if __name__ == '__main__':
             7: getresolution.get_low_resolution_media_files,
             8: removefolder.remove_small_folders,
             9: filecount.getfoldercount,
-            10: fileSize.filter_files_by_size,
+            10: fileSize.filter_files_by_sizeordate,
             11: fileduration.get_video_duration_sorted,
             12: fileduration.print_video_info_list,
             13: fileduration.check_files_in_folder,
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     #  7、通过视频目录查找符合区间条件分辨率的媒体文件          code==07
     #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表   code==08
     #  9、获取文件列表下的文件数量                           code==09
-    #  10、获取文件在大小区间下的列表                       code==10
+    #  10、获取文件在大小区间下的列表或在修改时间区间下的列表     code==10
     #  11、取文件夹下所有视频文件的时长并排序输出             code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表
