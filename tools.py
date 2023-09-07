@@ -30,6 +30,10 @@ def process_intput_strr(s):
     str=input().replace('"', '')
     return str
 
+def add_quotes_forpath(s):
+    str='"'+s+'"'
+    return str
+
 def get_file_paths(folder):
     """获取文件夹下所有文件的路径"""
     paths = []

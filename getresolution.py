@@ -44,10 +44,12 @@ def get_low_resolution_media_files():
     if ('Y' == flag.upper()):
         try:
             files = tools.getbitratesort(files)
+            files=tools.add_quotes_forpath(files)
             print("分辨率符合要求的媒体文件列表（按比特率由大到小排序）：")
             print("\n".join(files))
         except Exception as e:
             print(f"Error occurred while sorting files by bitrate: {str(e)}")
     else:
         print("分辨率符合要求的媒体文件列表：")
+        files = tools.add_quotes_forpath(files)
         print("\n".join(files))

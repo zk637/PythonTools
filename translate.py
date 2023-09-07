@@ -90,12 +90,14 @@ def find_matching_subtitles():
         if slur_matching_subtitles:
             print("模糊匹配的字幕文件：")
             for subtitle_path in slur_matching_subtitles:
-                print(subtitle_path)
+                # print(subtitle_path)
+                print(tools.add_quotes_forpath(subtitle_path))
             print()  # 打印空行以实现换行效果
         if precise_matching_subtitles:
             print("精确匹配的字幕文件：")
             for subtitle_path in precise_matching_subtitles:
-                print(subtitle_path)
+                # print(subtitle_path)
+                print(tools.add_quotes_forpath(subtitle_path))
             print()  # 打印空行以实现换行效果
 
 # 复制字幕文件到新创建的文件夹下

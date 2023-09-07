@@ -6,25 +6,31 @@ import tools
 
 def get_total_file_size(file_paths):
     total_size = 0
-    for file_path in file_paths:
-        if os.path.exists(file_path):
-            total_size += os.path.getsize(file_path)
-    print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    try:
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                total_size += os.path.getsize(file_path)
+        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    except Exception as e:
+        print(str(e))
     return total_size / (1024 ** 3)
 
 
 def def_get_total_size(file_paths):
     total_size = 0
-    for file_path in file_paths:
-        if os.path.isfile(file_path):
-            total_size += os.path.getsize(file_path)
+    try:
+        for file_path in file_paths:
+            if os.path.isfile(file_path):
+                total_size += os.path.getsize(file_path)
 
-        elif os.path.isdir(file_path):
-            for root, dirs, files in os.walk(file_path):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    total_size += os.path.getsize(file_path)
-    print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+            elif os.path.isdir(file_path):
+                for root, dirs, files in os.walk(file_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        total_size += os.path.getsize(file_path)
+        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    except Exception as e:
+        print(str(e))
     return total_size / (1024 ** 3)
 
 def filter_files_by_sizeordate():
@@ -81,14 +87,14 @@ def filter_files_by_sizeordate():
             file_dates[parent_path].append((path, date))
 
     for parent_path, files in file_dates.items():
-        print(parent_path + "--------")
+        # print(parent_path + "--------")
         files.sort(key=lambda x: x[1], reverse=True)
         if cflag.upper()!='Y':
             for file in files:
                 print(f"{file[0]}: {file[1]}")
         else:
             for file in files:
-                print(f"{file[0]}")
+                print('"'+f"{file[0]}"+'"')
 
 
 

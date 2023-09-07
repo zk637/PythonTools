@@ -38,6 +38,7 @@ def get_video_duration_sorted():
     sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
     for path, duration in sorted_durations:
         if (flag == 'y'.lower()):
+            path=tools.add_quotes_forpath(path)
             print(path)
         else:
             print(f"{path}: {duration/60:.2f} min")
@@ -138,7 +139,7 @@ def check_files_in_folder(file_list):
     # 如果找到了匹配的文件，则输出每个文件的路径
     print("找到匹配的文件：")
     for file_path in paths:
-        print(f'"{file_path}"')
+        print('"' + f"{file_path}" + '"')
     return paths
 
 
@@ -232,6 +233,7 @@ def get_file_paths_with_rules():
                     if re.search(regex_pattern, file_name_without_ext):
                         paths.append(file_full_path)
                         break
+        paths=tools.add_quotes_forpath(paths)
         print('\n'.join(paths))
     except Exception as e:
         print(e)
@@ -268,6 +270,7 @@ def get_file_paths_with_name():
     if len(found_files) > 0:
         print("找到的文件有:")
         for file in found_files:
+            file=tools.add_quotes_forpath(file)
             print(file)
     else:
         print("这些文件都不存在！")

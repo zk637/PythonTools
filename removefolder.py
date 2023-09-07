@@ -19,6 +19,7 @@ def remove_small_folders():
         remaining_files = delete_small_files_re(folder, min_size)
         print("Remaining files:")
         for file in remaining_files:
+            file=tools.add_quotes_forpath(file)
             print(file)
     else:
         # input_logger.stop_logging()
@@ -26,6 +27,7 @@ def remove_small_folders():
         remaining_files = delete_small_files(folder, min_size)
         print("Remaining files:")
         for file in remaining_files:
+            file = tools.add_quotes_forpath(file)
             print(file)
 
 def delete_small_files(folder, min_size):
