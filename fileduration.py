@@ -54,12 +54,14 @@ def get_video_duration_sorted():
         video_extensions = tools.get_file_paths_limit(
             folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
             '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx',
+            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv',
+            '.mov',
+            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv',
+            '.divx',
             '.webm', '.wtv', '.f4v', '.mxf')
         durations = []
-        #创建字典以存储文件大小和创建日清
-        file_sizes = {}
+        file_sizes = {}  # Dictionary to store file sizes and creation times
+    try:
         for path in video_extensions:
             duration = tools.get_video_duration(path)
             if duration is not None:
@@ -69,31 +71,32 @@ def get_video_duration_sorted():
                     file_sizes[file_size] = []
                 file_sizes[file_size].append((path, duration, creation_time))
 
-        # 获取文件大小相同的列表
+        # Filter out file size groups with only one file
         file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
 
-        # 按照文件创建时间排序
+        # For each file size group, further group files by duration
         for file_size, paths_durations_creation in file_sizes.items():
             # Sort files by creation time (ascending)
             paths_durations_creation.sort(key=lambda x: x[2])
 
-            # 按照时长排序
+            # Group files by duration
             duration_groups = {}
             for path, duration, _ in paths_durations_creation:
                 if duration not in duration_groups:
                     duration_groups[duration] = []
                 duration_groups[duration].append(path)
 
-            # 去除只有一个时长的文件
+            # Filter out duration groups with only one file
             duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
 
-            # 输出
+            # Print paths for each duration group, sorted by duration
             for duration, paths in duration_groups.items():
                 print(f"{duration / 60:.2f} min")
-                for path in paths[1:]:  #排除创建时间最早的文件
+                for path in paths[1:]:  # Exclude the first (earliest created) file
                         path = tools.add_quotes_forpath(path)
-
-
+                        print(path)
+    except Exception as e:
+        print(e)
 
 def get_max_duration(paths, video_extension):
     # Get the maximum duration for a specific video extension and remove it from the list
