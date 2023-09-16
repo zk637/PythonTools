@@ -21,30 +21,96 @@ def get_video_duration_sorted():
             if not path:
                 break
             paths.append(path.strip('"'))
+    else:
+        paths = []  # Define paths here as a fallback if not inside the 'if' branch
+
+    print("是否输出文件时长大小一致的列表？Y/N de:N")
+    same_flag=input()
     print("是否纯净输出y/n")
-    flag=input()
-    if folder_flag:
-        # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
-        paths = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+    flag = input()
+    if same_flag=='N':
+        if folder_flag:
+            # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
+            paths = tools.get_file_paths_limit(
+                folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+                '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+        durations = []
+        for path in paths:
+            duration = tools.get_video_duration(path)
+            if duration is not None:
+                durations.append((path, duration))
+
+        sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
+        for path, duration in sorted_durations:
+            if (flag == 'y'.lower()):
+                path = tools.add_quotes_forpath(path)
+                print(path)
+            else:
+                print(f"{path}: {duration / 60:.2f} min")
+
+    if same_flag.upper() == 'Y':
+        video_extensions = tools.get_file_paths_limit(
+            folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
             '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
-    durations = []
-    for path in paths:
-        duration = tools.get_video_duration(path)
-        if duration is not None:
-            durations.append((path, duration))
+            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx',
+            '.webm', '.wtv', '.f4v', '.mxf')
+        durations = []
+        #创建字典以存储文件大小和创建日清
+        file_sizes = {}
+        for path in video_extensions:
+            duration = tools.get_video_duration(path)
+            if duration is not None:
+                file_size = os.path.getsize(path)
+                creation_time = os.path.getctime(path)
+                if file_size not in file_sizes:
+                    file_sizes[file_size] = []
+                file_sizes[file_size].append((path, duration, creation_time))
 
-    sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
-    for path, duration in sorted_durations:
-        if (flag == 'y'.lower()):
-            path=tools.add_quotes_forpath(path)
-            print(path)
-        else:
-            print(f"{path}: {duration/60:.2f} min")
+        # 获取文件大小相同的列表
+        file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
+
+        # 按照文件创建时间排序
+        for file_size, paths_durations_creation in file_sizes.items():
+            # Sort files by creation time (ascending)
+            paths_durations_creation.sort(key=lambda x: x[2])
+
+            # 按照时长排序
+            duration_groups = {}
+            for path, duration, _ in paths_durations_creation:
+                if duration not in duration_groups:
+                    duration_groups[duration] = []
+                duration_groups[duration].append(path)
+
+            # 去除只有一个时长的文件
+            duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
+
+            # 输出
+            for duration, paths in duration_groups.items():
+                print(f"{duration / 60:.2f} min")
+                for path in paths[1:]:  #排除创建时间最早的文件
+                        path = tools.add_quotes_forpath(path)
 
 
-    return sorted_durations
+
+def get_max_duration(paths, video_extension):
+    # Get the maximum duration for a specific video extension and remove it from the list
+    max_duration = 0
+    max_duration_index = None
+
+    for i, (path, duration) in enumerate(paths):
+        if path.endswith(video_extension) and duration > max_duration:
+            max_duration = duration
+            max_duration_index = i
+
+    if max_duration_index is not None:
+        paths.pop(max_duration_index)  # Remove the file with the max duration from the list
+
+    return max_duration
+
+
 
 def print_video_info_list():
     """输出视频文件的大小、时长、比特率和分辨率"""
@@ -212,7 +278,7 @@ def get_file_paths_with_rules():
     file_name_rules = tools.read_rules_from_file()
     # print(f"规则列表：{file_name_rules}")
     try:
-        for root, dirs, files in os.walk(folder_path):
+        for root, dirs, files in os.walk(folder_path,topdown=False):
             for folder_name in dirs:
                 folder_full_path = os.path.join(root, folder_name)
                 for rule in file_name_rules:
@@ -233,7 +299,7 @@ def get_file_paths_with_rules():
                     if re.search(regex_pattern, file_name_without_ext):
                         paths.append(file_full_path)
                         break
-        paths=tools.add_quotes_forpath(paths)
+        # paths=tools.add_quotes_forpath(paths)
         print('\n'.join(paths))
     except Exception as e:
         print(e)
@@ -472,3 +538,36 @@ def getfiletypeislegal():
     # print(path)
     tools.check_file_access(path)
     return None
+
+
+# def getsortsamefiles():
+#     # 初始化一个空的字典，用于存储时长相同的文件路径列表
+#     same_duration_dict = {}
+#     print("输入要对比的文件夹")
+#     lists=input()
+#     path_list=tools.get_file_paths(lists)
+#     # 初始化一个空的字典，用于存储时长相同的文件路径列表
+#     same_duration_dict = {}
+#     # 遍历文件路径列表并检查每个文件的时长
+#     for path in path_list:
+#         if path.endswith(".wav") or path.endswith(".flac") or path.endswith(".mp4") or path.endswith(".mp3"):
+#             # 如果该文件是音频文件，则使用ffmpeg获取其时长
+#             file_path = os.path.join(path).replace("'",'')
+#
+#             cmd = f"ffprobe -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 {file_path}"
+#             output = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL)
+#             duration = float(output.strip())
+#
+#             # 如果字典中不存在键，则创建一个新的键并将路径添加到列表中
+#             if duration not in same_duration_dict:
+#                 same_duration_dict[duration] = [file_path]
+#             # 如果键已存在，则将路径添加到现有列表
+#             else:
+#                 same_duration_dict[duration].append(file_path)
+#
+#     # 输出结果
+#     for duration, file_paths in same_duration_dict.items():
+#         if len(file_paths) > 1:
+#             print(f"这些文件的时长为 {duration}:")
+#             for path in file_paths:
+#                 print(path)

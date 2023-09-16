@@ -64,37 +64,41 @@ def filter_files_by_sizeordate():
             size = "{:.2f}MB".format(os.path.getsize(path) / 1024 / 1024)
             # print(f"{path} {size}")
         print('\n'.join(filtered_paths))
-    print("纯净输出Y/N?")
-    cflag=input()
-    print("输入开始时间段 示例格式20180302")
-    start_date=tools.process_input_str("")
-    print("输入结束时间段 示例格式20180519")
-    end_date=tools.process_input_str("")
-    """按文件修改日期倒序排列打印文件路径"""
-    file_dates = {}
+    else:
+        print("纯净输出Y/N?")
+        cflag=input()
+        print("打印父路径？Y/N?")
+        pflag=input()
+        print("输入开始时间段 示例格式20180302")
+        start_date=tools.process_input_str("")
+        print("输入结束时间段 示例格式20180519")
+        end_date=tools.process_input_str("")
+        """按文件修改日期倒序排列打印文件路径"""
+        file_dates = {}
 
-    start_datetime = datetime.datetime.strptime(start_date, "%Y%m%d")
-    end_datetime = datetime.datetime.strptime(end_date, "%Y%m%d")
+        start_datetime = datetime.datetime.strptime(start_date, "%Y%m%d")
+        end_datetime = datetime.datetime.strptime(end_date, "%Y%m%d")
 
-    for path in paths:
-        modification_time = os.path.getmtime(path)
-        date = datetime.datetime.fromtimestamp(modification_time)
+        for path in paths:
+            modification_time = os.path.getmtime(path)
+            date = datetime.datetime.fromtimestamp(modification_time)
 
-        if start_datetime <= date <= end_datetime:
-            parent_path = os.path.dirname(path)
-            if parent_path not in file_dates:
-                file_dates[parent_path] = []
-            file_dates[parent_path].append((path, date))
+            if start_datetime <= date <= end_datetime:
+                parent_path = os.path.dirname(path)
+                if parent_path not in file_dates:
+                    file_dates[parent_path] = []
+                file_dates[parent_path].append((path, date))
 
-    for parent_path, files in file_dates.items():
-        # print(parent_path + "--------")
-        files.sort(key=lambda x: x[1], reverse=True)
-        if cflag.upper()!='Y':
-            for file in files:
-                print(f"{file[0]}: {file[1]}")
-        else:
-            for file in files:
-                print('"'+f"{file[0]}"+'"')
+        for parent_path, files in file_dates.items():
+            if pflag != "N":
+                print(parent_path + "--------")
+            files.sort(key=lambda x: x[1], reverse=True)
+            if cflag.upper()!='Y':
+                for file in files:
+                    print(f"{file[0]}: {file[1]}")
+            else:
+                for file in files:
+                    print('"'+f"{file[0]}"+'"')
 
 
 
