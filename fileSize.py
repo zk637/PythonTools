@@ -6,25 +6,31 @@ import tools
 
 def get_total_file_size(file_paths):
     total_size = 0
-    for file_path in file_paths:
-        if os.path.exists(file_path):
-            total_size += os.path.getsize(file_path)
-    print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    try:
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                total_size += os.path.getsize(file_path)
+        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    except Exception as e:
+        print(str(e))
     return total_size / (1024 ** 3)
 
 
 def def_get_total_size(file_paths):
     total_size = 0
-    for file_path in file_paths:
-        if os.path.isfile(file_path):
-            total_size += os.path.getsize(file_path)
+    try:
+        for file_path in file_paths:
+            if os.path.isfile(file_path):
+                total_size += os.path.getsize(file_path)
 
-        elif os.path.isdir(file_path):
-            for root, dirs, files in os.walk(file_path):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    total_size += os.path.getsize(file_path)
-    print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+            elif os.path.isdir(file_path):
+                for root, dirs, files in os.walk(file_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        total_size += os.path.getsize(file_path)
+        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+    except Exception as e:
+        print(str(e))
     return total_size / (1024 ** 3)
 
 def filter_files_by_sizeordate():
@@ -58,37 +64,41 @@ def filter_files_by_sizeordate():
             size = "{:.2f}MB".format(os.path.getsize(path) / 1024 / 1024)
             # print(f"{path} {size}")
         print('\n'.join(filtered_paths))
-    print("纯净输出Y/N?")
-    cflag=input()
-    print("输入开始时间段 示例格式20180302")
-    start_date=tools.process_input_str("")
-    print("输入结束时间段 示例格式20180519")
-    end_date=tools.process_input_str("")
-    """按文件修改日期倒序排列打印文件路径"""
-    file_dates = {}
+    else:
+        print("纯净输出Y/N?")
+        cflag=input()
+        print("打印父路径？Y/N?")
+        pflag=input()
+        print("输入开始时间段 示例格式20180302")
+        start_date=tools.process_input_str("")
+        print("输入结束时间段 示例格式20180519")
+        end_date=tools.process_input_str("")
+        """按文件修改日期倒序排列打印文件路径"""
+        file_dates = {}
 
-    start_datetime = datetime.datetime.strptime(start_date, "%Y%m%d")
-    end_datetime = datetime.datetime.strptime(end_date, "%Y%m%d")
+        start_datetime = datetime.datetime.strptime(start_date, "%Y%m%d")
+        end_datetime = datetime.datetime.strptime(end_date, "%Y%m%d")
 
-    for path in paths:
-        modification_time = os.path.getmtime(path)
-        date = datetime.datetime.fromtimestamp(modification_time)
+        for path in paths:
+            modification_time = os.path.getmtime(path)
+            date = datetime.datetime.fromtimestamp(modification_time)
 
-        if start_datetime <= date <= end_datetime:
-            parent_path = os.path.dirname(path)
-            if parent_path not in file_dates:
-                file_dates[parent_path] = []
-            file_dates[parent_path].append((path, date))
+            if start_datetime <= date <= end_datetime:
+                parent_path = os.path.dirname(path)
+                if parent_path not in file_dates:
+                    file_dates[parent_path] = []
+                file_dates[parent_path].append((path, date))
 
-    for parent_path, files in file_dates.items():
-        print(parent_path + "--------")
-        files.sort(key=lambda x: x[1], reverse=True)
-        if cflag.upper()!='Y':
-            for file in files:
-                print(f"{file[0]}: {file[1]}")
-        else:
-            for file in files:
-                print(f"{file[0]}")
+        for parent_path, files in file_dates.items():
+            if pflag != "N":
+                print(parent_path + "--------")
+            files.sort(key=lambda x: x[1], reverse=True)
+            if cflag.upper()!='Y':
+                for file in files:
+                    print(f"{file[0]}: {file[1]}")
+            else:
+                for file in files:
+                    print('"'+f"{file[0]}"+'"')
 
 
 
