@@ -91,10 +91,15 @@ def get_video_duration_sorted():
 
             # Print paths for each duration group, sorted by duration
             for duration, paths in duration_groups.items():
-                print(f"{duration / 60:.2f} min")
-                for path in paths[1:]:  # Exclude the first (earliest created) file
+                if (flag == 'y'.lower()):
+                    for path in paths[1:]:
                         path = tools.add_quotes_forpath(path)
                         print(path)
+                else:
+                    print(f"{duration / 60:.2f} min")
+                    for path in paths[1:]:  # Exclude the first (earliest created) file
+                            path = tools.add_quotes_forpath(path)
+                            print(path)
     except Exception as e:
         print(e)
 
