@@ -54,12 +54,14 @@ def get_video_duration_sorted():
         video_extensions = tools.get_file_paths_limit(
             folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
             '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx',
+            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv',
+            '.mov',
+            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv',
+            '.divx',
             '.webm', '.wtv', '.f4v', '.mxf')
         durations = []
-        #创建字典以存储文件大小和创建日清
-        file_sizes = {}
+        file_sizes = {}  # Dictionary to store file sizes and creation times
+    try:
         for path in video_extensions:
             duration = tools.get_video_duration(path)
             if duration is not None:
@@ -69,31 +71,37 @@ def get_video_duration_sorted():
                     file_sizes[file_size] = []
                 file_sizes[file_size].append((path, duration, creation_time))
 
-        # 获取文件大小相同的列表
+        # Filter out file size groups with only one file
         file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
 
-        # 按照文件创建时间排序
+        # For each file size group, further group files by duration
         for file_size, paths_durations_creation in file_sizes.items():
             # Sort files by creation time (ascending)
             paths_durations_creation.sort(key=lambda x: x[2])
 
-            # 按照时长排序
+            # Group files by duration
             duration_groups = {}
             for path, duration, _ in paths_durations_creation:
                 if duration not in duration_groups:
                     duration_groups[duration] = []
                 duration_groups[duration].append(path)
 
-            # 去除只有一个时长的文件
+            # Filter out duration groups with only one file
             duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
 
-            # 输出
+            # Print paths for each duration group, sorted by duration
             for duration, paths in duration_groups.items():
-                print(f"{duration / 60:.2f} min")
-                for path in paths[1:]:  #排除创建时间最早的文件
+                if (flag == 'y'.lower()):
+                    for path in paths[1:]:
                         path = tools.add_quotes_forpath(path)
-
-
+                        print(path)
+                else:
+                    print(f"{duration / 60:.2f} min")
+                    for path in paths[1:]:  # Exclude the first (earliest created) file
+                            path = tools.add_quotes_forpath(path)
+                            print(path)
+    except Exception as e:
+        print(e)
 
 def get_max_duration(paths, video_extension):
     # Get the maximum duration for a specific video extension and remove it from the list
@@ -176,37 +184,53 @@ def check_files_in_folder(file_list):
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
     folder_path = input()
+    print("只输出不匹配的文件？ Y/N def:N")
+    flag=input() or "N"
     # 将 file_list 中的双引号去除
     file_list = [file.strip('"') for file in file_list]
 
     # 获取 file_list 中的文件名和文件夹名
     file_names, folder_names = tools.get_listunder_fileandfolder(file_list)
 
-    paths = []
+    matching_paths = []
+    non_matching_paths = []
+
     for root, dirs, files in os.walk(folder_path):
         # 如果需要比较文件夹名，则只保留需要比较的文件夹
         for dir in dirs:
+            path = os.path.join(root, dir)  # 初始化 path 变量
             for name in folder_names:
                 if (os.path.basename(dir).lower()) == (os.path.basename(name).lower()):
-                    path = os.path.join(root, dir)
-                    paths.append(path)
+                    matching_paths.append(path)
+                else:
+                    non_matching_paths.append(path)
     for root, dirs, files in os.walk(folder_path):
         # 如果需要比较文件名，则只保留需要比较的文件名
         for file in files:
+            path = os.path.join(root, file)  # 初始化 path 变量
             for name in file_names:
                 if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
-                    path = os.path.join(root, file)
-                    paths.append(path)
-    if not paths:
+                    matching_paths.append(path)
+                else:
+                    non_matching_paths.append(path)
+
+    if not matching_paths:
         # 如果没有找到匹配的文件，则输出提示信息并返回 None
         print("没有找到匹配的文件。")
         return None
 
-    # 如果找到了匹配的文件，则输出每个文件的路径
-    print("找到匹配的文件：")
-    for file_path in paths:
-        print('"' + f"{file_path}" + '"')
-    return paths
+    # 输出不匹配的文件路径
+    if non_matching_paths and "Y"==flag.upper():
+        print("找到不匹配的文件：")
+        for file_path in non_matching_paths:
+            print('"' + f"{file_path}" + '"')
+    else:
+        # 如果找到了匹配的文件，则输出每个匹配的文件的路径
+        print("找到匹配的文件：")
+        for file_path in matching_paths:
+            print('"' + f"{file_path}" + '"')
+
+    return matching_paths, non_matching_paths
 
 
 def compare_and_move_files():
@@ -504,25 +528,41 @@ def same_file_createsymbolic_links():
 
 
 def get_exclude_suffix_list():
-    file_paths_list=[]
-    while True:
-        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        path=input()
-        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        if not path:
-            break
-        file_paths_list.append(path)
-    print("输入需要排除的后缀")
-    excluded_extensions=input()
-    matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
-
-    if matching_files:
-        print("Matching files:")
-        for file_path in matching_files:
-            print(file_path)
+    print("参数是否为文件列表 Y/N def:Y")
+    flag = input()
+    if "N" == flag.upper():
+        print("请输入文件夹")
+        path_folderdir = input()
+        file_paths_list = tools.get_file_paths(path_folderdir)
+        print("输入需要排除的后缀 多个参数用空格隔开")
+        excluded_extensions = input()
+        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+        if matching_files:
+            print("Matching files:")
+            for file_path in matching_files:
+                print(file_path)
+        else:
+            print("No matching files found")
     else:
-        print("No matching files found")
-    return None
+        file_paths_list = []
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            if not path:
+                break
+            file_paths_list.append(path)
+        print("输入需要排除的后缀")
+        excluded_extensions = input()
+        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+
+        if matching_files:
+            print("Matching files:")
+            for file_path in matching_files:
+                print(file_path)
+        else:
+            print("No matching files found")
+        return None
 
 
 def get_filepathsort():
