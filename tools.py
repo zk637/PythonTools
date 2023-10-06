@@ -97,7 +97,9 @@ def find_matching_files(paths, *extensions):
                 raise ValueError(f"{path} is not a valid directory or file path")
     except Exception as e:
         print(e)
-        return matching_files
+    return matching_files
+
+
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
     """获取文件夹下的文件路径并排除后缀和文件夹"""

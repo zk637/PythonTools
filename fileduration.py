@@ -184,37 +184,53 @@ def check_files_in_folder(file_list):
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
     folder_path = input()
+    print("只输出不匹配的文件？ Y/N def:N")
+    flag=input() or "N"
     # 将 file_list 中的双引号去除
     file_list = [file.strip('"') for file in file_list]
 
     # 获取 file_list 中的文件名和文件夹名
     file_names, folder_names = tools.get_listunder_fileandfolder(file_list)
 
-    paths = []
+    matching_paths = []
+    non_matching_paths = []
+
     for root, dirs, files in os.walk(folder_path):
         # 如果需要比较文件夹名，则只保留需要比较的文件夹
         for dir in dirs:
+            path = os.path.join(root, dir)  # 初始化 path 变量
             for name in folder_names:
                 if (os.path.basename(dir).lower()) == (os.path.basename(name).lower()):
-                    path = os.path.join(root, dir)
-                    paths.append(path)
+                    matching_paths.append(path)
+                else:
+                    non_matching_paths.append(path)
     for root, dirs, files in os.walk(folder_path):
         # 如果需要比较文件名，则只保留需要比较的文件名
         for file in files:
+            path = os.path.join(root, file)  # 初始化 path 变量
             for name in file_names:
                 if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
-                    path = os.path.join(root, file)
-                    paths.append(path)
-    if not paths:
+                    matching_paths.append(path)
+                else:
+                    non_matching_paths.append(path)
+
+    if not matching_paths:
         # 如果没有找到匹配的文件，则输出提示信息并返回 None
         print("没有找到匹配的文件。")
         return None
 
-    # 如果找到了匹配的文件，则输出每个文件的路径
-    print("找到匹配的文件：")
-    for file_path in paths:
-        print('"' + f"{file_path}" + '"')
-    return paths
+    # 输出不匹配的文件路径
+    if non_matching_paths and "Y"==flag.upper():
+        print("找到不匹配的文件：")
+        for file_path in non_matching_paths:
+            print('"' + f"{file_path}" + '"')
+    else:
+        # 如果找到了匹配的文件，则输出每个匹配的文件的路径
+        print("找到匹配的文件：")
+        for file_path in matching_paths:
+            print('"' + f"{file_path}" + '"')
+
+    return matching_paths, non_matching_paths
 
 
 def compare_and_move_files():
@@ -512,25 +528,41 @@ def same_file_createsymbolic_links():
 
 
 def get_exclude_suffix_list():
-    file_paths_list=[]
-    while True:
-        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        path=input()
-        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        if not path:
-            break
-        file_paths_list.append(path)
-    print("输入需要排除的后缀")
-    excluded_extensions=input()
-    matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
-
-    if matching_files:
-        print("Matching files:")
-        for file_path in matching_files:
-            print(file_path)
+    print("参数是否为文件列表 Y/N def:Y")
+    flag = input()
+    if "N" == flag.upper():
+        print("请输入文件夹")
+        path_folderdir = input()
+        file_paths_list = tools.get_file_paths(path_folderdir)
+        print("输入需要排除的后缀 多个参数用空格隔开")
+        excluded_extensions = input()
+        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+        if matching_files:
+            print("Matching files:")
+            for file_path in matching_files:
+                print(file_path)
+        else:
+            print("No matching files found")
     else:
-        print("No matching files found")
-    return None
+        file_paths_list = []
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            if not path:
+                break
+            file_paths_list.append(path)
+        print("输入需要排除的后缀")
+        excluded_extensions = input()
+        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+
+        if matching_files:
+            print("Matching files:")
+            for file_path in matching_files:
+                print(file_path)
+        else:
+            print("No matching files found")
+        return None
 
 
 def get_filepathsort():
