@@ -47,7 +47,7 @@ if __name__ == '__main__':
     #  11、取文件夹下所有视频文件的时长并排序输出或输出时长大小相同的文件            code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表或获取不匹配条件的列表
-    #  14、取传入目录下所有与文件名一致的jpg创                                建.ts文件夹并移入
+    #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名规则匹配 目前只支持 *keyword*匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
@@ -56,7 +56,8 @@ if __name__ == '__main__':
     #  20、获取符合录入文件名的文件路径
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化
-    #  23、校验文件是否合法"""
+    #  23、校验文件是否合法
+    #  24、文件自动备份（需提前创建符号链接"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -85,7 +86,8 @@ if __name__ == '__main__':
             20: fileduration.get_file_paths_with_name,
             21: fileduration.get_exclude_suffix_list,
             22: fileduration.get_filepathsort,
-            23: fileduration.getfiletypeislegal
+            23: fileduration.getfiletypeislegal,
+            24: fileduration.copy_linked_items
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
@@ -113,7 +115,8 @@ if __name__ == '__main__':
     #  20、获取符合录入文件名的文件路径
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化
-    #  23、校验文件是否合法""")
+    #  23、校验文件是否合法
+    #  24、文件自动备份（需提前创建符号链接）""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")

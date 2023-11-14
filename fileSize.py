@@ -90,9 +90,9 @@ def filter_files_by_sizeordate():
                 file_dates[parent_path].append((path, date))
 
         for parent_path, files in file_dates.items():
-            if pflag == "y".upper():
+            if pflag.upper() =="Y":
                 print(parent_path + "--------")
-            files.sort(key=lambda x: x[1], reverse=True)
+                files.sort(key=lambda x: x[1], reverse=True)
             if cflag.upper()!='Y':
                 for file in files:
                     print(f"{file[0]}: {file[1]}")
