@@ -611,3 +611,141 @@ def getfiletypeislegal():
 #             print(f"这些文件的时长为 {duration}:")
 #             for path in file_paths:
 #                 print(path)
+def copy_linked_items():
+    # tools.admin_process()
+    print("请输入符号链接所在文件夹")
+    source_folder = input()
+    print("请输入要复制源文件到的所在文件夹")
+    destination_folder = input()
+
+    # 获取源文件夹中的所有文件路径
+    item_paths = tools.get_file_paths(source_folder)
+
+    # 遍历每个文件路径
+    for item_path in item_paths:
+        # 检查路径是否是符号链接
+        if os.path.islink(item_path):
+            # 构建目标路径
+            destination_path = os.path.join(destination_folder, os.path.basename(item_path))
+
+            # 复制符号链接的源文件或文件夹到目标路径
+            copy_source_from_symlink(item_path,destination_folder)
+
+def common_path(paths,destination_folder):
+    # 如果路径为空，返回空
+    if not paths:
+        return ""
+
+    # 将路径按分隔符分割
+    parts_list = [os.path.normpath(path).split(os.path.sep) for path in paths]
+
+    # 反转每个路径的部分，从最后一级开始比较
+    reversed_parts_list = [list(reversed(parts)) for parts in parts_list]
+
+    # 使用 zip 函数遍历路径的各级目录
+    common_parts = []
+    for level_parts in zip(*reversed_parts_list):
+        if all(part == level_parts[0] for part in level_parts):
+            common_parts.append(level_parts[0])
+        else:
+            break
+
+    # 如果没有共同路径，返回空字符串
+    if not common_parts:
+        return ""
+
+    # 反转共同路径，恢复正常顺序
+    common_parts = list(reversed(common_parts))
+
+    # 使用 os.path.join 合并共同路径
+    common_path = os.path.join(*common_parts)
+    # base_path = r"D:\Back\GameSaveBackup\test"
+    base_path = destination_folder
+    final_path = os.path.join(base_path, common_path)
+    final_path = os.path.normpath(final_path)
+    return final_path
+
+def copy_source_from_symlink(symlink_path,destination_folder):
+    try:
+        source_path = os.readlink(symlink_path)
+        paths_list = [source_path, symlink_path]
+        final_path = common_path(paths_list,destination_folder)
+
+        try:
+            # 取出 common_path 最后一级前的内容
+            common_parent = os.path.dirname(final_path)
+
+            # # 构建最终路径
+            # final_path = os.path.join(destination_path, common_parent)
+            print(source_path)
+            print(final_path)
+            # 如果 final_path 已经存在，则直接复制文件
+            if os.path.exists(final_path):
+                shutil.copy2(source_path, final_path)
+                print(f"Source file copied from '{source_path}' to '{final_path}'")
+            else:
+                # 创建目标文件夹
+                os.makedirs(common_parent, exist_ok=True)
+
+                # 复制文件夹
+                shutil.copy2(source_path, final_path)
+                print(f"Source folder copied from '{source_path}' to '{final_path}'")
+
+        except OSError as e:
+            print(f"Error: {e}")
+
+    except OSError as e:
+        print(f"Error: {e}")
+
+
+def check_symbolic_link():
+    print("请输入要检查的符号链接所在文件夹")
+    destination_folder = input()
+    link_paths=tools.get_file_paths(destination_folder)
+    relative_links = []
+    absolute_links = []
+    invalid_links = []
+    for link_path in link_paths:
+        try:
+            # 检查路径是否是符号链接
+            if os.path.islink(link_path):
+                # print(f"{link_path} is a symbolic link.")
+
+                # 读取符号链接的目标路径
+                target_path = os.readlink(link_path)
+
+                # 判断路径是否为绝对路径
+                if os.path.isabs(target_path):
+                    absolute_links.append(link_path)
+                    absolute_links.append("target_path:"+target_path + "\n")
+                else:
+                    relative_links.append(link_path)
+                    relative_links.append("target_path:"+target_path + "\n")
+
+        except OSError as e:
+            print(f"Error: {e}")
+    # 打印分类结果
+    print("\nRelative Symbolic Links:")
+    print("-"*70)
+    for link in relative_links:
+        print(link)
+
+    print("\nAbsolute Symbolic Links:")
+    print("-"*70)
+    for link in absolute_links:
+        print(link)
+
+    print("\nInvalid Symbolic Links:")
+    print("-"*70)
+    for link in invalid_links:
+        print(link)
+
+
+# 绝对路径
+absolute_path = "C:\\Users\\Username\\Documents\\file.txt"
+# 起始路径（通常是当前工作目录或另一个相对路径）
+base_path = "C:\\Users\\Username\\Documents"
+
+# 将绝对路径转为相对路径
+relative_path = os.path.relpath(absolute_path, base_path)
+
