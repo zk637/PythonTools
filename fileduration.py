@@ -696,3 +696,56 @@ def copy_source_from_symlink(symlink_path,destination_folder):
 
     except OSError as e:
         print(f"Error: {e}")
+
+
+def check_symbolic_link():
+    print("请输入要检查的符号链接所在文件夹")
+    destination_folder = input()
+    link_paths=tools.get_file_paths(destination_folder)
+    relative_links = []
+    absolute_links = []
+    invalid_links = []
+    for link_path in link_paths:
+        try:
+            # 检查路径是否是符号链接
+            if os.path.islink(link_path):
+                # print(f"{link_path} is a symbolic link.")
+
+                # 读取符号链接的目标路径
+                target_path = os.readlink(link_path)
+
+                # 判断路径是否为绝对路径
+                if os.path.isabs(target_path):
+                    absolute_links.append(link_path)
+                    absolute_links.append("target_path:"+target_path + "\n")
+                else:
+                    relative_links.append(link_path)
+                    relative_links.append("target_path:"+target_path + "\n")
+
+        except OSError as e:
+            print(f"Error: {e}")
+    # 打印分类结果
+    print("\nRelative Symbolic Links:")
+    print("-"*70)
+    for link in relative_links:
+        print(link)
+
+    print("\nAbsolute Symbolic Links:")
+    print("-"*70)
+    for link in absolute_links:
+        print(link)
+
+    print("\nInvalid Symbolic Links:")
+    print("-"*70)
+    for link in invalid_links:
+        print(link)
+
+
+# 绝对路径
+absolute_path = "C:\\Users\\Username\\Documents\\file.txt"
+# 起始路径（通常是当前工作目录或另一个相对路径）
+base_path = "C:\\Users\\Username\\Documents"
+
+# 将绝对路径转为相对路径
+relative_path = os.path.relpath(absolute_path, base_path)
+

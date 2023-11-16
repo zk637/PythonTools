@@ -57,7 +57,8 @@ if __name__ == '__main__':
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化
     #  23、校验文件是否合法
-    #  24、文件自动备份（需提前创建符号链接"""
+    #  24、文件自动备份（需提前创建符号链接
+    #  25、检查录入文件夹下的符号链接是否可用"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -87,7 +88,8 @@ if __name__ == '__main__':
             21: fileduration.get_exclude_suffix_list,
             22: fileduration.get_filepathsort,
             23: fileduration.getfiletypeislegal,
-            24: fileduration.copy_linked_items
+            24: fileduration.copy_linked_items,
+            25: fileduration.check_symbolic_link
             # 17: fileduration.compare_file_and_folder_names
         }
         now = datetime.datetime.now()
@@ -116,7 +118,8 @@ if __name__ == '__main__':
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化
     #  23、校验文件是否合法
-    #  24、文件自动备份（需提前创建符号链接）""")
+    #  24、文件自动备份（需提前创建符号链接）
+    #  25、检查录入文件夹下的符号链接是否可用""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
