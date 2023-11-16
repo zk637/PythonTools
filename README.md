@@ -30,6 +30,8 @@ the following is a list of existing functions
     #  21、获取不在指定后缀的文件路径（输入为路径列表）
     #  22、过滤规则格式化
     #  23、校验文件是否合法
+    #  24、文件自动备份（需提前创建符号链接
+    #  25、检查录入文件夹下的符号链接是否可用
     
     1. Obtain the file size code==01 in the same subdirectory
     2. Obtain the file size code==02 in different subdirectories
@@ -54,6 +56,8 @@ the following is a list of existing functions
     21, get the file path that is not the specified suffix (input as the path list)
     22, filter rule formatting
     23. Check whether the file is legitimate
+    24, automatic file backup (need to create symbolic links in advance
+    25. Check whether the symbolic links in the folder are available
 
 
   
