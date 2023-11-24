@@ -318,6 +318,24 @@ def remove_duplicate_files(file_list):
             unique_files.extend(file_paths)
     return unique_files
 
+def rm_folder(folder_path):
+    try:
+        subprocess.run(['rmdir', '/s', '/q', folder_path], check=False)
+        print(f"Folder {folder_path} deleted successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
+def copy_folder(source_folder, destination_folder):
+    try:
+        # 使用 robocopy 命令进行文件夹复制
+        result = subprocess.run(['robocopy', source_folder, destination_folder, '/E', '/XO', '/COPY:DAT', '/R:3', '/W:5'], check=False, capture_output=True, text=True, encoding='latin-1')
+
+        # print(result.stdout)
+        # print(result.stderr)
+        print(f"Folder copied from '{source_folder}' to '{destination_folder}'")
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
 #分别获取输入列表中的文件路径和文件夹路径
 def get_listunder_fileandfolder(source_dirs):
     files = []
@@ -628,3 +646,5 @@ def register_find(lists, reg):
             # Add all the paths to the result list
             ique_files.extend(info['path'])
     return ique_files
+
+

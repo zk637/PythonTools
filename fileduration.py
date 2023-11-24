@@ -4,7 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
-
+from datetime import datetime, timedelta
 
 import tools
 
@@ -611,13 +611,15 @@ def getfiletypeislegal():
 #             print(f"这些文件的时长为 {duration}:")
 #             for path in file_paths:
 #                 print(path)
-def copy_linked_items():
+def update_linked_items():
     # tools.admin_process()
+    # source_folder=create_symbolic_links_recursive()
     print("请输入符号链接所在文件夹")
     source_folder = input()
     print("请输入要复制源文件到的所在文件夹")
     destination_folder = input()
-
+    print("是否增量更新？def:N（是：则获取新增的文件。否：只更新索引下修改的文件)")
+    flag=input() or 'N'
     # 获取源文件夹中的所有文件路径
     item_paths = tools.get_file_paths(source_folder)
 
@@ -629,7 +631,27 @@ def copy_linked_items():
             destination_path = os.path.join(destination_folder, os.path.basename(item_path))
 
             # 复制符号链接的源文件或文件夹到目标路径
-            copy_source_from_symlink(item_path,destination_folder)
+            copy_source_update_from_symlink(item_path,destination_folder,flag)
+
+def create_linked_items():
+    # tools.admin_process()
+    # source_folder=create_symbolic_links_recursive()
+    print("请输入符号链接所在文件夹")
+    source_folder = input()
+    print("请输入要复制源文件到的所在文件夹")
+    destination_folder = input()
+    # 获取源文件夹中的所有文件路径
+    item_paths = tools.get_file_paths(source_folder)
+
+    # 遍历每个文件路径
+    for item_path in item_paths:
+        # 检查路径是否是符号链接
+        if os.path.islink(item_path):
+            # 构建目标路径
+            destination_path = os.path.join(destination_folder, os.path.basename(item_path))
+
+            # 复制符号链接的源文件或文件夹到目标路径
+            copy_source_create_from_symlink(item_path,destination_folder)
 
 def common_path(paths,destination_folder):
     # 如果路径为空，返回空
@@ -665,36 +687,96 @@ def common_path(paths,destination_folder):
     final_path = os.path.normpath(final_path)
     return final_path
 
-def copy_source_from_symlink(symlink_path,destination_folder):
+def copy_source_update_from_symlink(symlink_path,destination_folder,flag):
     try:
         source_path = os.readlink(symlink_path)
         paths_list = [source_path, symlink_path]
         final_path = common_path(paths_list,destination_folder)
-
+        current_date = datetime.now()
+        yesterday = current_date - timedelta(days=1)
         try:
-            # 取出 common_path 最后一级前的内容
-            common_parent = os.path.dirname(final_path)
+            if flag.upper()=='N':
+                # 取出 common_path 最后一级前的内容
+                common_parent = os.path.dirname(final_path)
+                # print(source_path)
+                # print(final_path)
+                # 如果 final_path 已经存在，则直接复制文件
+                # 获取文件修改时间
+                file_mtime = os.path.getmtime(source_path)
+                file_modified_date = datetime.fromtimestamp(file_mtime)
+                # print(yesterday)
+                # print(file_modified_date)
+                #如果文件比当前日期的前一天晚，则更新
+                if file_modified_date >= yesterday:
+                    # 创建目录（如果不存在）
+                    os.makedirs(os.path.dirname(common_parent), exist_ok=True)
+                    if os.path.exists(final_path):
+                        shutil.copy2(source_path, final_path)
+                        print(f"Source file copied from '{source_path}' to '{final_path}'")
+                    else:
+                        # 创建目标文件夹
+                        os.makedirs(common_parent, exist_ok=True)
 
-            # # 构建最终路径
-            # final_path = os.path.join(destination_path, common_parent)
-            print(source_path)
-            print(final_path)
-            # 如果 final_path 已经存在，则直接复制文件
-            if os.path.exists(final_path):
-                shutil.copy2(source_path, final_path)
-                print(f"Source file copied from '{source_path}' to '{final_path}'")
-            else:
-                # 创建目标文件夹
-                os.makedirs(common_parent, exist_ok=True)
+                        # 复制文件夹
+                        shutil.copy2(source_path, common_parent)
+                        print(f"Source folder copied from '{source_path}' to '{final_path}'")
+                # print(f"Source folder copied from '{source_path}' to '{common_parent}'")
 
-                # 复制文件夹
-                shutil.copy2(source_path, final_path)
-                print(f"Source folder copied from '{source_path}' to '{final_path}'")
+            if flag.upper()=='Y':
+                # 取出 common_path 最后一级前的内容
+                common_parent = os.path.dirname(final_path)
+                source_path=os.path.dirname(source_path)
+                file_mtime = os.path.getmtime(source_path)
+                # 获取文件修改时间
+                file_modified_date = datetime.fromtimestamp(file_mtime)
+                # print(yesterday)
+                # print(file_modified_date)
+                #如果文件比当前日期的前一天晚，则更新
+                if file_modified_date >= yesterday:
+                    if os.path.exists(common_parent):
+                        shutil.rmtree(common_parent)
+                        print(f"Remove folder from '{source_path}' to '{final_path}'")
 
+                    # 确保 common_parent 存在后再进行复制
+                    if not os.path.exists(common_parent):
+                        # shutil.copytree(source_path, common_parent)
+                        tools.copy_folder(source_path, common_parent)
+                        print(f"Source folder copied from '{source_path}' to '{final_path}'")
+                # print(f"Source folder copied from '{source_path}' to '{common_parent}'")
         except OSError as e:
             print(f"Error: {e}")
 
-    except OSError as e:
+    except Exception as e:
+        print(f"Error: {e}")
+
+def copy_source_create_from_symlink(symlink_path,destination_folder):
+    try:
+        source_path = os.readlink(symlink_path)
+        paths_list = [source_path, symlink_path]
+        final_path = common_path(paths_list, destination_folder)
+        try:
+                # 取出 common_path 最后一级前的内容
+                common_parent = os.path.dirname(final_path)
+                # print(source_path)
+                # print(final_path)
+                # 如果 final_path 已经存在，则直接复制文件
+                file_mtime = os.path.getmtime(source_path)
+                file_modified_date = datetime.fromtimestamp(file_mtime)
+                # 创建目录（如果不存在）
+                os.makedirs(os.path.dirname(common_parent), exist_ok=True)
+                if os.path.exists(final_path):
+                    shutil.copy2(source_path, final_path)
+                    print(f"Source file copied from '{source_path}' to '{final_path}'")
+                else:
+                    # 创建目标文件夹
+                    os.makedirs(common_parent, exist_ok=True)
+
+                    # 复制文件夹
+                    shutil.copy2(source_path, common_parent)
+                    print(f"Source folder copied from '{source_path}' to '{final_path}'")
+        except OSError as e:
+            print(f"Error: {e}")
+    except Exception as e:
         print(f"Error: {e}")
 
 
@@ -740,6 +822,76 @@ def check_symbolic_link():
     for link in invalid_links:
         print(link)
 
+
+def create_symbolic_links_recursive():
+    tools.admin_process()
+    print("请输入符号链接所在文件夹")
+    source_folder = input()
+    print("请输入要缓存符号链接的文件夹")
+    target_folder = input()
+
+    # 遍历源文件夹中的所有文件和子文件夹
+    # 遍历源文件夹中的所有文件和子文件夹
+    # 遍历源文件夹中的所有文件
+    for root, _, files in os.walk(source_folder):
+        for file_name in files:
+            source_file = os.path.join(root, file_name)
+
+            try:
+                # 获取符号链接所指向的源文件路径
+                source_file_link = os.readlink(source_file)
+                source_dir = os.path.join(root, os.path.dirname(source_file_link))
+            except OSError:
+                # 不是符号链接的情况，直接使用原路径
+                source_dir = os.path.join(root, file_name)
+                continue
+
+            # 检查是否在同一文件系统上
+            if os.stat(source_dir).st_dev != os.stat(source_folder).st_dev:
+                source_dir = os.path.abspath(source_dir)
+
+            # 构建在目标文件夹中对应的子文件夹路径
+
+            # 假设 source_dir 和 source_folder 是两个文件夹的绝对路径
+            source_dir = os.path.abspath(source_dir)
+            source_folder = os.path.abspath(source_folder)
+            path1 = 'C:\\Users\\zk\\AppData\\Roaming\\Cuphead'
+            path2 = 'D:\\Back\\test'
+
+            common_base = os.path.commonpath([path1, path2])
+            relative_path1 = os.path.relpath(path1, common_base)
+            relative_path2 = os.path.relpath(path2, common_base)
+
+            print(relative_path1)
+            print(relative_path2)
+            # 将 source_dir 转换为相对于根目录的路径
+            relative_path = os.path.relpath(source_dir, os.path.commonprefix([source_dir, source_folder]))
+
+            # 构建在目标文件夹中对应的子文件夹路径
+            relative_path = os.path.join(target_folder, relative_path)
+            # relative_path = os.path.relpath(source_dir, source_folder)
+            target_subfolder = os.path.join(target_folder, relative_path)
+
+            # 创建目标子文件夹
+            os.makedirs(target_subfolder, exist_ok=True)
+            print(f"复制文件夹 {os.path.dirname(source_file_link)} 到 {target_subfolder}")
+
+            # 创建符号链接
+            target_file = os.path.join(target_subfolder, os.path.basename(source_file_link))
+            cmd = ['mklink', target_file, source_file_link]
+            try:
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    stdin=subprocess.PIPE,
+                    shell=True
+                )
+                out, err = process.communicate()
+                print(f"为文件 {file_name} 创建了符号链接：{target_file}")
+            except Exception as e:
+                print(f"创建符号链接时出错：{e}")
+    return target_folder
 
 # 绝对路径
 absolute_path = "C:\\Users\\Username\\Documents\\file.txt"
