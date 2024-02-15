@@ -8,7 +8,7 @@ import cProfile
 import pstats
 import io
 import pandas as pd
-import time
+from fuzzysearch import find_near_matches
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -25,7 +25,8 @@ def get_video_duration_sorted():
         folder_flag=False
         paths = []
         while True:
-            path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            print("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
             if not path:
                 break
             paths.append(path.strip('"'))
@@ -1173,15 +1174,28 @@ base_path = "C:\\Users\\Username\\Documents"
 # 将绝对路径转为相对路径
 relative_path = os.path.relpath(absolute_path, base_path)
 
+def get_file_paths(folder, size_threshold):
+    """获取文件夹下满足大小阈值的所有文件的路径"""
+    paths = []
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            path = os.path.join(root, file)
+            if os.path.getsize(path) > size_threshold:
+                paths.append(path)
+    return paths
+
 
 def excel_compare():
-    excel_path=input("请输入需要比较的CSV文件: ").replace('"', '')
+    print("请输入需要比较的CSV文件: ")
+    excel_path=input().replace('"', '')
     encode = tools.detect_encoding(excel_path)
     with open(excel_path, 'r', encoding=encode) as file:
         for _ in range(5):  # 读取前5行
             print(file.readline())
-    folder_path=input("请输入需要比较的文件夹路径: ")
-    size_threshold =input("请输入比较文件大小限制（def:200): ") or 200
+    print("请输入需要比较的文件夹路径: ")
+    folder_path=input()
+    print("请输入比较文件大小限制（def:200): ")
+    size_threshold =input() or 200
     # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
     # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
     size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
@@ -1192,8 +1206,11 @@ def excel_compare():
     #         for _ in range(5):  # 读取前5行
     #             print(file.readline())
     # 获取需要比较的列名列表
-    compare_columns = input("请输入需要比较的列名，以逗号分隔: ").split(',')
+    print("请输入需要比较的列名，以逗号分隔: ")
+    compare_columns = input().split(',')
     find_missing_files(excel_path, folder_path, size_threshold,compare_columns)
+
+
 
 def find_missing_files(csv_path, folder_path, size_threshold,compare_columns):
     encode=tools.detect_encoding(csv_path)
@@ -1214,23 +1231,65 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns):
         return
 
     # 获取文件夹下所有文件
-    all_files = [f for f in os.listdir(folder_path) if
-                 os.path.isfile(os.path.join(folder_path, f)) and os.path.getsize(
-                     os.path.join(folder_path, f)) > size_threshold]
+    # all_files = [f for f in os.listdir(folder_path) ifG:\Videos\3d
+    #              os.path.isfile(os.path.join(folder_path, f)) and os.path.getsize(
+    #                  os.path.join(folder_path, f)) > size_threshold]
+    all_files =get_file_paths(folder_path,size_threshold)
+    csv_files = set(df_csv[compare_columns].values.flatten())
+
+    # 遍历目标列的值
+    matche_lists = []
+    no_matche_lists = []
+
+    # 提取csv_files中每个元素的文件名，存入新的集合
+    csv_files_names = set(csv_file.split('\\')[-1] for csv_file in csv_files)
+
+    # 遍历文件列表，逐个与目标字符串比较
+    for file in all_files:
+        file_base_name = os.path.basename(file)
+
+        # 获取文件名的集合
+        file_name_set = {file_base_name}
+
+        # 取两个集合的差集
+        unmatched_set = file_name_set - csv_files_names
+
+        # 如果差集不为空，表示找到了匹配
+        if unmatched_set:
+            matche_lists.append(file)
+        else:
+            no_matche_lists.append(csv_files)
+
+    # 输出匹配结果
+    if matche_lists:
+        print("以下内容文件夹中有但CSV文件中没有：")
+        for matche_list in matche_lists:
+            print(matche_list)
+
+    # print("\n")
+    # csv_column_values = df_csv[compare_columns].tolist()
+    # similarity_threshold = 0.8
+    # for folder_file in all_files:
+    #     for csv_column_value in csv_column_values:
+    #         matches = find_near_matches(folder_file, csv_column_value,
+    #                                     max_l_dist=int((1 - similarity_threshold) * len(csv_column_value)))
+    #         if matches:
+    #             print(f"相似度较高: {folder_file} 在 CSV 中找到了对应项 {csv_column_value}。")
+
 
     # 将文件名转为集合以便进行差异比较
     # csv_files = set(compare_columns)
-    csv_files = set(df_csv[compare_columns])
-    folder_files = set(all_files)
-
-    # 查找在文件夹中有但在 CSV 中没有的文件
-    extra_files_in_folder = folder_files - csv_files
-
-    # 输出在 CSV 中没有但在文件夹中有的文件名
-    if extra_files_in_folder:
-        print("以下文件在 CSV 中没有但在文件夹中有:")
-        for file_name in extra_files_in_folder:
-            full_path = os.path.join(folder_path, file_name)
-            print(full_path)
-    else:
-        print("所有在文件夹中的文件在 CSV 中都找到了。")
+    # csv_files = set(df_csv[compare_columns].values.flatten())
+    # folder_files = set(all_files)
+    #
+    # # 查找在文件夹中有但在 CSV 中没有的文件
+    # extra_files_in_folder = folder_files - csv_files
+    #
+    # # 输出在 CSV 中没有但在文件夹中有的文件名
+    # if extra_files_in_folder:
+    #     print("以下文件在 CSV 中没有但在文件夹中有:")
+    #     for file_name in extra_files_in_folder:
+    #         full_path = os.path.join(folder_path, file_name)
+    #         print(full_path)
+    # else:
+    #     print("所有在文件夹中的文件在 CSV 中都找到了。")

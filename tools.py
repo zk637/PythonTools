@@ -2,9 +2,7 @@ import ctypes
 import os
 import re
 import chardet
-import pandas as pd
 from difflib import SequenceMatcher
-from concurrent.futures import ThreadPoolExecutor
 
 import ffmpeg
 import filetype
