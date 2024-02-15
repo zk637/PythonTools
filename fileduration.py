@@ -1,5 +1,3 @@
-import ctypes
-import os
 import re
 import shutil
 import subprocess
@@ -8,7 +6,6 @@ import cProfile
 import pstats
 import io
 import pandas as pd
-from fuzzysearch import find_near_matches
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -1195,7 +1192,7 @@ def excel_compare():
     print("请输入需要比较的文件夹路径: ")
     folder_path=input()
     print("请输入比较文件大小限制（def:200): ")
-    size_threshold =input() or 200
+    size_threshold =int(input()) or 200
     # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
     # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
     size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
