@@ -4,7 +4,15 @@ import re
 import shutil
 import subprocess
 import sys
+import cProfile
+import pstats
+import io
+import pandas as pd
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+
+import ffmpeg
 
 import tools
 
@@ -121,7 +129,13 @@ def get_max_duration(paths, video_extension):
 
 
 def print_video_info_list():
+    # 创建 cProfile 对象
+    profiler = cProfile.Profile()
+    # 启动性能分析
+    profiler.enable()
     """输出视频文件的大小、时长、比特率和分辨率"""
+    start = time.time()
+    print(start)
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
     flag=input() or 'n'
     if flag.lower()=='y':
@@ -153,6 +167,10 @@ def print_video_info_list():
     if not folder:
         print("文件为空，需检查条件或参数！")
         return
+    # pool=ThreadPoolExecutor(1)
+    # future =pool.submit(tools.get_video_info_list,folder)
+    # future_result=future.result()
+    # video_info_list, max_path_len = future_result
     video_info_list, max_path_len = tools.get_video_info_list(folder)
     for video_info in video_info_list:
         path = video_info[0]
@@ -168,8 +186,17 @@ def print_video_info_list():
               end="")
             print(" " * (max_path_len - len(path) + 1))
 
+    end = time.time()
+    print(end)
+    print("cost:", end - start, "seconds")
+    # 停止性能分析
+    profiler.disable()
 
-
+    # 将分析结果保存到文件或打印出来
+    output = io.StringIO()
+    stats = pstats.Stats(profiler, stream=output).sort_stats('cumulative')
+    stats.print_stats()
+    print(output.getvalue())
 
 
 def generate_video_thumbnail():
@@ -893,6 +920,251 @@ def create_symbolic_links_recursive():
                 print(f"创建符号链接时出错：{e}")
     return target_folder
 
+
+
+
+
+
+
+import concurrent.futures
+import os
+import asyncio
+from functools import wraps
+
+# def make_async(sync_func):
+#     @wraps(sync_func)
+#     async def async_func(*args, **kwargs):
+#         loop = asyncio.get_event_loop()
+#         return await loop.run_in_executor(None, partial(sync_func, *args, **kwargs))
+#
+#     return async_func
+#
+# def execute_async_function(async_func, *args, **kwargs):
+#     loop = asyncio.get_event_loop()
+#     return loop.create_task(async_func(*args, **kwargs))
+#
+# def run_async_task(async_func, *args, **kwargs):
+#     loop = asyncio.get_event_loop()
+#     return loop.run_until_complete(async_func(*args, **kwargs))
+#
+# def print_video_info_list_asy():
+#     """输出视频文件的大小、时长、比特率和分辨率"""
+#     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+#     flag=input() or 'n'
+#     if flag.lower()=='y':
+#         # 新增方法：获取文件路径列表
+#         start=time.time()
+#         print(start)
+#         file_paths_list = []
+#
+#         while True:
+#             print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+#             path = input()
+#             # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+#             if not path:
+#                 break
+#             file_paths_list.append(path.replace('"',''))
+#         print("是否纯净输出y/n")
+#         flag = input()
+#         async_get_file_paths_list_limit=make_async(tools.get_file_paths_list_limit)
+#         extensions =('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+#             '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+#         '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+#         '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+#         task_get_file_paths= execute_async_function(async_get_file_paths_list_limit,*extensions)
+#         folder=run_async_task(task_get_file_paths,*extensions)
+#         # folder=tools.get_file_paths_list_limit(file_paths_list,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+#         #     '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+#         # '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+#         # '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+#     else:
+#         try:
+#             print("请输入视频文件夹")
+#             folder = tools.process_input_str("")
+#             print("是否纯净输出y/n")
+#             flag = input()
+#             async_get_file_paths_list_limit=make_async(tools.get_file_paths_list_limit)
+#             extensions =('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+#                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+#             '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+#             '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+#             task_get_file_paths= execute_async_function(async_get_file_paths_list_limit,*extensions)
+#             folder=asyncio.run(task_get_file_paths)
+#             # folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+#             #         '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+#             #     '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+#             #     '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+#         except Exception as e:
+#             print(e)
+#     if not folder:
+#         print("文件为空，需检查条件或参数！")
+#         return
+#     video_info_list, max_path_len = tools.get_video_info_list(folder)
+#     video_info_list= asyncio.run(execute_async_function)
+#     for video_info in video_info_list:
+#         path = video_info[0]
+#         size = "{:.2f}MB".format(video_info[1])
+#         duration = "{:.2f}min".format(video_info[2] / (60*60))
+#         bitrate = "{:.2f}kbps".format(video_info[3] / 1024)
+#         width = video_info[4]
+#         height = video_info[5]
+#         if (flag == 'y'.lower()):
+#             print(path)
+#         else:
+#             print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size, duration, bitrate, f"{width}x{height}"),
+#               end="")
+#             print(" " * (max_path_len - len(path) + 1))
+#     end=time.time()
+#     print(end)
+#     print("cost:", end - start, "seconds")
+
+def poolTool():
+    pool = ThreadPoolExecutor(5)  #
+    pool.submit()
+
+import asyncio
+import os
+import time
+from functools import partial, wraps
+
+async def get_file_paths_limit(folder, *extensions):
+    """获取文件夹下指定后缀的所有文件的路径"""
+    paths = []
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            if file.endswith(tuple(extensions)):
+                path = os.path.join(root, file)
+                paths.append(path)
+    if not paths:
+        print("未找到任何文件")
+    return paths
+
+async def get_video_details(path):
+    """获取视频文件的详细信息"""
+    if os.path.exists(path):
+        probe = ffmpeg.probe(path)
+        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+        # duration = float(video_stream['duration']) * 60
+        duration = float(probe["format"]["duration"]) * 60
+        bitrate = int(probe["format"]['bit_rate'])
+        width = int(video_stream['width'])
+        height = int(video_stream['height'])
+        # bitrate = int(video_stream['bit_rate'])
+        # width = int(video_stream['width'])
+        # height = int(video_stream['height'])
+        return duration, bitrate, width, height
+
+async def get_video_info_list(paths):
+    # 异步获取视频信息的逻辑
+    video_info_list = []
+    max_path_len = 0
+
+    for path in paths:
+        try:
+            duration, bitrate, width, height = await get_video_details(path)
+            size = os.path.getsize(path) / (1024*1024)
+            video_info_list.append((path, size, duration, bitrate, width, height))
+            max_path_len = max(max_path_len, len(path))
+            video_info_list.sort(key=lambda x: x[3])  # 按比特率排序
+        except Exception as e:
+            print(f"处理文件 {path} 时出错：{e}")
+            continue
+
+    return video_info_list, max_path_len
+
+async def get_file_paths_list_limit(file_paths_list, *extensions):
+    """获取文件列表中指定后缀的所有文件的路径"""
+    paths = []
+    for file_path in file_paths_list:
+        file_ext = os.path.splitext(file_path)[1].lower().replace('"', '')
+        if file_ext in extensions:
+            paths.append(file_path)
+    if not paths:
+        print("未找到任何文件")
+    return paths
+
+
+async def main():
+    start = time.time()
+    print(start)
+
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag = input().lower() or 'n'
+
+    if flag == 'y':
+        print("请输入文件夹")
+        folder = tools.process_input_str("")
+        print("是否纯净输出y/n")
+        flag = input().lower()
+
+        extensions = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+                      '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+                      '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                      '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+
+        file_paths_list = await get_file_paths_list_limit(folder, *extensions)
+    else:
+        try:
+            print("请输入视频文件夹")
+            folder = tools.process_input_str("")
+            print("是否纯净输出y/n")
+            flag = input().lower()
+
+            extensions = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+                          '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+                          '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                          '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+
+            file_paths_list = await get_file_paths_limit(folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
+                          '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+                          '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                          '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+        except Exception as e:
+            print(e)
+            return
+
+    if not file_paths_list:
+        print("文件为空，需检查条件或参数！")
+        return
+
+    video_info_list, max_path_len = await get_video_info_list(file_paths_list)
+
+    for video_info in video_info_list:
+        path, size, duration, bitrate, width, height = video_info
+        size_str = "{:.2f}MB".format(size)
+        duration_str = "{:.2f}min".format(duration / (60*60))
+        bitrate_str = "{:.2f}kbps".format(bitrate / 1024)
+
+        if flag == 'y':
+            print(path)
+        else:
+            print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size_str, duration_str, bitrate_str, f"{width}x{height}"),
+                  end="")
+            print(" " * (max_path_len - len(path) + 1))
+
+    end = time.time()
+    print(end)
+    print("cost:", end - start, "seconds")
+
+def print_video_info_list_asy():
+    # 创建 cProfile 对象
+    profiler = cProfile.Profile()
+
+    # 启动性能分析
+    profiler.enable()
+
+    # 在主程序中运行主协程
+    asyncio.run(main())
+
+    # 将分析结果保存到文件或打印出来
+    output = io.StringIO()
+    stats = pstats.Stats(profiler, stream=output).sort_stats('cumulative')
+    stats.print_stats()
+    print(output.getvalue())
+
+
+
+
 # 绝对路径
 absolute_path = "C:\\Users\\Username\\Documents\\file.txt"
 # 起始路径（通常是当前工作目录或另一个相对路径）
@@ -901,3 +1173,64 @@ base_path = "C:\\Users\\Username\\Documents"
 # 将绝对路径转为相对路径
 relative_path = os.path.relpath(absolute_path, base_path)
 
+
+def excel_compare():
+    excel_path=input("请输入需要比较的CSV文件: ").replace('"', '')
+    encode = tools.detect_encoding(excel_path)
+    with open(excel_path, 'r', encoding=encode) as file:
+        for _ in range(5):  # 读取前5行
+            print(file.readline())
+    folder_path=input("请输入需要比较的文件夹路径: ")
+    size_threshold =input("请输入比较文件大小限制（def:200): ") or 200
+    # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
+    # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
+    size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
+    # flag=input("纠错模式：将会打印读取的关键字的行数 Y/N（无法读取开启 def:N): ") or 'N'
+    # if flag.upper()=='Y':
+    #     encode = detect_encoding(excel_path)
+    #     with open(excel_path, 'r', encoding=encode) as file:
+    #         for _ in range(5):  # 读取前5行
+    #             print(file.readline())
+    # 获取需要比较的列名列表
+    compare_columns = input("请输入需要比较的列名，以逗号分隔: ").split(',')
+    find_missing_files(excel_path, folder_path, size_threshold,compare_columns)
+
+def find_missing_files(csv_path, folder_path, size_threshold,compare_columns):
+    encode=tools.detect_encoding(csv_path)
+    # 读取 CSV 文件，指定 encoding 参数为 'gbk'
+    df_csv = None  # 将 df_excel 初始化为 None
+    for header_row in range(0, 5):
+        try:
+            df_csv = pd.read_csv(csv_path, usecols=compare_columns, encoding=encode, header=header_row)
+            # 如果成功读取，跳出循环
+            print(f"成功以第 {header_row} 行作为列名。")
+            break
+        except ValueError as e:
+            print(f"尝试以第 {header_row} 行作为列名时出错：{e}")
+
+    # 如果 df_excel 未成功读取，给出错误信息并退出
+    if df_csv is None:
+        print("无法读取 Excel 文件。")
+        return
+
+    # 获取文件夹下所有文件
+    all_files = [f for f in os.listdir(folder_path) if
+                 os.path.isfile(os.path.join(folder_path, f)) and os.path.getsize(
+                     os.path.join(folder_path, f)) > size_threshold]
+
+    # 将文件名转为集合以便进行差异比较
+    # csv_files = set(compare_columns)
+    csv_files = set(df_csv[compare_columns])
+    folder_files = set(all_files)
+
+    # 查找在文件夹中有但在 CSV 中没有的文件
+    extra_files_in_folder = folder_files - csv_files
+
+    # 输出在 CSV 中没有但在文件夹中有的文件名
+    if extra_files_in_folder:
+        print("以下文件在 CSV 中没有但在文件夹中有:")
+        for file_name in extra_files_in_folder:
+            full_path = os.path.join(folder_path, file_name)
+            print(full_path)
+    else:
+        print("所有在文件夹中的文件在 CSV 中都找到了。")
