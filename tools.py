@@ -1,6 +1,8 @@
 import ctypes
 import os
 import re
+import chardet
+from difflib import SequenceMatcher
 
 import ffmpeg
 import filetype
@@ -186,6 +188,22 @@ def DelRepat(data,key):
 #                 print(f"File type: {kind.mime}")
 #         except Exception as e:
 #             print(e)
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+def detect_encoding(file_path):
+    with open(file_path, 'rb') as f:
+        result = chardet.detect(f.read())
+        encode=result['encoding']
+        return check_encoding(encode)
+def check_encoding(s):
+    lowercase_s = s.lower()
+    if lowercase_s.startswith("gb"):
+        return "gbk"
+    else:
+        return s
+
 def check_file_access(file_paths):
     results = {
         'cannot_determine_type': [],
@@ -397,7 +415,7 @@ def get_video_info_list(paths):
     # 手动录入排序属性的数字
     print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
     sort_index = int(input("") or 3)
-
+    # print("Debug: Paths before processing:", paths)
     for path in paths:
         try:
             duration, bitrate, width, height = get_video_details(path)
@@ -646,5 +664,7 @@ def register_find(lists, reg):
             # Add all the paths to the result list
             ique_files.extend(info['path'])
     return ique_files
+
+
 
 

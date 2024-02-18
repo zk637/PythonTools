@@ -6,6 +6,8 @@ import fileduration
 import getresolution
 import removefolder
 import srt
+
+
 import datetime
 import zippackage
 from loggerconifg import Logger
@@ -91,7 +93,9 @@ if __name__ == '__main__':
             23: fileduration.getfiletypeislegal,
             24: fileduration.check_symbolic_link,
             25: fileduration.update_linked_items,
-            26: fileduration.create_linked_items
+            26: fileduration.create_linked_items,
+            27: fileduration.excel_compare,
+            28: fileduration.print_video_info_list_asy
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -123,7 +127,8 @@ if __name__ == '__main__':
     #  23、校验文件是否合法
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
-    #  26、文件自动备份（创建-需提前创建符号链接）""")
+    #  26、文件自动备份（创建-需提前创建符号链接）
+    #  27、文件夹内容与csv对比""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
