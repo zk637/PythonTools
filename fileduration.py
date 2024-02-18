@@ -1192,7 +1192,7 @@ def excel_compare():
     print("请输入需要比较的文件夹路径: ")
     folder_path=input()
     print("请输入比较文件大小限制（def:200): ")
-    size_threshold =int(input()) or 200
+    size_threshold = int(input() or 200)
     # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
     # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
     size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
@@ -1205,11 +1205,13 @@ def excel_compare():
     # 获取需要比较的列名列表
     print("请输入需要比较的列名，以逗号分隔: ")
     compare_columns = input().split(',')
-    find_missing_files(excel_path, folder_path, size_threshold,compare_columns)
+    print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
+    flag=input() or 'N'
+    find_missing_files(excel_path, folder_path, size_threshold,compare_columns,flag)
 
 
 
-def find_missing_files(csv_path, folder_path, size_threshold,compare_columns):
+def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,flag):
     encode=tools.detect_encoding(csv_path)
     # 读取 CSV 文件，指定 encoding 参数为 'gbk'
     df_csv = None  # 将 df_excel 初始化为 None
@@ -1250,19 +1252,31 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns):
 
         # 取两个集合的差集
         unmatched_set = file_name_set - csv_files_names
-
-        # 如果差集不为空，表示找到了匹配
+        # 如果差集不为空，表示找到了CSV中没有的内容
         if unmatched_set:
             matche_lists.append(file)
-        else:
-            no_matche_lists.append(csv_files)
+        if flag.upper()=='Y':
+            # 取两个集合的并集
+            matched_set = file_name_set.intersection(csv_files_names)
+            if matched_set:
+                no_matche_lists.append(file)
 
     # 输出匹配结果
     if matche_lists:
         print("以下内容文件夹中有但CSV文件中没有：")
         for matche_list in matche_lists:
             print(matche_list)
+    else:
+        print("没有任何匹配的结果")
 
+    if flag.upper()=='Y':
+        if no_matche_lists:
+            print('\n' + '-' * 100)
+            print("以下内容文件夹中和CSV中都存在：")
+            for no_matche in no_matche_lists:
+                print(no_matche)
+    else:
+        print("没有任何匹配的结果")
     # print("\n")
     # csv_column_values = df_csv[compare_columns].tolist()
     # similarity_threshold = 0.8
