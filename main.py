@@ -1,21 +1,23 @@
 # This is a sample Python script.
 import atexit
 import fileSize
+import translate
 import filecount
-import fileduration
-import getresolution
+import filebackup
+import zippackage
+import fileanalysis
+import filecomparison
 import removefolder
-import srt
 
 
 import datetime
-import zippackage
+
 from loggerconifg import Logger
 from loggerconifg import InputLogger
 from loggerconifg import createog
 from loggerconifg import exit_handler
 import sys
-import translate
+
 
 
 sys.stdin.reconfigure(encoding='utf-8')
@@ -61,7 +63,9 @@ if __name__ == '__main__':
     #  23、校验文件是否合法
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
-    #  26、文件自动备份（创建-需提前创建符号链接）"""
+    #  26、文件自动备份（创建-需提前创建符号链接）
+    #  27、文件夹内容与csv对比
+    #  28、获取给定文件夹或文件的音频文件"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -70,32 +74,33 @@ if __name__ == '__main__':
         methods = {
             1: fileSize.get_total_file_size,
             2: fileSize.def_get_total_size,
-            3: srt.getSrt,
-            4: srt.getSrtNew,
+            3: translate.getSrt,
+            4: translate.getSrtNew,
             5: translate.find_matching_subtitles,
             6: translate.find_matching_subtitles_create,
-            7: getresolution.get_low_resolution_media_files,
+            7: fileanalysis.get_low_resolution_media_files,
             8: removefolder.remove_small_folders,
             9: filecount.getfoldercount,
             10: fileSize.filter_files_by_sizeordate,
-            11: fileduration.get_video_duration_sorted,
-            12: fileduration.print_video_info_list,
-            13: fileduration.check_files_in_folder,
-            14: fileduration.compare_and_move_files,
-            15: fileduration.get_file_paths_with_rules,
-            16: fileduration.create_symbolic_links,
-            17: fileduration.same_file_createsymbolic_links,
+            11: fileanalysis.get_video_duration_sorted,
+            12: fileanalysis.print_video_info_list,
+            13: filecomparison.check_files_in_folder,
+            14: filecomparison.compare_and_move_files,
+            15: filecomparison.get_file_paths_with_rules,
+            16: filebackup.create_symbolic_links,
+            17: filebackup.same_file_createsymbolic_links,
             18: zippackage.check_zip_password,
             19: zippackage.extract_archive,
-            20: fileduration.get_file_paths_with_name,
-            21: fileduration.get_exclude_suffix_list,
-            22: fileduration.get_filepathsort,
-            23: fileduration.getfiletypeislegal,
-            24: fileduration.check_symbolic_link,
-            25: fileduration.update_linked_items,
-            26: fileduration.create_linked_items,
-            27: fileduration.excel_compare,
-            28: fileduration.print_video_info_list_asy
+            20: filecomparison.get_file_paths_with_name,
+            21: filecomparison.get_exclude_suffix_list,
+            22: filecomparison.get_file_rule_sort,
+            23: fileanalysis.getfiletypeislegal,
+            24: filecomparison.check_symbolic_link,
+            25: filebackup.update_linked_items,
+            26: filebackup.create_linked_items,
+            27: filecomparison.excel_compare,
+            28: fileanalysis.get_video_audio,
+            29: filecomparison.print_video_info_list_asy
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -128,7 +133,8 @@ if __name__ == '__main__':
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比""")
+    #  27、文件夹内容与csv对比
+    #  28、获取给定文件夹或文件的音频文件""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
