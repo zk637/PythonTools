@@ -478,6 +478,21 @@ def get_video_duration(video_path):
         print(f"Error: Failed to get duration of video {video_path}.")
         return 0
 
+def convert_video_to_mp3(video_path):
+    video_name = os.path.splitext(os.path.basename(video_path))[0]+'.mp3'
+    video_final_path=os.path.join(os.path.dirname(video_path),video_name)
+    try:
+        subprocess.run(
+            ['ffmpeg', '-i', video_path, '-f', 'mp3', '-vn', video_final_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True
+        )
+        print(f"转换成功：{video_name}.mp3")
+    except subprocess.CalledProcessError as e:
+        print(f"转换失败：{video_path}")
+        print(f"错误输出：{e.stderr.decode()}")
+
 def getbitratesort(files):
     # 按比特率排序
     files_bitrate = []
