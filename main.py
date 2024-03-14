@@ -65,7 +65,9 @@ if __name__ == '__main__':
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
     #  27、文件夹内容与csv对比
-    #  28、获取给定文件夹或文件的音频文件"""
+    #  28、获取给定文件夹或文件的音频文件
+    #  29、文件夹下视频命名规范化
+    #  30、根据限制大小拆分视频为多段"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -100,7 +102,10 @@ if __name__ == '__main__':
             26: filebackup.create_linked_items,
             27: filecomparison.excel_compare,
             28: fileanalysis.get_video_audio,
-            29: filecomparison.print_video_info_list_asy
+            29: filecomparison.rename_with_dir,
+            30: fileanalysis.split_video,
+            # 31: translate.matching_subtitles_after_rename,
+            32: filecomparison.print_video_info_list_asy
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -134,7 +139,9 @@ if __name__ == '__main__':
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
     #  27、文件夹内容与csv对比
-    #  28、获取给定文件夹或文件的音频文件""")
+    #  28、获取给定文件夹或文件的视频文件
+    #  29、文件夹下视频命名规范化
+    #  30、根据限制大小拆分视频为多段""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
