@@ -498,6 +498,46 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
     else:
         print("没有任何匹配的结果")
 
+def rename_with_dir():
+    print("请输入要重命名的文件夹： ")
+    path=input()
+    files = tools.get_file_paths_limit(path, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg',
+                                           '.mpe', '.m1v', '.m2v',
+                                           '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv',
+                                           '.mp4', '.m4v',
+                                           '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram',
+                                           '.rmvb', '.rpm', '.flv', '.mov',
+                                           '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm',
+                                           '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+    for file in files:
+        rename_file(file)
+
+def rename_file(filepath):
+    if os.path.isfile(filepath):
+        try:
+            filename, file_extension = os.path.splitext(os.path.basename(filepath))
+            year_part = filename[:4]  # 修改这里以确保获取正确的年份部分
+            rest_part = filename[4:]
+
+            # 确保年份是数字
+            if year_part.isdigit():
+                # 首字母大写
+                words = rest_part.split()
+                words[0] = words[0].capitalize()
+                rest_part = ' '.join(words)
+
+                new_name = f"{rest_part} ({year_part}){file_extension}"
+                new_path = os.path.join(os.path.dirname(filepath), new_name)
+                os.rename(filepath, new_path)
+                print(f"已将文件 {filename} 重命名为 {new_name}")
+            else:
+                print(f"无法获取有效的年份部分于文件 {filename}")
+        except Exception as e:
+            print(e)
+    else:
+        print(f"{filepath} 不是一个有效的文件路径")
+
+
 
 #---------------------------------------------------------------
 

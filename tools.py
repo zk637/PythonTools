@@ -8,6 +8,7 @@ import ffmpeg
 import filetype
 import subprocess
 import contextlib
+import locale
 import sys
 
 #输入参数为列表
@@ -35,6 +36,14 @@ def process_intput_strr(s):
 def add_quotes_forpath(s):
     str='"'+s+'"'
     return str
+
+def make_dir(s):
+    try:
+        os.makedirs(s, exist_ok=True)
+        if os.path.exists(s):
+            print(f"Folder '{s}' created successfully.")
+    except Exception as e:
+        print(e)
 
 def get_file_paths(folder):
     """获取文件夹下所有文件的路径"""
@@ -617,12 +626,92 @@ def create_groups(lists,reg):
             ique_files.extend(info['path'])
     return ique_files
 
+def seconds_to_hhmmss(seconds):
+    # 将秒数转换为时分秒格式
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
+def get_video_info(path):
+    try:
+        if os.path.exists(path):
+            probe = ffmpeg.probe(path)
+            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+            audio_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'audio'), None)
+
+            duration = float(probe["format"]["duration"]) if "format" in probe else 0
+            video_bitrate = int(video_stream['bit_rate']) if video_stream else 0
+            audio_bitrate = int(audio_stream['bit_rate']) if audio_stream else 0
+            width = int(video_stream['width']) if video_stream else 0
+            height = int(video_stream['height']) if video_stream else 0
+
+            return duration, video_bitrate, audio_bitrate, width, height
+        else:
+            print("File does not exist.")
+            return None
+    except ffmpeg.Error as e:
+        print(f"Error probing file: {e}")
+        return None
+
+def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
+    video_info = get_video_info(output_prefix)
+    if video_info is not None:
+        duration, video_bitrate, audio_bitrate, width, height = video_info
+        part_max_duration = part_max_size * 8 / (video_bitrate + audio_bitrate)
+        # 格式化分段最大时长为 HH:MM:SS 格式
+        part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
+        print(f"格式化后的最大时长: {part_max_duration_formatted}")
+        # 添加标志以指示是否存在已存在的文件
+        existing_file_found = False
+
+        output_prefix_tmp = output_prefix
+        output_prefix_tmp=output_prefix_tmp.replace("'",'-')
+        filename, file_extension = os.path.splitext(output_prefix_tmp)
+        output_prefix_tmp=filename
+        output_prefix_tmp.replace('.mp4','')
+
+        part_index = output_prefix.rfind('_part')
+        if part_index != -1:
+            # 截取字符串，保留 '_part' 之前的部分
+            output_prefix_tmp = output_prefix[:part_index]
+            output_prefix_tmp=output_prefix_tmp.replace('.mp4','')
+            # print("Original Name:", output_prefix_tmp)
+        else:
+            print("File name doesn't contain '_part'.")
+        part_index=0
+        for part_index in range(int(part_num)):
+            output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
+            if os.path.isfile(output_prefix_tmp):
+                print(f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
+                existing_file_found = True
+                output_prefix_tmp=''
+                break  # 找到一个已存在的文件就跳出循环
+
+        if not existing_file_found:
+            # 构建拆分命令
+            processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
+            split_command = [
+                'ffmpeg',
+                '-i', output_prefix,
+                '-c', 'copy',
+                '-map', '0',
+                '-f', 'segment',
+                '-segment_time', str(part_max_duration),
+                '-reset_timestamps', '1',
+                '-y',
+                # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
+                processed_output_prefix+ '_part%d.mp4'
+            ]
+
+            # 使用 subprocess.run 运行拆分命令
+            subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,encoding='utf-8')
+
+
 #----------------------------------------------------------
 def register_findone(lists, reg):
     lists_by_reg = {}
     # Traverse all the files
     final_name=os.path.basename(lists[0]).split('.')[0]
-    # print(lists[0])
     for file_path in lists:
         try:
             tempfilename = os.path.basename(file_path).split('.')[0]
@@ -680,6 +769,63 @@ def register_find(lists, reg):
             ique_files.extend(info['path'])
     return ique_files
 
+# def get_free_space_cmd(path="."):
+    # # 使用命令行获取磁盘剩余空间
+    # command = f"dir /-C {path} | findstr bytes free"
+    # result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    #
+    # # 提取剩余空间信息
+    # lines = result.stdout.splitlines()
+    # if len(lines) >= 2:
+    #     free_space_line = lines[1].strip()
+    #     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
+    #     return free_space_gb
+    # else:
+    #     return None
+    # 使用命令行获取磁盘剩余空间
+    # 获取当前语言环境
+    # current_locale, _ = locale.getdefaultlocale()
+    #
+    # # 根据语言环境选择关键词
+    # if current_locale.startswith("en"):
+    #     keywords = "/C:\"bytes free\""
+    # elif current_locale.startswith("zh"):
+    #     keywords = "/C:\"字节 可用\""
+    # else:
+    #     # 默认选择英文关键词
+    #     keywords = "/C:\"bytes free\""
+    #
+    # # 使用命令行获取磁盘剩余空间
+    # command = f"dir {path} | findstr {keywords}"
+    # result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    #
+    # # 提取剩余空间信息
+    # lines = result.stdout.splitlines()
+    # if len(lines) >= 2:
+    #     free_space_line = lines[1].strip()
+    #     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
+    #     return free_space_gb
+    # else:
+    #     return None
+def get_free_space_cmd(folder_path):
+    # 提取文件夹所在磁盘的根目录
+    #TODO 多语言环境兼容
+    drive_letter = os.path.splitdrive(os.path.abspath(folder_path))[0]
+    # drive_letter=drive_letter+r'\\'
+    # 使用命令行获取磁盘剩余空间
+    command = f'dir {drive_letter} |  findstr /C:"字节" | findstr /C:"可用"'
+    result = subprocess.run(command, capture_output=True, text=True, shell=True)
 
-
+    # 提取剩余空间信息G:\Videos\short\test
+    lines = result.stdout.splitlines()
+    # 遍历每行输出，提取目录到可用字节之间的内容
+    for line in lines:
+        match = re.search(r'目录\s+(.*?)\s+可用字节', line)
+        if match:
+            free_space = match.group(1).strip()
+            # print("剩余空间:", free_space)
+            return int(free_space.replace(',', ''))
+        else:
+            print("未找到剩余空间信息")
+            return 1/0
 

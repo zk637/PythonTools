@@ -277,3 +277,62 @@ def getfiletypeislegal():
     tools.check_file_access(path)
     return None
 
+def split_video():
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag = input() or 'n'
+    # 构建存储part路径的列表
+    if flag.lower() == 'y':
+        # 新增方法：获取文件路径列表
+        input_video_list = []
+
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            if not path:
+                break
+            input_video_list.append(path.replace('"', ''))
+        input_video_list.append(path.replace('"', ''))
+        print("拆分后每段文件的大小限制 单位：MB")
+        max_size_mb=int(input())*1024*1024
+
+        output_dir = r'H:\spilt_parts_dir'
+        tools.make_dir(output_dir)
+        for input_video in input_video_list:
+            if input_video!='':
+                part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
+                if part_num > 1:
+                    part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
+                    tools.split_video_for_size(part_max_size,part_num,input_video,output_dir)
+                else:
+                    print(f"文件无法拆分：{input_video}")
+
+    else:
+        print("请输入视频文件夹")
+        input_video_dir = tools.process_input_str("")
+        filename, file_extension = os.path.splitext(input_video_dir)
+
+        output_dir = os.path.join(filename, 'spilt_parts_dir')
+        tools.make_dir(output_dir)
+
+        print("拆分后每段文件的大小限制 单位：MB")
+        max_size_mb=int(input())*1024*1024
+        input_video_list = tools.get_file_paths_limit(input_video_dir, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg',
+                                                 '.mpeg', '.mpe', '.m1v', '.m2v',
+                                                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm',
+                                                 '.ogv', '.mp4', '.m4v',
+                                                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
+                                                 '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                                                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g',
+                                                 '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v',
+                                                 '.mxf')
+        if input_video_list is not None:
+            for input_video in input_video_list:
+                free_space=tools.get_free_space_cmd(input_video_dir)
+                if free_space>os.path.getsize(input_video):
+                    part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
+                    if part_num>1:
+                        part_max_size = os.path.getsize(input_video) / part_num
+                        tools.split_video_for_size(part_max_size,part_num,input_video,output_dir)
+                    else:
+                        print(f"文件无法拆分：{input_video}")
+
