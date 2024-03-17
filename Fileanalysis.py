@@ -2,6 +2,8 @@ import io
 import os
 import cProfile
 import pstats
+import re
+
 from PIL import Image
 import cv2
 import tools
@@ -336,3 +338,38 @@ def split_video():
                     else:
                         print(f"文件无法拆分：{input_video}")
 
+
+def add_srt():
+    print("输入视频文件路径")
+    video_path=input().replace('"','')
+    print("输入字幕文件路径")
+    srt_path=input().replace('"','')
+    print("硬字幕还是软字幕 Y/N def:N")
+    print(srt_path)
+    flag=input() or 'N'
+    if os.path.isfile(video_path):
+        dir_path = os.path.dirname(video_path)
+        base_name = os.path.basename(video_path).split('.')[0]
+
+        # 构建输出文件名
+        video_out_name = f"{base_name}_CN.mp4"
+        video_out_name = os.path.join(dir_path, video_out_name)
+        bat_file=''
+    if flag.upper()=='Y':
+            # 定义 FFmpeg 命令
+            #可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
+            # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
+            srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
+            # video_path = video_path.replace('\\','\\\\')
+            # print(video_path)
+            srt_path="'"+srt_path+"'"
+            # print(srt_path)
+            command=f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
+            print(command)
+            bat_file=tools.generate_bat_script("run_addSrt.bat",command)
+            tools.subprocess_common_bat(bat_file,command)
+    else:
+            # 定义 FFmpeg 命令
+            command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -c copy "{video_out_name}"'
+            bat_file=tools.generate_bat_script("run_addSrt.bat",command)
+            tools.subprocess_common_bat(bat_file,command)

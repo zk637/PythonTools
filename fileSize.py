@@ -16,7 +16,7 @@ def get_total_file_size(file_paths):
     return total_size / (1024 ** 3)
 
 
-def def_get_total_size(file_paths):
+def get_total_size(file_paths):
     total_size = 0
     try:
         for file_path in file_paths:

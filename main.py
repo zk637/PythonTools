@@ -67,7 +67,8 @@ if __name__ == '__main__':
     #  27、文件夹内容与csv对比
     #  28、获取给定文件夹或文件的音频文件
     #  29、文件夹下视频命名规范化
-    #  30、根据限制大小拆分视频为多段"""
+    #  30、根据限制大小拆分视频为多段
+    #  31、为视频文件添加字幕"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -75,7 +76,7 @@ if __name__ == '__main__':
             print("Invalid input")
         methods = {
             1: fileSize.get_total_file_size,
-            2: fileSize.def_get_total_size,
+            2: fileSize.get_total_size,
             3: translate.getSrt,
             4: translate.getSrtNew,
             5: translate.find_matching_subtitles,
@@ -104,6 +105,7 @@ if __name__ == '__main__':
             28: fileanalysis.get_video_audio,
             29: filecomparison.rename_with_dir,
             30: fileanalysis.split_video,
+            31: fileanalysis.add_srt,
             # 31: translate.matching_subtitles_after_rename,
             32: filecomparison.print_video_info_list_asy
             # 26:fileduration.create_symbolic_links_recursive
@@ -141,7 +143,8 @@ if __name__ == '__main__':
     #  27、文件夹内容与csv对比
     #  28、获取给定文件夹或文件的视频文件
     #  29、文件夹下视频命名规范化
-    #  30、根据限制大小拆分视频为多段""")
+    #  30、根据限制大小拆分视频为多段
+    #  31、为视频文件添加字幕""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
