@@ -324,6 +324,74 @@ def keep_duplicate_files(file_list):
             # Add all the paths to the result list
             ique_files.extend(info['paths'])
     return ique_files
+
+def subprocess_common(command, shell=True, capture_output=True, text=True):
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        # 输出命令的详细信息
+        print(result.stdout)
+        print(result.stderr)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
+
+def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, text=True):
+    try:
+        # 将命令和批处理文件名组合成一个字符串
+        command_with_bat = f'{bat_file} {command}'
+        print(command_with_bat)
+        # 调用批处理文件并传递命令作为参数
+        process = subprocess.Popen(command_with_bat, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=text)
+
+        # 获取标准输出和标准错误
+        stdout, stderr = process.communicate()
+
+        # 输出命令的详细信息
+        print(stdout)
+        print(stderr)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
+
+def subprocess_with_progress(command, shell=True):
+    # 启动子进程
+    print(command)
+    process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+    print(process)
+    process.communicate()
+
+#TODO 更加多样的参数逻辑支持
+def generate_bat_script(bat_file, command):
+    # 检查批处理文件是否已存在
+    if os.path.exists(bat_file):
+        return bat_file
+
+    # 打开批处理文件以写入模式
+    with open(bat_file, 'w') as f:
+        # 写入批处理文件的内容
+        f.write('@echo off\n')
+        f.write('REM 获取 Python 传递的命令参数\n')
+        f.write('set COMMAND=%*\n')
+        f.write('\n')
+        f.write('REM 输出传递的命令参数\n')
+        f.write('echo COMMAND: %COMMAND%\n')
+        f.write('\n')
+        f.write('REM 执行传递的命令\n')
+        f.write('start cmd /k %COMMAND%\n')
+        f.write('\n')
+        f.write('REM 检查上一个命令的执行结果，如果失败则输出错误信息\n')
+        f.write('if errorlevel 1 (\n')
+        f.write('    echo Error: Failed to execute the command.\n')
+        f.write('    pause\n')
+        f.write('    exit /b 1\n')
+        f.write(')\n')
+        f.write('\n')
+        f.write('echo Command executed successfully.\n')
+        f.write('pause\n')
+
+    return bat_file
+
 # -------------------------------
 
 
