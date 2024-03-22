@@ -1,5 +1,7 @@
 # This is a sample Python script.
 import atexit
+import os
+
 import fileSize
 import translate
 import filecount
@@ -149,50 +151,55 @@ if __name__ == '__main__':
     #  31、为视频文件添加字幕
     #  32、检查视频是否存在字幕流""")
         input_logger = InputLogger(out_put)
-        input_logger.start_logging()
-        print("# 输入对应的编号")
-        print("--------------------------------------------------In-----------------------------------------------------")
-        try:
-            user_input = int(input("Enter a number: \n"))
-            if user_input == 1 or user_input == 2 or user_input == 13:
-                # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
-                file_paths = []
-                while True:
-                    # input_logger = InputLogger('output.txt')
-                    # input_logger.start_logging()
-                    path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-                    # input_logger.stop_logging()
-                    # input_logger.close()
-                    if not path:
-                        break
-                    file_paths.append(path.strip('"'))
-                methods.get(user_input, default_method)(file_paths)
+        if os.path.exists(out_put) and os.path.getsize(out_put) > 20 * 1024 * 1024:
+            out_put=createog()
+            input_logger = InputLogger(out_put)
+        else:
+            # print(os.path.getsize(out_put))
+            input_logger.start_logging()
+            print("# 输入对应的编号")
+            print("--------------------------------------------------In-----------------------------------------------------")
+            try:
+                user_input = int(input("Enter a number: \n"))
+                if user_input == 1 or user_input == 2 or user_input == 13:
+                    # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
+                    file_paths = []
+                    while True:
+                        # input_logger = InputLogger('output.txt')
+                        # input_logger.start_logging()
+                        path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+                        # input_logger.stop_logging()
+                        # input_logger.close()
+                        if not path:
+                            break
+                        file_paths.append(path.strip('"'))
+                    methods.get(user_input, default_method)(file_paths)
+                    input_logger.stop_logging()
+                    input_logger.close()
+                    print(
+                        f"--------------------------------------------------End----------------------------------------------------")
+                else:
+                    methods.get(user_input, default_method)()
+                    print(
+                        f"--------------------------------------------------End----------------------------------------------------")
                 input_logger.stop_logging()
                 input_logger.close()
-                print(
-                    f"--------------------------------------------------End----------------------------------------------------")
-            else:
-                methods.get(user_input, default_method)()
-                print(
-                    f"--------------------------------------------------End----------------------------------------------------")
-            input_logger.stop_logging()
-            input_logger.close()
-            print("是否继续执行？(Y/N)\n")
-            user_input = input()
-            if user_input.lower() == "y":
-                # 继续执行，回到程序开头
-                continue
-            elif user_input.lower() == "n":
-                # 结束循环，退出程序
-                break
-            else:
-                # 提示输入有误，请重新输入
-                print("输入有误，请重新输入！")
-                continue
-        except ValueError:
-            print("Invalid input. Please enter a valid integer.")
-    # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
-    #                     datefmt='%Y-%m-%d %H:%M:%S')
+                print("是否继续执行？(Y/N)\n")
+                user_input = input()
+                if user_input.lower() == "y":
+                    # 继续执行，回到程序开头
+                    continue
+                elif user_input.lower() == "n":
+                    # 结束循环，退出程序
+                    break
+                else:
+                    # 提示输入有误，请重新输入
+                    print("输入有误，请重新输入！")
+                    continue
+            except ValueError:
+                print("Invalid input. Please enter a valid integer.")
+        # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
+        #                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
 
