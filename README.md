@@ -35,6 +35,10 @@ the following is a list of existing functions
     #  26、文件自动备份（创建-需提前创建符号链接）
     #  27、文件夹内容与csv对比
     #  28、获取给定文件夹或文件的音频文件
+    #  29、文件夹下视频命名规范化
+    #  30、根据限制大小拆分视频为多段
+    #  31、为视频文件添加字幕
+    #  32、检查视频是否存在字幕流
     
     # 1. Get the size of files in the same subdirectory code==01
     # 2. Get the size of files in different subdirectories code==02
@@ -64,6 +68,9 @@ the following is a list of existing functions
     # 26, Automatic backup of documents (creation - need to create symbolic links in advance)
     # 27, folder contents vs. csv
     # 28. Get the audio file for a given folder or file
-
+    # 29, folder video naming normalization
+    # 30. Split the video into multiple segments according to the limit size
+    # 31. Add subtitles to the video file
+    # 32. Check the video for subtitle streams
 
   
