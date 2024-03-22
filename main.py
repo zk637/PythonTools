@@ -68,7 +68,8 @@ if __name__ == '__main__':
     #  28、获取给定文件夹或文件的音频文件
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
-    #  31、为视频文件添加字幕"""
+    #  31、为视频文件添加字幕
+    #  32、检查视频是否存在字幕流"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -106,8 +107,9 @@ if __name__ == '__main__':
             29: filecomparison.rename_with_dir,
             30: fileanalysis.split_video,
             31: fileanalysis.add_srt,
+            32: fileanalysis.check_files_subtitle_stream,
             # 31: translate.matching_subtitles_after_rename,
-            32: filecomparison.print_video_info_list_asy
+            33: filecomparison.print_video_info_list_asy
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -144,7 +146,8 @@ if __name__ == '__main__':
     #  28、获取给定文件夹或文件的视频文件
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
-    #  31、为视频文件添加字幕""")
+    #  31、为视频文件添加字幕
+    #  32、检查视频是否存在字幕流""")
         input_logger = InputLogger(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
