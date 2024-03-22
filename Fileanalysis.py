@@ -2,12 +2,13 @@ import io
 import os
 import cProfile
 import pstats
+import time
 import re
 
 from PIL import Image
 import cv2
 import tools
-from datetime import datetime,time
+from datetime import datetime
 
 
 
@@ -165,7 +166,7 @@ def print_video_info_list():
     profiler.enable()
     """输出视频文件的大小、时长、比特率和分辨率"""
     start = time.time()
-    print(start)
+    # print(start)
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
     flag=input() or 'n'
     if flag.lower()=='y':
@@ -345,12 +346,12 @@ def add_srt():
     print("输入字幕文件路径")
     srt_path=input().replace('"','')
     print("硬字幕还是软字幕 Y/N def:N")
-    print(srt_path)
     flag=input() or 'N'
     if os.path.isfile(video_path):
         dir_path = os.path.dirname(video_path)
-        base_name = os.path.basename(video_path).split('.')[0]
-
+        # base_name = os.path.basename(video_path).split('.')[0]
+        base_name, extension = os.path.splitext(video_path.split('\\')[-1])
+        print(base_name)
         # 构建输出文件名
         video_out_name = f"{base_name}_CN.mp4"
         video_out_name = os.path.join(dir_path, video_out_name)
@@ -370,6 +371,46 @@ def add_srt():
             tools.subprocess_common_bat(bat_file,command)
     else:
             # 定义 FFmpeg 命令
-            command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -c copy "{video_out_name}"'
+            command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
             bat_file=tools.generate_bat_script("run_addSrt.bat",command)
-            tools.subprocess_common_bat(bat_file,command)
+            result=tools.subprocess_common_bat(bat_file,command)
+            print(result)
+
+import subprocess
+import re
+
+def check_files_subtitle_stream():
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag = input() or 'n'
+    # 构建存储part路径的列表
+    if flag.lower() == 'y':
+        # 新增方法：获取文件路径列表
+        video_paths_list = []
+
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            if not path:
+                break
+            video_paths_list.append(path.replace('"', ''))
+        for video_path in video_paths_list:
+            tools.check_subtitle_stream(video_path)
+    else:
+        print("请输入视频文件夹")
+        video_dir = tools.process_input_str("")
+        video_dir = tools.get_file_paths_limit(video_dir, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg',
+                                                 '.mpeg', '.mpe', '.m1v', '.m2v',
+                                                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm',
+                                                 '.ogv', '.mp4', '.m4v',
+                                                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
+                                                 '.ram', '.rmvb', '.rpm', '.flv', '.mov',
+                                                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g',
+                                                 '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v',
+                                                 '.mxf')
+        if video_dir is not None:
+            for video_path in video_dir:
+                tools.check_subtitle_stream(video_path)
+        else:
+            print("文件夹为空")
+
+

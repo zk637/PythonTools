@@ -775,6 +775,47 @@ def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
             subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,encoding='utf-8')
 
 
+# def check_subtitle_stream(video_path):
+#     if os.path.exists(video_path):
+#         video_path=video_path.replace('\\\\', '\\')
+#         command = ['ffmpeg', '-i', video_path]
+#         print(command)
+#         try:
+#             output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
+#             print(output)
+#             streams = re.findall(r'Stream #\d+:\d+(.*?)\n', output)
+#             for stream in streams:
+#                 if 'Subtitle' in stream:
+#                     print(f"{video_path}: 该视频文件包含字幕流。")
+#                     return True
+#         except Exception as e:
+#             streams = re.findall(r'Stream #\d+:\d+(.*?)\n', output)
+#             for stream in streams:
+#                 if 'Subtitle' in stream:
+#                     print(f"{video_path}: 该视频文件包含字幕流。")
+#                     return True
+#                 else:
+#                     print("Error:", f"文件{video_path}：不包含字幕流")
+#         return False
+
+def check_subtitle_stream(video_path):
+    if os.path.exists(video_path):
+        video_path = video_path.replace('\\\\', '\\')
+        #ffprobe -v error -select_streams s -show_entries stream=index,codec_name -of default=noprint_wrappers=1:nokey=1 "H:\videos\test.mp4"
+        command = ['ffprobe', '-v', 'error', '-select_streams', 's', '-show_entries', 'stream=index,codec_name', '-of',
+                   'default=noprint_wrappers=1:nokey=1', video_path]
+        # print(command)
+        try:
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
+            if output:
+                print("True:", f"true=文件{video_path}：存在字幕流")
+            else:
+                print("False:", f"文件{video_path}：不存在字幕流")
+        except subprocess.CalledProcessError as e:
+            print("Error:", f"文件{video_path}：无法获取视频信息")
+            print(e.output)
+            return False
+
 #----------------------------------------------------------
 def register_findone(lists, reg):
     lists_by_reg = {}
