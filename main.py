@@ -153,6 +153,7 @@ if __name__ == '__main__':
         input_logger = InputLogger(out_put)
         if os.path.exists(out_put) and os.path.getsize(out_put) > 20 * 1024 * 1024:
             out_put=createog()
+            input_logger = InputLogger(out_put)
         else:
             # print(os.path.getsize(out_put))
             input_logger.start_logging()
