@@ -165,8 +165,7 @@ def print_video_info_list():
     # 启动性能分析
     profiler.enable()
     """输出视频文件的大小、时长、比特率和分辨率"""
-    start = time.time()
-    # print(start)
+
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
     flag=input() or 'n'
     if flag.lower()=='y':
@@ -182,6 +181,8 @@ def print_video_info_list():
             file_paths_list.append(path.replace('"',''))
         print("是否纯净输出y/n")
         flag = input()
+        start = time.time()
+        print(start)
         folder=tools.get_file_paths_list_limit(file_paths_list,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
             '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
         '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
@@ -191,6 +192,8 @@ def print_video_info_list():
         folder = tools.process_input_str("")
         print("是否纯净输出y/n")
         flag = input()
+        start = time.time()
+        print(start)
         folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
             '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',

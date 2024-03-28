@@ -692,3 +692,41 @@ def print_video_info_list_asy():
     stats = pstats.Stats(profiler, stream=output).sort_stats('cumulative')
     stats.print_stats()
     print(output.getvalue())
+
+
+def get_directories_and_copy_tree():
+    print("请输入需要复制目录结构的文件夹")
+    folder = tools.process_input_str("")
+    print("请输入要复制结构到的文件夹")
+    point_folder = tools.process_input_str("")
+    """
+    获取给定文件夹中的所有子文件夹，并将其复制到指定文件夹中。
+    """
+
+    if os.path.isdir(folder) and os.path.isdir(point_folder):
+        try:
+            # 构造目标文件夹路径，注意这里需要使用 point_folder 作为根路径
+            target_dir = os.path.join(point_folder, os.path.basename(folder))
+            # 创建目标文件夹
+            os.makedirs(target_dir, exist_ok=True)
+            print(f"Directory copied from '{folder}' to '{target_dir}'")
+
+            # 获取除起始文件夹外的所有子文件夹
+            directories = []
+            for root, dirs, files in os.walk(folder):
+                for dir_name in dirs:
+                    directories.append(os.path.join(root, dir_name))
+
+            if directories:
+                for directory in directories:
+                    # 构造目标文件夹路径，注意这里使用最初的目标文件夹作为基路径
+                    target_subdir = os.path.join(target_dir, os.path.relpath(directory, folder))
+                    # 创建目标文件夹
+                    os.makedirs(target_subdir, exist_ok=True)
+                    print(f"Directory copied from '{directory}' to '{target_subdir}'")
+
+        except Exception as e:
+            print(e)
+
+    else:
+        print("目录不存在，或不是目录")

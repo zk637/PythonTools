@@ -28,6 +28,12 @@ def createog():
     logger = Logger(log_file, sys.stdout)
     return log_file
 
+def check_log_size(out_put):
+    if os.path.exists(out_put) and os.path.getsize(out_put) >= 20 * 1024 * 1024:
+        out_put=createog()
+        return InputLogger(out_put)
+    else:
+        return InputLogger(out_put)
 
 class Logger(object):
     def __init__(self, filename='default.log', stream=sys.stdout):
