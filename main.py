@@ -3,6 +3,7 @@ import atexit
 import os
 
 import fileSize
+import loggerconifg
 import translate
 import filecount
 import filebackup
@@ -71,7 +72,8 @@ if __name__ == '__main__':
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
     #  31、为视频文件添加字幕
-    #  32、检查视频是否存在字幕流"""
+    #  32、检查视频是否存在字幕流
+    #  33: 获取指定文件夹下的目录结构"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -111,7 +113,8 @@ if __name__ == '__main__':
             31: fileanalysis.add_srt,
             32: fileanalysis.check_files_subtitle_stream,
             # 31: translate.matching_subtitles_after_rename,
-            33: filecomparison.print_video_info_list_asy
+            33: filecomparison.get_directories_and_copy_tree,
+            34: filecomparison.print_video_info_list_asy,
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -149,57 +152,53 @@ if __name__ == '__main__':
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
     #  31、为视频文件添加字幕
-    #  32、检查视频是否存在字幕流""")
-        input_logger = InputLogger(out_put)
-        if os.path.exists(out_put) and os.path.getsize(out_put) > 20 * 1024 * 1024:
-            out_put=createog()
-            input_logger = InputLogger(out_put)
-        else:
-            # print(os.path.getsize(out_put))
-            input_logger.start_logging()
-            print("# 输入对应的编号")
-            print("--------------------------------------------------In-----------------------------------------------------")
-            try:
-                user_input = int(input("Enter a number: \n"))
-                if user_input == 1 or user_input == 2 or user_input == 13:
-                    # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
-                    file_paths = []
-                    while True:
-                        # input_logger = InputLogger('output.txt')
-                        # input_logger.start_logging()
-                        path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-                        # input_logger.stop_logging()
-                        # input_logger.close()
-                        if not path:
-                            break
-                        file_paths.append(path.strip('"'))
-                    methods.get(user_input, default_method)(file_paths)
-                    input_logger.stop_logging()
-                    input_logger.close()
-                    print(
-                        f"--------------------------------------------------End----------------------------------------------------")
-                else:
-                    methods.get(user_input, default_method)()
-                    print(
-                        f"--------------------------------------------------End----------------------------------------------------")
+    #  32、检查视频是否存在字幕流
+    #  33: 获取指定文件夹下的目录结构""")
+        input_logger = loggerconifg.check_log_size(out_put)
+        input_logger.start_logging()
+        print("# 输入对应的编号")
+        print("--------------------------------------------------In-----------------------------------------------------")
+        try:
+            user_input = int(input("Enter a number: \n"))
+            if user_input == 1 or user_input == 2 or user_input == 13:
+                # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
+                file_paths = []
+                while True:
+                    # input_logger = InputLogger('output.txt')
+                    # input_logger.start_logging()
+                    path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+                    # input_logger.stop_logging()
+                    # input_logger.close()
+                    if not path:
+                        break
+                    file_paths.append(path.strip('"'))
+                methods.get(user_input, default_method)(file_paths)
                 input_logger.stop_logging()
                 input_logger.close()
-                print("是否继续执行？(Y/N)\n")
-                user_input = input()
-                if user_input.lower() == "y":
-                    # 继续执行，回到程序开头
-                    continue
-                elif user_input.lower() == "n":
-                    # 结束循环，退出程序
-                    break
-                else:
-                    # 提示输入有误，请重新输入
-                    print("输入有误，请重新输入！")
-                    continue
-            except ValueError:
-                print("Invalid input. Please enter a valid integer.")
-        # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
-        #                     datefmt='%Y-%m-%d %H:%M:%S')
+                print(
+                    f"--------------------------------------------------End----------------------------------------------------")
+            else:
+                methods.get(user_input, default_method)()
+                print(
+                    f"--------------------------------------------------End----------------------------------------------------")
+            input_logger.stop_logging()
+            input_logger.close()
+            print("是否继续执行？(Y/N)\n")
+            user_input = input()
+            if user_input.lower() == "y":
+                # 继续执行，回到程序开头
+                continue
+            elif user_input.lower() == "n":
+                # 结束循环，退出程序
+                break
+            else:
+                # 提示输入有误，请重新输入
+                print("输入有误，请重新输入！")
+                continue
+        except ValueError:
+            print("Invalid input. Please enter a valid integer.")
+    # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
+    #                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
 
