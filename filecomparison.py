@@ -1,4 +1,3 @@
-import os
 import re
 import sys
 import shutil
@@ -312,14 +311,16 @@ def get_file_paths_with_name():
 
 def get_exclude_suffix_list():
     print("参数是否为文件列表 Y/N def:Y")
-    flag = input()
+    flag = input() or 'y'
+    print("是否检索子文件夹Y/N（默认不检索）")
+    sub_folder_flag = input() or "n"
     if "N" == flag.upper():
         print("请输入文件夹")
         path_folderdir = input()
         file_paths_list = tools.get_file_paths(path_folderdir)
         print("输入需要排除的后缀 多个参数用空格隔开")
         excluded_extensions = input()
-        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
+        matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
         if matching_files:
             print("Matching files:")
             for file_path in matching_files:
@@ -337,8 +338,7 @@ def get_exclude_suffix_list():
             file_paths_list.append(path)
         print("输入需要排除的后缀")
         excluded_extensions = input()
-        matching_files = tools.find_matching_files(file_paths_list, *excluded_extensions)
-
+        matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
         if matching_files:
             print("Matching files:")
             for file_path in matching_files:

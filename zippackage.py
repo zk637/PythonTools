@@ -8,7 +8,6 @@ import zipfile
 import py7zr
 import patoolib
 import rarfile
-import ctypes
 import tools
 
 

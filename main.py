@@ -1,7 +1,5 @@
 # This is a sample Python script.
 import atexit
-import os
-
 import fileSize
 import loggerconifg
 import translate
@@ -73,7 +71,8 @@ if __name__ == '__main__':
     #  30、根据限制大小拆分视频为多段
     #  31、为视频文件添加字幕
     #  32、检查视频是否存在字幕流
-    #  33: 获取指定文件夹下的目录结构"""
+    #  33、获取指定文件夹下的目录结构
+    #  34、获取指定文件列表或文件夹下的视频是否完整"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -114,7 +113,8 @@ if __name__ == '__main__':
             32: fileanalysis.check_files_subtitle_stream,
             # 31: translate.matching_subtitles_after_rename,
             33: filecomparison.get_directories_and_copy_tree,
-            34: filecomparison.print_video_info_list_asy,
+            34: fileanalysis.check_video_integrity,
+            35: filecomparison.print_video_info_list_asy,
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
         }
@@ -153,7 +153,8 @@ if __name__ == '__main__':
     #  30、根据限制大小拆分视频为多段
     #  31、为视频文件添加字幕
     #  32、检查视频是否存在字幕流
-    #  33: 获取指定文件夹下的目录结构""")
+    #  33、获取指定文件夹下的目录结构
+    #  34、获取指定文件列表或文件夹下的视频是否完整""")
         input_logger = loggerconifg.check_log_size(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")

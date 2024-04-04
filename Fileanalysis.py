@@ -3,7 +3,6 @@ import os
 import cProfile
 import pstats
 import time
-import re
 
 from PIL import Image
 import cv2
@@ -417,3 +416,30 @@ def check_files_subtitle_stream():
             print("文件夹为空")
 
 
+def check_video_integrity():
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag = input() or 'n'
+    # 构建存储part路径的列表
+    if flag.lower() == 'y':
+        # 新增方法：获取文件路径列表
+        video_paths_list = []
+
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input()
+            if not path:
+                break
+            video_paths_list.append(path.replace('"', ''))
+        for video_path in video_paths_list:
+            tools.get_video_integrity(video_path)
+    else:
+        print("请输入视频文件夹")
+        video_dir = tools.process_input_str("")
+        extensions =('.dll', '.exe', 'png', '.xml', '.html', '.mp3', '.jpg', '.jpeg', '.ts',
+                                  '.txt', '.md')
+        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *extensions)
+        if video_dir is not None:
+            for video_path in video_lists:
+                tools.get_video_integrity(video_path)
+        else:
+            print("文件夹为空")

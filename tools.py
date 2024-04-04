@@ -8,7 +8,6 @@ import ffmpeg
 import filetype
 import subprocess
 import contextlib
-import locale
 import sys
 
 #输入参数为列表
@@ -77,40 +76,47 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
         print("未找到任何文件")
     return paths
 
-def find_matching_files(paths, *extensions):
-    """获取指定路径列表下所有与指定后缀不匹配的文件路径"""
-    extensions = [e.lower() for e in extensions]  # 将所有后缀名转换为小写
-    matching_files = []
-    print("是否检索文件夹Y/N（默认不检索）")
-    try:
-        flag = input() or "n"
-    except Exception as e:
-        flag = "n"
-    try:
-        for path in paths:
-            if os.path.isfile(path):
-                path, ext = os.path.splitext(path)
-                if ext.lower() in extensions:
-                    continue
-                dir_path = os.path.dirname(path)
-                for filename in os.listdir(dir_path):
-                    if not filename.startswith(os.path.basename(path)) or filename.lower().endswith(tuple(extensions)):
+def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag='n'):
+    if folder:
+        """获取文件夹下所有与指定后缀不匹配的文件路径"""
+        excluded_files = []
+        try:
+            for root, dirs, files in os.walk(folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    if not file.endswith(extensions):
+                        excluded_files.append(file_path)
+        except Exception as e:
+            print(e)
+        return excluded_files
+    else:
+        """获取文件列表下所有与指定后缀不匹配的文件路径"""
+        extensions = [e.lower() for e in extensions]  # 将所有后缀名转换为小写
+        matching_files = []
+        try:
+            for path in paths:
+                if os.path.isfile(path):
+                    path, ext = os.path.splitext(path)
+                    if ext.lower() in extensions:
                         continue
-                    matching_files.append(os.path.join(dir_path, filename))
-            elif os.path.isdir(path):
-                if flag.lower()=='y':
-                    for root, dirs, files in os.walk(path):
-                        for filename in files:
-                            path, ext = os.path.splitext(filename)
-                            if ext.lower() not in extensions:
-                                matching_files.append(os.path.join(root, filename))
-            else:
-                raise ValueError(f"{path} is not a valid directory or file path")
-    except Exception as e:
-        print(e)
-    return matching_files
-
-
+                    dir_path = os.path.dirname(path)
+                    for filename in os.listdir(dir_path):
+                        if not filename.startswith(os.path.basename(path)) or filename.lower().endswith(
+                                tuple(extensions)):
+                            continue
+                        matching_files.append(os.path.join(dir_path, filename))
+                elif os.path.isdir(path):
+                    if flag.lower() == 'y':
+                        for root, dirs, files in os.walk(path):
+                            for filename in files:
+                                path, ext = os.path.splitext(filename)
+                                if ext.lower() not in extensions:
+                                    matching_files.append(os.path.join(root, filename))
+                else:
+                    raise ValueError(f"{path} is not a valid directory or file path")
+        except Exception as e:
+            print(e)
+        return matching_files
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
     """获取文件夹下的文件路径并排除后缀和文件夹"""
@@ -816,6 +822,23 @@ def check_subtitle_stream(video_path):
             print(e.output)
             return False
 
+
+def get_video_integrity(video_path):
+    if os.path.isfile(video_path):
+        # 定义 FFmpeg 命令
+        command = f'ffmpeg -v  error -err_detect explode -i "{video_path}" -f null - -xerror'
+        print(command)
+    try:
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
+        if output is '':
+            print("True:", f"文件{video_path}：文件完整")
+        else:
+            print("False:", f"文件{video_path}：文件不完整")
+    except Exception as e:
+        print("Error:", f"文件{video_path}：无法获取视频信息")
+        print(e)
+        return False
+
 #----------------------------------------------------------
 def register_findone(lists, reg):
     lists_by_reg = {}
@@ -937,4 +960,3 @@ def get_free_space_cmd(folder_path):
         else:
             print("未找到剩余空间信息")
             return 1/0
-
