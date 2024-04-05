@@ -1,14 +1,8 @@
-import io
 import os
-import cProfile
-import pstats
-import time
-
 from PIL import Image
 import cv2
 import tools
 import constants
-from datetime import datetime
 
 
 
@@ -65,109 +59,102 @@ def get_low_resolution_media_files():
         print("\n".join(files))
 
 def get_video_duration_sorted():
-    """获取文件夹下所有视频文件的时长并排序输出"""
-    print("请输入视频文件夹")
-    folder = tools.process_input_str("")
-    folder_flag=True
-    if not os.path.isdir(folder):
-        folder_flag=False
-        paths = tools.process_input_list()
-    else:
-        paths = []  # Define paths here as a fallback if not inside the 'if' branch
+    """取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件"""
+    path_list,folder=tools.process_paths_list_or_folder()
+    folder_flag=False
+    if folder:
+        folder_flag = os.path.isdir(folder)
+
+    # 如果输入不是文件夹，则获取文件列表
+    if not folder_flag:
+        paths = path_list
 
     print("是否输出文件时长大小一致的列表？Y/N de:N")
-    same_flag=input()
+    same_flag = input().strip().upper()
     print("是否纯净输出y/n")
-    flag = input()
-    if same_flag=='N':
+    flag = input().strip().lower()
+
+    VIDEO_SUFFIX=constants.VIDEO_SUFFIX
+    # 如果选择不输出时长相同的列表
+    if same_flag == 'N':
         if folder_flag:
-            # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
-            paths = tools.get_file_paths_limit(
-                folder, *constants.VIDEO_SUFFIX)
-        durations = []
-        for path in paths:
-            duration = tools.get_video_duration(path)
-            if duration is not None:
-                durations.append((path, duration))
+            paths = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
 
-        sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
-        for path, duration in sorted_durations:
-            if (flag == 'y'.lower()):
-                path = tools.add_quotes_forpath(path)
-                print(path)
-            else:
-                print(f"{path}: {duration / 60:.2f} min")
+        if paths:
+            durations = []
+            for path in paths:
+                duration = tools.get_video_duration(path)
+                if duration is not None:
+                    durations.append((path, duration))
 
-    if same_flag.upper() == 'Y':
-        video_extensions = tools.get_file_paths_limit(
-            folder, *constants.VIDEO_SUFFIX)
-        durations = []
-        file_sizes = {}  # Dictionary to store file sizes and creation times
-    try:
-        for path in video_extensions:
-            duration = tools.get_video_duration(path)
-            if duration is not None:
-                file_size = os.path.getsize(path)
-                creation_time = os.path.getctime(path)
-                if file_size not in file_sizes:
-                    file_sizes[file_size] = []
-                file_sizes[file_size].append((path, duration, creation_time))
-
-        # Filter out file size groups with only one file
-        file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
-
-        # For each file size group, further group files by duration
-        for file_size, paths_durations_creation in file_sizes.items():
-            # Sort files by creation time (ascending)
-            paths_durations_creation.sort(key=lambda x: x[2])
-
-            # Group files by duration
-            duration_groups = {}
-            for path, duration, _ in paths_durations_creation:
-                if duration not in duration_groups:
-                    duration_groups[duration] = []
-                duration_groups[duration].append(path)
-
-            # Filter out duration groups with only one file
-            duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
-
-            # Print paths for each duration group, sorted by duration
-            for duration, paths in duration_groups.items():
-                if (flag == 'y'.lower()):
-                    for path in paths[1:]:
-                        path = tools.add_quotes_forpath(path)
-                        print(path)
+            sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
+            for path, duration in sorted_durations:
+                if flag == 'y':
+                    path = tools.add_quotes_forpath(path)
+                    print(path)
                 else:
-                    print(f"{duration / 60:.2f} min")
-                    for path in paths[1:]:  # Exclude the first (earliest created) file
+                    print(f"{path}: {duration / 60:.2f} min")
+    # 如果选择输出时长相同的列表
+    if same_flag == 'Y':
+        if folder_flag:
+            video_extensions = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
+        else:
+            video_extensions = paths
+
+        if video_extensions:
+            file_sizes = {}
+            for path in video_extensions:
+                duration = tools.get_video_duration(path)
+                if duration is not None:
+                    file_size = os.path.getsize(path)
+                    creation_time = os.path.getctime(path)
+                    if file_size not in file_sizes:
+                        file_sizes[file_size] = []
+                    file_sizes[file_size].append((path, duration, creation_time))
+
+            file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
+
+            for file_size, paths_durations_creation in file_sizes.items():
+                paths_durations_creation.sort(key=lambda x: x[2])
+                duration_groups = {}
+                for path, duration, _ in paths_durations_creation:
+                    if duration not in duration_groups:
+                        duration_groups[duration] = []
+                    duration_groups[duration].append(path)
+
+                duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
+
+                for duration, paths in duration_groups.items():
+                    if flag == 'y':
+                        for path in paths[1:]:
                             path = tools.add_quotes_forpath(path)
                             print(path)
-    except Exception as e:
-        print(e)
+                    else:
+                        print(f"{duration / 60:.2f} min")
+                        for path in paths[1:]:
+                            path = tools.add_quotes_forpath(path)
+                            print(path)
+
 
 def print_video_info_list():
-    # 创建 cProfile 对象
-    profiler = cProfile.Profile()
-    # 启动性能分析
-    profiler.enable()
+
     """输出视频文件的大小、时长、比特率和分辨率（支持文件列表和文件夹）"""
 
-    file_paths_list,video_dir=tools.process_paths_list_or_folder()
+    file_paths_list, video_dir = tools.process_paths_list_or_folder()
+    print("是否纯净输出y/n")
+    flag = input()
     if file_paths_list:
-        print("是否纯净输出y/n")
-        flag = input()
-        start = time.time()
-        print(start)
         folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
     elif os.path.isdir(video_dir):
-        print("是否纯净输出y/n")
-        flag = input()
-        start = time.time()
-        print(start)
-        folder = tools.get_file_paths_limit(video_dir,*constants.VIDEO_SUFFIX)
+        folder = tools.get_file_paths_limit(video_dir, *constants.VIDEO_SUFFIX)
+    else:
+        print("文件为空，需检查条件或参数！")
+        return
+
     if not folder:
         print("文件为空，需检查条件或参数！")
         return
+
     # pool=ThreadPoolExecutor(1)
     # future =pool.submit(tools.get_video_info_list,folder)
     # future_result=future.result()
@@ -186,18 +173,6 @@ def print_video_info_list():
             print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size, duration, bitrate, f"{width}x{height}"),
               end="")
             print(" " * (max_path_len - len(path) + 1))
-
-    end = time.time()
-    print(end)
-    print("cost:", end - start, "seconds")
-    # 停止性能分析
-    profiler.disable()
-
-    # 将分析结果保存到文件或打印出来
-    output = io.StringIO()
-    stats = pstats.Stats(profiler, stream=output).sort_stats('cumulative')
-    stats.print_stats()
-    print(output.getvalue())
 
 
 def get_video_audio():
@@ -308,28 +283,41 @@ def check_files_subtitle_stream():
      检查视频是否存在字幕流（支持文件列表和文件夹）
      """
     video_paths_list,video_dir=tools.process_paths_list_or_folder()
+    video_files =[]
     if video_paths_list:
-        for video_path in video_paths_list:
-            tools.check_subtitle_stream(video_path)
+        video_files.extend(video_paths_list)
     elif os.path.isdir(video_dir):
         video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
-        for video_path in video_lists:
-            tools.check_subtitle_stream(video_path)
     else:
         print("参数有误，不是合法的路径？")
+        return
+    # 检查视频完整性
+    for video_path in video_files:
+        tools.check_subtitle_stream(video_path)
 
 
+from tools import profile_all_functions
+
+@profile_all_functions(enable=False)
 def check_video_integrity():
     """
-     获取指定文件列表或文件夹下的视频是否完整（支持文件列表和文件夹）
-     """
-    video_paths_list,video_dir=tools.process_paths_list_or_folder()
+    获取指定文件列表或文件夹下的视频是否完整（支持文件列表和文件夹）
+    """
+    video_paths_list, video_dir = tools.process_paths_list_or_folder()
+
+    # 获取需要检查完整性的视频文件列表
+    video_files = []
     if video_paths_list:
-        for video_path in video_paths_list:
-            tools.get_video_integrity(video_path)
+        video_files.extend(video_paths_list)
     elif os.path.isdir(video_dir):
-        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
-        for video_path in video_lists:
-            tools.get_video_integrity(video_path)
+        video_files = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
     else:
         print("参数有误，不是合法的路径？")
+        return
+
+    # 检查视频完整性
+    for video_path in video_files:
+        tools.get_video_integrity(video_path)
+
+
+

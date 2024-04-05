@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import constants
 import tools
 from fuzzywuzzy import fuzz
 # 复制字幕文件到视频文件下
@@ -177,10 +178,7 @@ def getSrt():
     path_list = []
     for video_file in os.listdir(video_folder):
         # 判断是否为视频文件
-        if video_file.endswith(('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')):
+        if video_file.endswith((constants.VIDEO_SUFFIX)):
             # 获取视频文件名中包含关键字的部分
             video_name = os.path.splitext(video_file)[0]
             if keywords in video_name:
