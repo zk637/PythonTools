@@ -3,10 +3,12 @@ import sys
 import shutil
 import pandas as pd
 import subprocess
+import constants
 import tools
 
 
 def compare_and_move_files():
+    """取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入"""
     excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
     print("请输入需要对比的文件夹")
     folder_path = tools.process_input_str("")
@@ -64,6 +66,7 @@ def compare_and_move_files():
                     #     print(f'{file}n')
 
 def check_files_in_folder(file_list):
+    """获取给定目录中在检索目录下以相同文件名匹配的列表或获取不匹配条件的列表"""
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
     folder_path = input()
@@ -273,43 +276,42 @@ def same_file_createsymbolic_links():
         print("非空格，程序继续.....")
 
 def get_file_paths_with_name():
+    """获取符合录入文件名的文件路径"""
     # 获取用户输入的文件名列表和路径
     print(r"请输入需要检索的文件夹路径：")
     folderpath = input()
     found_files = []
-
-    filenames_list=[]
-    while True:
-        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        path=input()
-        # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        if not path:
-            break
-        filenames_list.append(path)
+    filenames_list = tools.process_input_list()
     # 获取指定路径下及其子目录下的所有文件路径
-    files_in_folder = tools.get_list_files(folderpath)
-    # 获取指定路径下的所有子目录路径
-    dirs_in_folder = tools.get_list_dirs(folderpath)
+    if filenames_list:
+        files_in_folder = tools.get_list_files(folderpath)
+        # 获取指定路径下的所有子目录路径
+        dirs_in_folder = tools.get_list_dirs(folderpath)
 
-    # 对比用户输入的文件名和指定路径下的所有文件中的文件名，找到匹配的文件
-    for filename in filenames_list:
-        for file in files_in_folder:
-            if os.path.splitext(os.path.basename(file))[0] == filename:
-                found_files.append(file)
-        for subdir in dirs_in_folder:
-            if os.path.splitext(os.path.basename(subdir))[0] == filename:
-                    found_files.append(subdir)
+        # 对比用户输入的文件名和指定路径下的所有文件中的文件名，找到匹配的文件
 
-    # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
-    if len(found_files) > 0:
-        print("找到的文件有:")
-        for file in found_files:
-            file=tools.add_quotes_forpath(file)
-            print(file)
+        for filename in filenames_list:
+            for file in files_in_folder:
+                if os.path.splitext(os.path.basename(file))[0] == filename:
+                    found_files.append(file)
+            for subdir in dirs_in_folder:
+                if os.path.splitext(os.path.basename(subdir))[0] == filename:
+                        found_files.append(subdir)
+
+        # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
+        if len(found_files) > 0:
+            print("找到的文件有:")
+            for file in found_files:
+                file=tools.add_quotes_forpath(file)
+                print(file)
+        else:
+            print("这些文件都不存在！")
     else:
-        print("这些文件都不存在！")
+        print("文件为空，需检查条件或参数！")
+        return
 
 def get_exclude_suffix_list():
+    """获取不在指定后缀的文件路径（输入为路径列表或文件夹）"""
     print("参数是否为文件列表 Y/N def:Y")
     flag = input() or 'y'
     print("是否检索子文件夹Y/N（默认不检索）")
@@ -328,32 +330,31 @@ def get_exclude_suffix_list():
         else:
             print("No matching files found")
     else:
-        file_paths_list = []
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            if not path:
-                break
-            file_paths_list.append(path)
-        print("输入需要排除的后缀")
-        excluded_extensions = input()
-        matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
-        if matching_files:
-            print("Matching files:")
-            for file_path in matching_files:
-                print(file_path)
+        file_paths_list = tools.process_input_list()
+        if file_paths_list:
+            print("输入需要排除的后缀")
+            excluded_extensions = input()
+            matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
+            if matching_files:
+                print("Matching files:")
+                for file_path in matching_files:
+                    print(file_path)
+            else:
+                print("No matching files found")
+            return None
         else:
-            print("No matching files found")
-        return None
+            print("文件为空，需检查条件或参数！")
+            return
 
 def get_file_rule_sort():
+    """过滤规则格式化"""
     rules=[]
     tools.get_sort_list(rules)
     return None
 
 
 def check_symbolic_link():
+    """检查录入文件夹下的符号链接是否可用"""
     print("请输入要检查的符号链接所在文件夹")
     destination_folder = input()
     link_paths=tools.get_file_paths(destination_folder)
@@ -396,6 +397,7 @@ def check_symbolic_link():
         print(link)
 
 def excel_compare():
+    """文件夹内容与csv对比"""
     print("请输入需要比较的CSV文件: ")
     excel_path=input().replace('"', '')
     encode = tools.detect_encoding(excel_path)
@@ -499,16 +501,10 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
         print("没有任何匹配的结果")
 
 def rename_with_dir():
+    """文件夹下视频命名规范化"""
     print("请输入要重命名的文件夹： ")
     path=input()
-    files = tools.get_file_paths_limit(path, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg',
-                                           '.mpe', '.m1v', '.m2v',
-                                           '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv',
-                                           '.mp4', '.m4v',
-                                           '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram',
-                                           '.rmvb', '.rpm', '.flv', '.mov',
-                                           '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm',
-                                           '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+    files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
     for file in files:
         rename_file(file)
 
@@ -628,12 +624,9 @@ async def main():
         print("是否纯净输出y/n")
         flag = input().lower()
 
-        extensions = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                      '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-                      '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                      '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
 
-        file_paths_list = await get_file_paths_list_limit(folder, *extensions)
+
+        file_paths_list = await get_file_paths_list_limit(folder, *constants.VIDEO_SUFFIX)
     else:
         try:
             print("请输入视频文件夹")
@@ -641,15 +634,7 @@ async def main():
             print("是否纯净输出y/n")
             flag = input().lower()
 
-            extensions = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                          '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-                          '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                          '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
-
-            file_paths_list = await get_file_paths_limit(folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                          '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-                          '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                          '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+            file_paths_list = await get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
         except Exception as e:
             print(e)
             return
@@ -695,6 +680,7 @@ def print_video_info_list_asy():
 
 
 def get_directories_and_copy_tree():
+    """获取指定文件夹下的目录结构"""
     print("请输入需要复制目录结构的文件夹")
     folder = tools.process_input_str("")
     print("请输入要复制结构到的文件夹")

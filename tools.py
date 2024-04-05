@@ -14,10 +14,11 @@ import sys
 def process_input_list():
     file_paths = []
     while True:
-        path = input("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        path = input().strip('"')
         if not path:
             break
-        file_paths.append(path.strip('"'))
+        file_paths.append(path)
     return file_paths
 
 #输入参数为字符串
@@ -25,6 +26,32 @@ def process_input_str(s):
     str =""
     str=input()
     return str
+
+def process_paths_list_or_folder():
+    """
+    获取用户输入的文件路径列表或文件夹路径。
+    输入参数为路径列表和文件夹路径的通用方法
+    Returns:
+        Tuple[List[str], str]: 一个包含文件路径列表和文件夹路径的元组。
+    """
+    video_paths_list = []
+
+    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    flag = input().lower() or 'n'
+
+    if flag == 'y':
+        while True:
+            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            path = input().strip('"')
+            if not path:
+                break
+            video_paths_list.append(path)
+            folder_path = None
+    elif flag == 'n':
+        print("请输入文件夹路径：")
+        folder_path = process_input_str("")
+
+    return video_paths_list,folder_path
 
 #输入字符串且有“”包裹
 def process_intput_strr(s):
@@ -43,6 +70,24 @@ def make_dir(s):
             print(f"Folder '{s}' created successfully.")
     except Exception as e:
         print(e)
+
+def count_files(file_paths: list) -> int:
+    """
+    计算文件数量。
+
+    Args:
+        file_paths (list): 包含文件路径的列表。
+
+    Returns:
+        int: 文件数量。
+    """
+    file_count = 0
+
+    for path in file_paths:
+        if os.path.isfile(path):
+            file_count += 1
+
+    return file_count
 
 def get_file_paths(folder):
     """获取文件夹下所有文件的路径"""
@@ -76,7 +121,8 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
         print("未找到任何文件")
     return paths
 
-def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag='n'):
+def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag=None):
+    print(flag)
     if folder:
         """获取文件夹下所有与指定后缀不匹配的文件路径"""
         excluded_files = []
@@ -93,6 +139,7 @@ def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag='n'
         """获取文件列表下所有与指定后缀不匹配的文件路径"""
         extensions = [e.lower() for e in extensions]  # 将所有后缀名转换为小写
         matching_files = []
+        flag=flag
         try:
             for path in paths:
                 if os.path.isfile(path):

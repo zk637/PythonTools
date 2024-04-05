@@ -50,6 +50,7 @@ def find_subtitle():
 
 
 def find_matching_subtitles():
+    """通过视频路径查找字幕文件列表（支持模糊匹配）   """
     print("请输入视频路径")
     video_path = tools.process_intput_strr("").strip()
     print("请输入字幕文件夹路径")
@@ -103,7 +104,7 @@ def find_matching_subtitles():
 
 # 复制字幕文件到新创建的文件夹下
 def find_matching_subtitles_create():
-
+    """通过视频路径查找字幕文件并创建目录"""
     print("请输入视频路径")
     video_path = tools.process_intput_strr("").strip()
     print("请输入字幕文件夹路径")
@@ -162,6 +163,7 @@ def find_matching_subtitles_create():
 
 
 def getSrt():
+    """使用关键词来查找字幕文件"""
     # 匹配的关键字，这里假设匹配文件名中包含"abc"的视频文件和字幕文件
     # keywords = "010115_001"
     print(print("-----------------------输入keyword：--------------------------"))
@@ -204,7 +206,7 @@ def getSrt():
 
 # 匹配文件夹下视频与字幕对应 并输出列表
 def getSrtNew():
-
+    """匹配视频目录下对应的字幕文件并返回列表"""
     # video_dir = "/path/to/video/directory"
     # subtitles_dir = "/path/to/subtitles/directory"
     print("请输入视频文件夹路径")
