@@ -5,6 +5,7 @@ import tools
 
 
 def get_total_file_size(file_paths):
+    """获取相同子目录下的文件大小"""
     total_size = 0
     try:
         for file_path in file_paths:
@@ -17,6 +18,7 @@ def get_total_file_size(file_paths):
 
 
 def get_total_size(file_paths):
+    """获取不同子目录下的文件大小"""
     total_size = 0
     try:
         for file_path in file_paths:
@@ -34,6 +36,7 @@ def get_total_size(file_paths):
     return total_size / (1024 ** 3)
 
 def filter_files_by_sizeordate():
+    """获取文件在大小区间下的列表或在修改时间区间下的列表"""
     exclude_dirs = [".ts", "WarmSnow"]
     exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
                             ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
