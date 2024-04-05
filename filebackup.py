@@ -6,6 +6,7 @@ import subprocess
 from datetime import datetime,time,timedelta
 
 def create_symbolic_links():
+    """获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）"""
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
     print("请输入源文件夹路径:")
@@ -56,7 +57,7 @@ def create_symbolic_links():
         print("非空格，程序继续.....")
 
 def same_file_createsymbolic_links():
-
+    """为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
@@ -125,6 +126,7 @@ def same_file_createsymbolic_links():
         print("非空格，程序继续.....")
 
 def update_linked_items():
+    """文件自动备份（更新-需提前创建符号链接）"""
     # tools.admin_process()
     # source_folder=create_symbolic_links_recursive()
     print("请输入符号链接所在文件夹")
@@ -147,6 +149,7 @@ def update_linked_items():
             copy_source_update_from_symlink(item_path,destination_folder,flag)
 
 def create_linked_items():
+    """文件自动备份（创建-需提前创建符号链接）"""
     # tools.admin_process()
     # source_folder=create_symbolic_links_recursive()
     print("请输入符号链接所在文件夹")

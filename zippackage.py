@@ -8,11 +8,12 @@ import zipfile
 import py7zr
 import patoolib
 import rarfile
-import ctypes
+import constants
 import tools
 
 
 def check_zip_password():
+    """判断指定文件夹下的压缩文件是否加密"""
     print("请输入需要检索的文件夹")
     var = input()
     print("是否处理7zip格式？ y/n")
@@ -28,9 +29,7 @@ def check_zip_password():
     final_lists = []
     ex_final_lists = []
     # final_list=tools.get_zippartfile(var)
-    file_paths = tools.get_file_paths_limit(var, ".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
-                                            ".tar.xz",
-                                            ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx")
+    file_paths = tools.get_file_paths_limit(var, *constants.ZIP_SUFFIX)
     sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
     rar_lists = tools.get_file_paths_limit(var, ".rar")
     # file_paths = tools.get_file_paths_limit(var, ".zip")
@@ -95,13 +94,12 @@ def check_zip_password():
 #TODO 更多格式支持和更精确的检索
 
 def extract_archive():
+    """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     print("请输入文件夹")
     folder = input()
     password = "password"
     # filelists = tools.get_file_paths(folder)
-    filelists = tools.get_file_paths_limit(folder, ".7z", ".rar", ".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
-                                           ".tar.xz",
-                                           ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx")
+    filelists = tools.get_file_paths_limit(folder, *constants.ZIP_SUFFIX)
     folder = tools.get_file_paths(folder)
     # file_parts_lists = tools.get_files_matching_pattern(folder,r'.*.[^.]*0[^.]*$')
     # lists=tools.get_same_namefile(folder)

@@ -3,6 +3,7 @@ import tools
 import send2trash
 
 def remove_small_folders():
+    """删除文件夹下小于指定MB的文件并输出删除的文件列表"""
     print("请输入文件夹路径:")
     # input_logger = InputLogger('output.txt')
     # input_logger.start_logging()
