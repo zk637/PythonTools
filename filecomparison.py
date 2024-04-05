@@ -234,39 +234,16 @@ def same_file_createsymbolic_links():
     # for folder_path in folders:
     #     print(folder_path)
     # 遍历路径列表，为每个文件或文件夹创建符号链接
+    files = [file for file in files if os.path.isfile(file)]
+    folders = [folder for folder in files if os.path.isdir(folder)]
+
     for source_file in files:
         print("文件符号链接")
-        # 构建mklink命令行
-        # cmd = ['mklink', '"' + os.path.join(target_dir, os.path.basename(source_file)) + '"', '"' + source_file + '"']
-        cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''),
-               source_file.replace('"', '')]
-        print('\n' + '-' * 50)
-        print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
-        try:
-            subprocess.check_call(cmd, shell=True)
-            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-            # print("result: " + output + "\n")
-            print("源文件路径: " + source_file)
-            print("目标文件夹路径: " + target_dir)
-        except Exception as e:
-            print("符号链接创建失败: " + str(e))
+        tools.create_symbolic_link(source_file, target_dir)
 
-    for source_file in folders:
+    for source_folder in folders:
         print("文件夹符号链接")
-        # 构建mklink命令行
-        # cmd = ['mklink', '"' + os.path.join(target_dir, os.path.basename(source_file)) + '"', '"' + source_file + '"']
-        cmd = ['mklink', '/d', os.path.join(target_dir, os.path.basename(source_file)).replace('"', ''),
-               source_file.replace('"', '')]
-        print('\n' + '-' * 50)
-        print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
-        try:
-            subprocess.check_call(cmd, shell=True)
-            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-            # print("result: " + output + "\n")
-            print("源文件路径: " + source_file)
-            print("目标文件夹路径: " + target_dir)
-        except Exception as e:
-            print("符号链接创建失败: " + str(e))
+        tools.create_symbolic_link(source_folder, target_dir, is_folder=True)
 
     print("输入空格结束程序")
     input_str = input("")
@@ -312,39 +289,27 @@ def get_file_paths_with_name():
 
 def get_exclude_suffix_list():
     """获取不在指定后缀的文件路径（输入为路径列表或文件夹）"""
-    print("参数是否为文件列表 Y/N def:Y")
-    flag = input() or 'y'
+    path_list,dir=tools.process_paths_list_or_folder()
     print("是否检索子文件夹Y/N（默认不检索）")
     sub_folder_flag = input() or "n"
-    if "N" == flag.upper():
-        print("请输入文件夹")
-        path_folderdir = input()
-        file_paths_list = tools.get_file_paths(path_folderdir)
-        print("输入需要排除的后缀 多个参数用空格隔开")
-        excluded_extensions = input()
-        matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
-        if matching_files:
-            print("Matching files:")
-            for file_path in matching_files:
-                print(file_path)
-        else:
-            print("No matching files found")
+    file_list =[]
+    if path_list:
+        file_list.extend(path_list)
+    elif dir:
+        file_list = tools.get_file_paths(dir)
     else:
-        file_paths_list = tools.process_input_list()
-        if file_paths_list:
-            print("输入需要排除的后缀")
-            excluded_extensions = input()
-            matching_files = tools.find_matching_files_or_folder_exclude(file_paths_list, *excluded_extensions,flag=sub_folder_flag)
-            if matching_files:
-                print("Matching files:")
-                for file_path in matching_files:
-                    print(file_path)
-            else:
-                print("No matching files found")
-            return None
-        else:
-            print("文件为空，需检查条件或参数！")
-            return
+        print("参数有误，不是合法的路径？")
+        return
+    print("输入需要排除的后缀 多个参数用空格隔开")
+    excluded_extensions = input()
+    matching_files = tools.find_matching_files_or_folder_exclude(file_list, *excluded_extensions,
+                                                                 flag=sub_folder_flag)
+    if matching_files:
+        print("Matching files:")
+        for file_path in matching_files:
+            print(file_path)
+    else:
+        print("No matching files found")
 
 def get_file_rule_sort():
     """过滤规则格式化"""

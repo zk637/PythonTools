@@ -2,6 +2,8 @@ import ctypes
 import os
 import re
 import chardet
+import cProfile
+import time
 from difflib import SequenceMatcher
 
 import ffmpeg
@@ -483,6 +485,18 @@ def copy_folder(source_folder, destination_folder):
         print(f"Folder copied from '{source_folder}' to '{destination_folder}'")
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
+
+def create_symbolic_link(source, target_dir, is_folder=False):
+    link_type = '/d' if is_folder else ''
+    cmd = ['mklink', link_type, os.path.join(target_dir, os.path.basename(source)), source]
+    print('\n' + '-' * 50)
+    print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+    try:
+        subprocess.check_call(cmd, shell=True)
+        print("源文件路径: " + source)
+        print("目标文件夹路径: " + target_dir)
+    except Exception as e:
+        print("符号链接创建失败: " + str(e))
 
 #分别获取输入列表中的文件路径和文件夹路径
 def get_listunder_fileandfolder(source_dirs):
@@ -986,6 +1000,76 @@ def register_find(lists, reg):
     #     return free_space_gb
     # else:
     #     return None
+
+
+class Profiler:
+    def __init__(self):
+        self.profiler = None
+        self.start_time = None
+
+    def start(self):
+        self.profiler = cProfile.Profile()
+        self.profiler.enable()
+        self.start_time = time.time()
+
+    def stop(self):
+        self.profiler.disable()
+        end_time = time.time()
+        print("Elapsed time:", end_time - self.start_time, "seconds")
+        return self.profiler
+
+import pstats
+from io import StringIO
+
+def profile(enable=False):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if enable:
+                start_time = time.time()
+                profiler = cProfile.Profile()
+                profiler.enable()
+            result = func(*args, **kwargs)
+            if enable:
+                # profiler.disable()
+                # end_time = time.time()
+                # print("Elapsed time:", end_time - start_time, "seconds")
+                profiler.disable()
+                # 创建一个 StringIO 对象来保存性能分析结果
+                stream = StringIO()
+                stats = pstats.Stats(profiler, stream=stream)
+                stats.sort_stats('cumulative')  # 按累计时间排序
+                stats.print_stats()  # 打印性能分析结果
+                print(stream.getvalue())  # 输出到控制台
+            return result
+        return wrapper
+    return decorator
+
+from functools import wraps
+from tools import profile
+
+def profile_all_functions(enable=False):
+    """
+    一个装饰器，用于动态地为函数添加 @profile(enable=True)
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if enable:
+                return profile(enable=True)(func)(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def apply_profile_to_methods(enable_profile, methods):
+    """
+    应用 @profile_all_functions() 装饰器到指定方法字典中的所有方法
+    """
+    if enable_profile:
+        for key, value in methods.items():
+            methods[key] = profile_all_functions(enable=True)(value)
+    return methods
+
 def get_free_space_cmd(folder_path):
     # 提取文件夹所在磁盘的根目录
     #TODO 多语言环境兼容

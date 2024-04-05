@@ -1,7 +1,10 @@
 # This is a sample Python script.
 import atexit
+import os
+
 import fileSize
 import loggerconifg
+import tools
 import translate
 import filecount
 import filebackup
@@ -81,6 +84,7 @@ if __name__ == '__main__':
         def default_method():
             print("Invalid input")
         methods = {
+            0: tools.profile_all_functions,
             1: fileSize.get_total_file_size,
             2: fileSize.get_total_size,
             3: translate.getSrt,
@@ -135,7 +139,7 @@ if __name__ == '__main__':
     #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表   code==08
     #  9、获取文件列表下的文件数量                           code==09
     #  10、获取文件在大小区间下的列表或在修改时间区间下的列表     code==10
-    #  11、取文件夹下所有视频文件的时长并排序输出或输出时长大小相同的文件       code==11
+    #  11、取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件       code==11
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
     #  13、获取给定目录中在检索目录下以相同文件名匹配的列表或获取不匹配条件的列表
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
@@ -161,12 +165,24 @@ if __name__ == '__main__':
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径""")
+        profile_file = 'Profile'
         input_logger = loggerconifg.check_log_size(out_put)
         input_logger.start_logging()
         print("# 输入对应的编号")
         print("--------------------------------------------------In-----------------------------------------------------")
         try:
             user_input = int(input("Enter a number: \n"))
+            if user_input == 0:
+                # 如果用户输入0，则开启 profile
+                enable_profile = True
+                print("Profile enabled.")
+                # 创建一个空的 Profile 文件
+                with open(profile_file, 'w'):
+                    pass
+                continue
+            elif user_input == -1:
+                # 如果用户输入-1，则退出循环
+                break
             if user_input == 1 or user_input == 2 or user_input == 13:
                 # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
                 file_paths = []
@@ -185,6 +201,9 @@ if __name__ == '__main__':
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
             else:
+                if os.path.exists(profile_file):
+                    enable_profile = True
+                    methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)()
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
@@ -197,12 +216,16 @@ if __name__ == '__main__':
                 continue
             elif user_input.lower() == "n":
                 # 结束循环，退出程序
+                if os.path.exists(profile_file):
+                    os.remove(profile_file)
                 break
             else:
                 # 提示输入有误，请重新输入
                 print("输入有误，请重新输入！")
                 continue
         except ValueError:
+            if os.path.exists(profile_file):
+                os.remove(profile_file)
             print("Invalid input. Please enter a valid integer.")
     # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
     #                     datefmt='%Y-%m-%d %H:%M:%S')
