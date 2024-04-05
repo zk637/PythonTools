@@ -7,11 +7,13 @@ import time
 from PIL import Image
 import cv2
 import tools
+import constants
 from datetime import datetime
 
 
 
 def get_low_resolution_media_files():
+    """通过视频目录查找符合区间条件分辨率的媒体文件"""
     print("-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
     size_limit1 = input("")
     width_limit1, height_limit1 = map(int, size_limit1.split("*"))
@@ -69,13 +71,7 @@ def get_video_duration_sorted():
     folder_flag=True
     if not os.path.isdir(folder):
         folder_flag=False
-        paths = []
-        while True:
-            print("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            if not path:
-                break
-            paths.append(path.strip('"'))
+        paths = tools.process_input_list()
     else:
         paths = []  # Define paths here as a fallback if not inside the 'if' branch
 
@@ -87,10 +83,7 @@ def get_video_duration_sorted():
         if folder_flag:
             # paths = tools.get_file_paths_limit(folder,'.mp4','.mkv','.avi')
             paths = tools.get_file_paths_limit(
-                folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-                '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+                folder, *constants.VIDEO_SUFFIX)
         durations = []
         for path in paths:
             duration = tools.get_video_duration(path)
@@ -107,13 +100,7 @@ def get_video_duration_sorted():
 
     if same_flag.upper() == 'Y':
         video_extensions = tools.get_file_paths_limit(
-            folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv',
-            '.mov',
-            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv',
-            '.divx',
-            '.webm', '.wtv', '.f4v', '.mxf')
+            folder, *constants.VIDEO_SUFFIX)
         durations = []
         file_sizes = {}  # Dictionary to store file sizes and creation times
     try:
@@ -163,40 +150,21 @@ def print_video_info_list():
     profiler = cProfile.Profile()
     # 启动性能分析
     profiler.enable()
-    """输出视频文件的大小、时长、比特率和分辨率"""
+    """输出视频文件的大小、时长、比特率和分辨率（支持文件列表和文件夹）"""
 
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag=input() or 'n'
-    if flag.lower()=='y':
-        # 新增方法：获取文件路径列表
-        file_paths_list = []
-
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            if not path:
-                break
-            file_paths_list.append(path.replace('"',''))
+    file_paths_list,video_dir=tools.process_paths_list_or_folder()
+    if file_paths_list:
         print("是否纯净输出y/n")
         flag = input()
         start = time.time()
         print(start)
-        folder=tools.get_file_paths_list_limit(file_paths_list,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-        '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-        '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
-    else:
-        print("请输入视频文件夹")
-        folder = tools.process_input_str("")
+        folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
+    elif os.path.isdir(video_dir):
         print("是否纯净输出y/n")
         flag = input()
         start = time.time()
         print(start)
-        folder = tools.get_file_paths_limit(folder,'.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+        folder = tools.get_file_paths_limit(video_dir,*constants.VIDEO_SUFFIX)
     if not folder:
         print("文件为空，需检查条件或参数！")
         return
@@ -231,42 +199,16 @@ def print_video_info_list():
     stats.print_stats()
     print(output.getvalue())
 
-def get_video_audio():
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input() or 'n'
-    if flag.lower() == 'y':
-        # 新增方法：获取文件路径列表
-        file_paths_list = []
 
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            # path = input("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            if not path:
-                break
-            file_paths_list.append(path.replace('"', ''))
-        # print("是否纯净输出y/n")
-        # flag = input()
-        folder = tools.get_file_paths_list_limit(file_paths_list, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg',
-                                                 '.mpeg', '.mpe', '.m1v', '.m2v',
-                                                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm',
-                                                 '.ogv', '.mp4', '.m4v',
-                                                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
-                                                 '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                                                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g',
-                                                 '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v',
-                                                 '.mxf')
-    else:
-        print("请输入视频文件夹")
-        folder = tools.process_input_str("")
-        folder = tools.get_file_paths_limit(folder, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe',
-                                            '.m1v', '.m2v',
-                                            '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv',
-                                            '.mp4', '.m4v',
-                                            '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram',
-                                            '.rmvb', '.rpm', '.flv', '.mov',
-                                            '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm',
-                                            '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+def get_video_audio():
+    """
+     获取给定文件夹或文件的音频文件（支持文件列表和文件夹）
+     """
+    file_paths_list,folder=tools.process_paths_list_or_folder()
+    if file_paths_list:
+        folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
+    elif os.path.isdir(folder):
+        folder = tools.get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
     if not folder:
         print("文件为空，需检查条件或参数！")
         return
@@ -275,6 +217,7 @@ def get_video_audio():
     print("队列执行完成")
 
 def getfiletypeislegal():
+    """校验文件是否合法"""
     print("请输入文件夹路径:")
     source_folder_path = input("")
     path=tools.get_file_paths(source_folder_path)
@@ -283,66 +226,48 @@ def getfiletypeislegal():
     return None
 
 def split_video():
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input() or 'n'
-    # 构建存储part路径的列表
-    if flag.lower() == 'y':
-        # 新增方法：获取文件路径列表
-        input_video_list = []
-
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            if not path:
-                break
-            input_video_list.append(path.replace('"', ''))
-        input_video_list.append(path.replace('"', ''))
+    """
+     根据限制大小拆分视频为多段（支持文件列表和文件夹）
+     """
+    input_video_list,input_video_dir=tools.process_paths_list_or_folder()
+    if input_video_list:
         print("拆分后每段文件的大小限制 单位：MB")
-        max_size_mb=int(input())*1024*1024
+        max_size_mb = int(input()) * 1024 * 1024
 
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
         for input_video in input_video_list:
-            if input_video!='':
+            if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
                 if part_num > 1:
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
-                    tools.split_video_for_size(part_max_size,part_num,input_video,output_dir)
+                    tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
                     print(f"文件无法拆分：{input_video}")
-
-    else:
-        print("请输入视频文件夹")
-        input_video_dir = tools.process_input_str("")
+    elif os.path.isdir(input_video_dir):
         filename, file_extension = os.path.splitext(input_video_dir)
 
         output_dir = os.path.join(filename, 'spilt_parts_dir')
         tools.make_dir(output_dir)
 
         print("拆分后每段文件的大小限制 单位：MB")
-        max_size_mb=int(input())*1024*1024
-        input_video_list = tools.get_file_paths_limit(input_video_dir, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg',
-                                                 '.mpeg', '.mpe', '.m1v', '.m2v',
-                                                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm',
-                                                 '.ogv', '.mp4', '.m4v',
-                                                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
-                                                 '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                                                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g',
-                                                 '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v',
-                                                 '.mxf')
+        max_size_mb = int(input()) * 1024 * 1024
+        input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
             for input_video in input_video_list:
-                free_space=tools.get_free_space_cmd(input_video_dir)
-                if free_space>os.path.getsize(input_video):
+                free_space = tools.get_free_space_cmd(input_video_dir)
+                if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                    if part_num>1:
+                    if part_num > 1:
                         part_max_size = os.path.getsize(input_video) / part_num
-                        tools.split_video_for_size(part_max_size,part_num,input_video,output_dir)
+                        tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
                         print(f"文件无法拆分：{input_video}")
-
+    else:
+        print("参数有误，不是合法的路径？")
 
 def add_srt():
+    """为视频文件添加字幕"""
     print("输入视频文件路径")
     video_path=input().replace('"','')
     print("输入字幕文件路径")
@@ -378,68 +303,33 @@ def add_srt():
             result=tools.subprocess_common_bat(bat_file,command)
             print(result)
 
-import subprocess
-import re
-
 def check_files_subtitle_stream():
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input() or 'n'
-    # 构建存储part路径的列表
-    if flag.lower() == 'y':
-        # 新增方法：获取文件路径列表
-        video_paths_list = []
-
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            if not path:
-                break
-            video_paths_list.append(path.replace('"', ''))
+    """
+     检查视频是否存在字幕流（支持文件列表和文件夹）
+     """
+    video_paths_list,video_dir=tools.process_paths_list_or_folder()
+    if video_paths_list:
         for video_path in video_paths_list:
             tools.check_subtitle_stream(video_path)
+    elif os.path.isdir(video_dir):
+        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
+        for video_path in video_lists:
+            tools.check_subtitle_stream(video_path)
     else:
-        print("请输入视频文件夹")
-        video_dir = tools.process_input_str("")
-        video_dir = tools.get_file_paths_limit(video_dir, '.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg',
-                                                 '.mpeg', '.mpe', '.m1v', '.m2v',
-                                                 '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm',
-                                                 '.ogv', '.mp4', '.m4v',
-                                                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
-                                                 '.ram', '.rmvb', '.rpm', '.flv', '.mov',
-                                                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g',
-                                                 '.skm', '.evo', '.nsr', '.amv', '.divx', '.webm', '.wtv', '.f4v',
-                                                 '.mxf')
-        if video_dir is not None:
-            for video_path in video_dir:
-                tools.check_subtitle_stream(video_path)
-        else:
-            print("文件夹为空")
+        print("参数有误，不是合法的路径？")
 
 
 def check_video_integrity():
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input() or 'n'
-    # 构建存储part路径的列表
-    if flag.lower() == 'y':
-        # 新增方法：获取文件路径列表
-        video_paths_list = []
-
-        while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            path = input()
-            if not path:
-                break
-            video_paths_list.append(path.replace('"', ''))
+    """
+     获取指定文件列表或文件夹下的视频是否完整（支持文件列表和文件夹）
+     """
+    video_paths_list,video_dir=tools.process_paths_list_or_folder()
+    if video_paths_list:
         for video_path in video_paths_list:
             tools.get_video_integrity(video_path)
+    elif os.path.isdir(video_dir):
+        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
+        for video_path in video_lists:
+            tools.get_video_integrity(video_path)
     else:
-        print("请输入视频文件夹")
-        video_dir = tools.process_input_str("")
-        extensions =('.dll', '.exe', 'png', '.xml', '.html', '.mp3', '.jpg', '.jpeg', '.ts',
-                                  '.txt', '.md')
-        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *extensions)
-        if video_dir is not None:
-            for video_path in video_lists:
-                tools.get_video_integrity(video_path)
-        else:
-            print("文件夹为空")
+        print("参数有误，不是合法的路径？")
