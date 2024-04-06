@@ -171,13 +171,14 @@ if __name__ == '__main__':
         print("# 输入对应的编号")
         print("--------------------------------------------------In-----------------------------------------------------")
         try:
-            user_input = int(input("Enter a number: \n"))
+            print("Enter a number: \n")
+            user_input = int(input().strip())
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
                 print("Profile enabled.")
                 # 创建一个空的 Profile 文件
-                with open(profile_file, 'w'):
+                with open(profile_file, 'w',encoding='UTF-8'):
                     pass
                 continue
             elif user_input == -1:
@@ -210,11 +211,11 @@ if __name__ == '__main__':
             input_logger.stop_logging()
             input_logger.close()
             print("是否继续执行？(Y/N)\n")
-            user_input = input()
-            if user_input.lower() == "y":
+            user_input = tools.process_input_str()
+            if user_input.upper() == "Y":
                 # 继续执行，回到程序开头
                 continue
-            elif user_input.lower() == "n":
+            elif user_input.upper() == "N":
                 # 结束循环，退出程序
                 if os.path.exists(profile_file):
                     os.remove(profile_file)

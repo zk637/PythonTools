@@ -12,8 +12,9 @@ import subprocess
 import contextlib
 import sys
 
-#输入参数为列表
+
 def process_input_list():
+    """输入参数为列表"""
     file_paths = []
     while True:
         print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
@@ -23,10 +24,11 @@ def process_input_list():
         file_paths.append(path)
     return file_paths
 
-#输入参数为字符串
-def process_input_str(s):
+
+def process_input_str(s=None):
+    """输入参数为字符串"""
     str =""
-    str=input()
+    str=input().strip()
     return str
 
 def process_paths_list_or_folder():
@@ -51,17 +53,18 @@ def process_paths_list_or_folder():
             folder_path = None
     elif flag == 'n':
         print("请输入文件夹路径：")
-        folder_path = process_input_str("")
+        folder_path = process_input_str()
 
     return video_paths_list,folder_path
 
-#输入字符串且有“”包裹
-def process_intput_strr(s):
+def process_intput_strr(s=None):
+    """参数字符串且有“”包裹"""
     str=""
-    str=input().replace('"', '')
+    str=input().replace('"', '').strip()
     return str
 
 def add_quotes_forpath(s):
+    """使用“包裹字符串"""
     str='"'+s+'"'
     return str
 
@@ -72,6 +75,10 @@ def make_dir(s):
             print(f"Folder '{s}' created successfully.")
     except Exception as e:
         print(e)
+
+def get_file_count(folder):
+    """获取文件夹下所有文件的数量"""
+    return len(get_file_paths(folder))
 
 def count_files(file_paths: list) -> int:
     """
@@ -91,6 +98,20 @@ def count_files(file_paths: list) -> int:
 
     return file_count
 
+def cont_files_processor(path_list,index):
+    try:
+        if not path_list:
+            count = count_files(path_list)
+            print("index: {}".format(index))
+            print(count)
+            print("是否输出符合条件的文件路径 Y/N")
+            flag=process_input_str()
+            if flag.upper()=='Y':
+                for path in path_list:
+                    print(path)
+    except Exception as e:
+        print(e)
+
 def get_file_paths(folder):
     """获取文件夹下所有文件的路径"""
     paths = []
@@ -99,6 +120,19 @@ def get_file_paths(folder):
             path = os.path.join(root, file)
             paths.append(path)
     return paths
+
+def get_listunder_fileandfolder(source_dirs):
+    """分别获取输入列表中的文件路径和文件夹路径"""
+    files = []
+    folders = []
+    for source_dir_path in source_dirs:
+        # 获取每个路径的绝对路径
+        abs_path = os.path.abspath(source_dir_path)
+        if os.path.isfile(abs_path):
+            files.append(abs_path)
+        else:
+            folders.append(abs_path)
+    return files,folders
 
 def get_file_paths_limit(folder, *extensions):
     """获取文件夹下指定后缀的所有文件的路径"""
@@ -155,7 +189,7 @@ def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag=Non
                             continue
                         matching_files.append(os.path.join(dir_path, filename))
                 elif os.path.isdir(path):
-                    if flag.lower() == 'y':
+                    if flag.upper() == 'Y':
                         for root, dirs, files in os.walk(path):
                             for filename in files:
                                 path, ext = os.path.splitext(filename)
@@ -166,6 +200,7 @@ def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag=Non
         except Exception as e:
             print(e)
         return matching_files
+
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
     """获取文件夹下的文件路径并排除后缀和文件夹"""
@@ -180,8 +215,8 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
-# 通用指定后缀模糊匹配工具
 def get_files_matching_pattern(folder_path,reg):
+    """通用指定后缀模糊匹配工具"""
     files = []
     for root, dirs, filenames in os.walk(folder_path):
         for filename in filenames:
@@ -189,6 +224,37 @@ def get_files_matching_pattern(folder_path,reg):
                 file_path = os.path.join(root, filename)
                 files.append(file_path)
     return files
+
+    # 获取用户输入的文件名列表和路径
+def get_list_files(path):
+    """
+    获取指定路径下包括子目录的所有文件路径
+    """
+    files = []
+    # 递归遍历路径下所有文件和文件夹
+    for root, dirs, filenames in os.walk(path):
+        for filename in filenames:
+            files.append(os.path.join(root, filename))
+    return files
+
+def get_list_dirs(path):
+    """
+    获取指定路径下的所有子目录路径
+    """
+    dirs = []
+    for subdir in os.listdir(path):
+        dir_path = os.path.join(path, subdir)
+        if os.path.isdir(dir_path):
+            dirs.append(dir_path)
+            subdirs = get_list_dirs(dir_path)
+            if subdirs:
+                dirs.extend(subdirs)
+    return dirs
+
+def get_sort_list(rules):
+    sorted_rules = sorted(rules, key=len)
+    for rule in sorted_rules:
+        print(f'{rule}')
 
 def get_same_namefile(folder_path):
     all_files = []  # 用于保存所有文件路径
@@ -211,25 +277,25 @@ def get_same_namefile(folder_path):
     # 返回至少有两个相同文件名的路径
     return [path for file_paths in same_name_files for path in file_paths]
 
-def get_same_namefile(folder_path):
-    all_files = []  # 用于保存所有文件路径
-
-    # 获取所有文件路径
-    for dirpath, dirnames, filenames in os.walk(folder_path):
-        for file_name in filenames:
-            file_path = os.path.join(dirpath, file_name)
-            all_files.append(file_path)
-
-    # 获取至少有两个相同文件名的路径
-    file_name_dict = {}
-    for file_path in all_files:
-        file_name = os.path.basename(file_path)
-        file_name_dict.setdefault(file_name, []).append(file_path)
-
-    same_name_files = [path for name, paths in file_name_dict.items() if len(paths) > 1 for path in paths]
-
-    # 返回至少有两个相同文件名的路径
-    return same_name_files
+# def get_same_namefile(folder_path):
+#     all_files = []  # 用于保存所有文件路径
+#
+#     # 获取所有文件路径
+#     for dirpath, dirnames, filenames in os.walk(folder_path):
+#         for file_name in filenames:
+#             file_path = os.path.join(dirpath, file_name)
+#             all_files.append(file_path)
+#
+#     # 获取至少有两个相同文件名的路径
+#     file_name_dict = {}
+#     for file_path in all_files:
+#         file_name = os.path.basename(file_path)
+#         file_name_dict.setdefault(file_name, []).append(file_path)
+#
+#     same_name_files = [path for name, paths in file_name_dict.items() if len(paths) > 1 for path in paths]
+#
+#     # 返回至少有两个相同文件名的路径
+#     return same_name_files
 
 #通用去重工具
 def DelRepat(data,key):
@@ -256,17 +322,20 @@ def DelRepat(data,key):
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+
+@staticmethod
 def detect_encoding(file_path):
+    """通用的文件编码检测
+        输入参数为文件路径
+    """
     with open(file_path, 'rb') as f:
-        result = chardet.detect(f.read())
-        encode=result['encoding']
-        return check_encoding(encode)
-def check_encoding(s):
-    lowercase_s = s.lower()
-    if lowercase_s.startswith("gb"):
-        return "gbk"
-    else:
-        return s
+        raw_data = f.read()
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
+        if encoding:
+            return encoding
+        else:
+            return 'utf-8'  # 默认返回 utf-8 编码
 
 def check_file_access(file_paths):
     results = {
@@ -337,26 +406,7 @@ def remove_duplicate_files(file_list):
                     unique_files.append(file_path)
                     break
     return unique_files
-def remove_duplicate_files(file_list):
-    files_by_name = {}
-    for file_path in file_list:
-        name, ext = os.path.splitext(file_path)
-        parts = name.split(".")
-        file_name = parts[0]
-        file_dir = ".".join(parts[1:])
-        if file_name not in files_by_name:
-            files_by_name[file_name] = {"dirs": {file_dir}, "paths": {file_path}}
-        else:
-            files_by_name[file_name]["dirs"].add(file_dir)
-            files_by_name[file_name]["paths"].add(file_path)
-    unique_files = []
-    for file_name, file_data in files_by_name.items():
-        if len(file_data["dirs"]) == 1:
-            unique_files.extend(list(file_data["paths"]))
-        else:
-            all_paths = list(file_data["paths"])
-            unique_files.extend(all_paths)
-    return unique_files
+
 #留重工具
 def keep_duplicate_files(file_list):
     # A dictionary to store files by their names
@@ -391,6 +441,9 @@ def subprocess_common(command, shell=True, capture_output=True, text=True):
 
 
 def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, text=True):
+    """通用的bat脚本执行工具
+       输入参数为bat文件路径和command
+    """
     try:
         # 将命令和批处理文件名组合成一个字符串
         command_with_bat = f'{bat_file} {command}'
@@ -409,43 +462,15 @@ def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, t
 
 
 def subprocess_with_progress(command, shell=True):
+    """通用的子进程工具
+       输入参数为command
+    """
     # 启动子进程
     print(command)
     process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
     print(process)
     process.communicate()
-
-#TODO 更加多样的参数逻辑支持
-def generate_bat_script(bat_file, command):
-    # 检查批处理文件是否已存在
-    if os.path.exists(bat_file):
-        return bat_file
-
-    # 打开批处理文件以写入模式
-    with open(bat_file, 'w') as f:
-        # 写入批处理文件的内容
-        f.write('@echo off\n')
-        f.write('REM 获取 Python 传递的命令参数\n')
-        f.write('set COMMAND=%*\n')
-        f.write('\n')
-        f.write('REM 输出传递的命令参数\n')
-        f.write('echo COMMAND: %COMMAND%\n')
-        f.write('\n')
-        f.write('REM 执行传递的命令\n')
-        f.write('start cmd /k %COMMAND%\n')
-        f.write('\n')
-        f.write('REM 检查上一个命令的执行结果，如果失败则输出错误信息\n')
-        f.write('if errorlevel 1 (\n')
-        f.write('    echo Error: Failed to execute the command.\n')
-        f.write('    pause\n')
-        f.write('    exit /b 1\n')
-        f.write(')\n')
-        f.write('\n')
-        f.write('echo Command executed successfully.\n')
-        f.write('pause\n')
-
-    return bat_file
 
 # -------------------------------
 
@@ -469,6 +494,9 @@ def remove_duplicate_files(file_list):
     return unique_files
 
 def rm_folder(folder_path):
+    """通用的删除工具 静默删除子文件夹下所有文件
+       输入参数为文件夹路径。
+    """
     try:
         subprocess.run(['rmdir', '/s', '/q', folder_path], check=False)
         print(f"Folder {folder_path} deleted successfully.")
@@ -476,6 +504,9 @@ def rm_folder(folder_path):
         print(f"Error: {e}")
 
 def copy_folder(source_folder, destination_folder):
+    """通用的复制文件工具
+       输入参数为源文件地址和目标文件地址。
+    """
     try:
         # 使用 robocopy 命令进行文件夹复制
         result = subprocess.run(['robocopy', source_folder, destination_folder, '/E', '/XO', '/COPY:DAT', '/R:3', '/W:5'], check=False, capture_output=True, text=True, encoding='latin-1')
@@ -487,6 +518,9 @@ def copy_folder(source_folder, destination_folder):
         print(f"Error: {e}")
 
 def create_symbolic_link(source, target_dir, is_folder=False):
+    """通用的创建符号链接工具
+       输入参数为源文件地址和目标文件地址。
+    """
     link_type = '/d' if is_folder else ''
     cmd = ['mklink', link_type, os.path.join(target_dir, os.path.basename(source)), source]
     print('\n' + '-' * 50)
@@ -498,24 +532,12 @@ def create_symbolic_link(source, target_dir, is_folder=False):
     except Exception as e:
         print("符号链接创建失败: " + str(e))
 
-#分别获取输入列表中的文件路径和文件夹路径
-def get_listunder_fileandfolder(source_dirs):
-    files = []
-    folders = []
-    for source_dir_path in source_dirs:
-        # 获取每个路径的绝对路径
-        abs_path = os.path.abspath(source_dir_path)
-        if os.path.isfile(abs_path):
-            files.append(abs_path)
-        else:
-            folders.append(abs_path)
-    return files,folders
 
 def read_rules_from_file():
 
     filename = "file_name_rules.txt"
     if not os.path.exists(filename):
-        with open(filename, "w") as f:
+        with open(filename, "w",encoding='UTF-8') as f:
             print("规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
 
@@ -575,40 +597,6 @@ def get_video_info_list(paths):
 
     return video_info_list, max_path_len
 
-def get_file_count(folder):
-    """获取文件夹下所有文件的数量"""
-    return len(get_file_paths(folder))
-
-    # 获取用户输入的文件名列表和路径
-def get_list_files(path):
-    """
-    获取指定路径下包括子目录的所有文件路径
-    """
-    files = []
-    # 递归遍历路径下所有文件和文件夹
-    for root, dirs, filenames in os.walk(path):
-        for filename in filenames:
-            files.append(os.path.join(root, filename))
-    return files
-
-def get_list_dirs(path):
-    """
-    获取指定路径下的所有子目录路径
-    """
-    dirs = []
-    for subdir in os.listdir(path):
-        dir_path = os.path.join(path, subdir)
-        if os.path.isdir(dir_path):
-            dirs.append(dir_path)
-            subdirs = get_list_dirs(dir_path)
-            if subdirs:
-                dirs.extend(subdirs)
-    return dirs
-
-def get_sort_list(rules):
-    sorted_rules = sorted(rules, key=len)
-    for rule in sorted_rules:
-        print(f'{rule}')
         # print(f'{len(rule)}: {rule}')
 
 def get_video_duration(video_path):
@@ -669,18 +657,6 @@ def getbitratesort(files):
     sorted_files = [file_path for file_path, _ in files_bitrate]
     return sorted_files
 
-# 设置 cmd 窗口的标题
-def set_cmd_title(title):
-    ctypes.windll.kernel32.SetConsoleTitleW(title)
-
-def capture_output_to_file(func):
-    def wrapper(*args, **kwargs):
-        with open('output.txt', 'a', encoding='utf-8') as f:
-            # f.write(os.linesep.join(output))
-            with contextlib.redirect_stdout(f):
-                func(*args, **kwargs)
-    return wrapper
-
 
 # import wx
 #
@@ -702,35 +678,11 @@ def capture_output_to_file(func):
 #     def OnClose(self, event):
 #         self.Destroy()
 
-def admin_process():
-    def is_admin():
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
-
-        # 检查是否是管理员权限，如果不是则重新运行脚本作为管理员
-        # if not is_admin():
-        #     print("当前没有管理员权限，将尝试申请管理员权限...")
-        #     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-        #     ctypes.windll.user32.PostQuitMessage(0)
-        #     sys.exit()
-
-    if not is_admin():
-        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
-        # 构建运行命令列表
-        set_cmd_title("Tool_User")
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-        # 在新的进程中运行命令，等待命令执行完毕
-        print("程序将重新启动...")
-        # 重定向
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        # 用当前的可执行文件和命令行参数替代当前进程
-        os.execl(sys.executable, *([sys.executable] + sys.argv))
-        sys.exit()
 
 def create_groups(lists,reg):
+    """从给定的文件列表中找出文件名满足指定正则表达式条件并且出现多次的文件
+        Return: List-> list
+    """
     lists_by_reg ={}
     for list in lists:
         try:
@@ -762,7 +714,7 @@ def create_groups(lists,reg):
     return ique_files
 
 def seconds_to_hhmmss(seconds):
-    # 将秒数转换为时分秒格式
+    """将秒数转换为时分秒格式"""
     hours, remainder = divmod(seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
@@ -901,6 +853,7 @@ def get_video_integrity(video_path):
         return False
 
 #----------------------------------------------------------
+# TODO
 def register_findone(lists, reg):
     lists_by_reg = {}
     # Traverse all the files
@@ -932,6 +885,7 @@ def register_findone(lists, reg):
             ique_files.extend(info['path'])
     return ique_files
 
+# TODO
 def register_find(lists, reg):
     lists_by_reg = {}
     for file_path in lists:
@@ -1070,7 +1024,38 @@ def apply_profile_to_methods(enable_profile, methods):
             methods[key] = profile_all_functions(enable=True)(value)
     return methods
 
+def admin_process():
+    def is_admin():
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False
+
+        # 检查是否是管理员权限，如果不是则重新运行脚本作为管理员
+        # if not is_admin():
+        #     print("当前没有管理员权限，将尝试申请管理员权限...")
+        #     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+        #     ctypes.windll.user32.PostQuitMessage(0)
+        #     sys.exit()
+
+    if not is_admin():
+        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
+        # 构建运行命令列表
+        set_cmd_title("Tool_User")
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+        # 在新的进程中运行命令，等待命令执行完毕
+        print("程序将重新启动...")
+        # 重定向
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+        # 用当前的可执行文件和命令行参数替代当前进程
+        os.execl(sys.executable, *([sys.executable] + sys.argv))
+        sys.exit()
+
 def get_free_space_cmd(folder_path):
+    """检查磁盘是否有空余空间
+        输入文件路径
+    """
     # 提取文件夹所在磁盘的根目录
     #TODO 多语言环境兼容
     drive_letter = os.path.splitdrive(os.path.abspath(folder_path))[0]
@@ -1091,3 +1076,51 @@ def get_free_space_cmd(folder_path):
         else:
             print("未找到剩余空间信息")
             return 1/0
+
+# 设置 cmd 窗口的标题
+def set_cmd_title(title):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
+
+def capture_output_to_file(func):
+    def wrapper(*args, **kwargs):
+        with open('output.txt', 'a', encoding='utf-8') as f:
+            # f.write(os.linesep.join(output))
+            with contextlib.redirect_stdout(f):
+                func(*args, **kwargs)
+    return wrapper
+
+#TODO 更加多样的参数逻辑支持
+def generate_bat_script(bat_file, command):
+    """通用的bat文件生成工具
+       输入参数为bat文件路径和command
+    Returns:
+        Tuple[List[str], str]: 一个包含文件路径列表和文件夹路径的元组。
+    """
+    # 检查批处理文件是否已存在
+    if os.path.exists(bat_file):
+        return bat_file
+
+    # 打开批处理文件以写入模式
+    with open(bat_file, 'w',encoding='UTF-8') as f:
+        # 写入批处理文件的内容
+        f.write('@echo off\n')
+        f.write('REM 获取 Python 传递的命令参数\n')
+        f.write('set COMMAND=%*\n')
+        f.write('\n')
+        f.write('REM 输出传递的命令参数\n')
+        f.write('echo COMMAND: %COMMAND%\n')
+        f.write('\n')
+        f.write('REM 执行传递的命令\n')
+        f.write('start cmd /k %COMMAND%\n')
+        f.write('\n')
+        f.write('REM 检查上一个命令的执行结果，如果失败则输出错误信息\n')
+        f.write('if errorlevel 1 (\n')
+        f.write('    echo Error: Failed to execute the command.\n')
+        f.write('    pause\n')
+        f.write('    exit /b 1\n')
+        f.write(')\n')
+        f.write('\n')
+        f.write('echo Command executed successfully.\n')
+        f.write('pause\n')
+
+    return bat_file

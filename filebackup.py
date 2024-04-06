@@ -10,9 +10,9 @@ def create_symbolic_links():
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
     print("请输入源文件夹路径:")
-    source_folder_path = input("")
+    source_folder_path = input("").strip()
     print("请输入目标文件夹路径:")
-    target_folder_path = input("")
+    target_folder_path = input("").strip()
     source_files_list = []
     same_list = []
 
@@ -73,7 +73,7 @@ def same_file_createsymbolic_links():
             source_dirs.append(path)
     # 指定目标目录
     print("请输入要创建的目标目录：")
-    target_dir = input().strip()
+    target_dir =tools.process_input_str()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
     # # 输出结果
@@ -153,9 +153,9 @@ def create_linked_items():
     # tools.admin_process()
     # source_folder=create_symbolic_links_recursive()
     print("请输入符号链接所在文件夹")
-    source_folder = input()
+    source_folder = tools.process_input_str()
     print("请输入要复制源文件到的所在文件夹")
-    destination_folder = input()
+    destination_folder = tools.process_input_str()
     # 获取源文件夹中的所有文件路径
     item_paths = tools.get_file_paths(source_folder)
 
