@@ -1,6 +1,8 @@
 import ctypes
 import os
 import re
+import shutil
+
 import chardet
 import cProfile
 import time
@@ -16,8 +18,8 @@ import sys
 def process_input_list():
     """输入参数为列表"""
     file_paths = []
+    print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         path = input().strip('"')
         if not path:
             break
@@ -44,8 +46,8 @@ def process_paths_list_or_folder():
     flag = input().lower() or 'n'
 
     if flag == 'y':
+        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         while True:
-            print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
             path = input().strip('"')
             if not path:
                 break
@@ -322,8 +324,6 @@ def DelRepat(data,key):
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
-
-@staticmethod
 def detect_encoding(file_path):
     """通用的文件编码检测
         输入参数为文件路径
@@ -517,6 +517,17 @@ def copy_folder(source_folder, destination_folder):
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
 
+def copy_file(source_file, destination_file):
+    """通用的复制文件工具
+       输入参数为源文件地址和目标文件地址。
+    """
+    try:
+        result = shutil.copy(source_file, destination_file)
+        print(f"File copied from '{source_file}' to '{destination_file}'")
+    except Exception as e:
+        print(f"Error: {e}")
+
+
 def create_symbolic_link(source, target_dir, is_folder=False):
     """通用的创建符号链接工具
        输入参数为源文件地址和目标文件地址。
@@ -540,8 +551,8 @@ def read_rules_from_file():
         with open(filename, "w",encoding='UTF-8') as f:
             print("规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
-
-    with open(filename, encoding='utf-8') as f:
+    encode=detect_encoding(filename)
+    with open(filename, encoding=encode) as f:
         try:
             content = f.read().strip()
         except Exception as e:

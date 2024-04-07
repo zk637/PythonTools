@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from datetime import datetime,time,timedelta
 
-def create_symbolic_links():
+def same_file_createsymbolic_links():
     """获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）"""
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
@@ -56,13 +56,13 @@ def create_symbolic_links():
     else:
         print("非空格，程序继续.....")
 
-def same_file_createsymbolic_links():
+def create_symbolic_links():
     """为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
+    print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         input_str = input()
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
             break

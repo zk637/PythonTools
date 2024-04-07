@@ -3,6 +3,7 @@ import sys
 import shutil
 import pandas as pd
 import subprocess
+from flashtext import KeywordProcessor
 import constants
 import tools
 
@@ -66,7 +67,7 @@ def compare_and_move_files():
                     #     print(f'{file}n')
 
 def check_files_in_folder(file_list):
-    """获取给定目录中在检索目录下以相同文件名匹配的列表或获取不匹配条件的列表"""
+    """获取给定文件夹下在检索路径列表中以相同文件名匹配的列表或获取不匹配相同文件名的列表"""
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
     folder_path = tools.process_input_str()
@@ -80,26 +81,27 @@ def check_files_in_folder(file_list):
 
     matching_paths = []
     non_matching_paths = []
-
-    for root, dirs, files in os.walk(folder_path):
-        # 如果需要比较文件夹名，则只保留需要比较的文件夹
-        for dir in dirs:
-            path = os.path.join(root, dir)  # 初始化 path 变量
-            for name in folder_names:
-                if (os.path.basename(dir).lower()) == (os.path.basename(name).lower()):
-                    matching_paths.append(path)
-                else:
-                    non_matching_paths.append(path)
-    for root, dirs, files in os.walk(folder_path):
-        # 如果需要比较文件名，则只保留需要比较的文件名
-        for file in files:
-            path = os.path.join(root, file)  # 初始化 path 变量
-            for name in file_names:
-                if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
-                    matching_paths.append(path)
-                else:
-                    non_matching_paths.append(path)
-
+    if os.path.isdir(folder_path):
+        for root, dirs, files in os.walk(folder_path):
+            # 如果需要比较文件夹名，则只保留需要比较的文件夹
+            for dir in dirs:
+                path = os.path.join(root, dir)  # 初始化 path 变量
+                for name in folder_names:
+                    if (os.path.basename(dir).lower()) == (os.path.basename(name).lower()):
+                        matching_paths.append(path)
+                    else:
+                        non_matching_paths.append(path)
+        for root, dirs, files in os.walk(folder_path):
+            # 如果需要比较文件名，则只保留需要比较的文件名
+            for file in files:
+                path = os.path.join(root, file)  # 初始化 path 变量
+                for name in file_names:
+                    if (os.path.basename(file).lower()) == (os.path.basename(name).lower()):
+                        matching_paths.append(path)
+                    else:
+                        non_matching_paths.append(path)
+    else:
+        print("输入参数有误！")
     if not matching_paths:
         # 如果没有找到匹配的文件，则输出提示信息并返回 None
         print("没有找到匹配的文件。")
@@ -107,12 +109,14 @@ def check_files_in_folder(file_list):
 
     # 输出不匹配的文件路径
     if non_matching_paths and "Y"==flag.upper():
+        non_matching_paths=set(non_matching_paths)
         print("找到不匹配的文件：")
         for file_path in non_matching_paths:
             print('"' + f"{file_path}" + '"')
     else:
         # 如果找到了匹配的文件，则输出每个匹配的文件的路径
         print("找到匹配的文件：")
+        matching_paths=set(matching_paths)
         for file_path in matching_paths:
             print('"' + f"{file_path}" + '"')
 
@@ -126,35 +130,39 @@ def get_file_paths_with_rules():
     """
     print("请输入需要对比的文件夹")
     folder_path = tools.process_input_str("")
-    paths = []
     file_name_rules = tools.read_rules_from_file()
-    # print(f"规则列表：{file_name_rules}")
-    try:
-        for root, dirs, files in os.walk(folder_path,topdown=False):
-            for folder_name in dirs:
-                folder_full_path = os.path.join(root, folder_name)
-                for rule in file_name_rules:
-                    regex_pattern = r'^' + re.escape(rule) + r'$'
-                    if not rule:
-                        continue
-                    if re.search(regex_pattern, folder_name):
+    # 创建 KeywordProcessor 对象
+    if file_name_rules:
+
+        keyword_processor = KeywordProcessor()
+
+        # 添加要查找的关键词列表
+        keyword_processor.add_keywords_from_list(file_name_rules)
+
+        paths = []
+        # print(f"规则列表：{file_name_rules}")
+        try:
+
+            for root, dirs, files in os.walk(folder_path, topdown=False):
+                # 处理文件夹名称
+                for folder_name in dirs:
+                    folder_full_path = os.path.join(root, folder_name)
+                    if keyword_processor.extract_keywords(folder_name):
                         paths.append(folder_full_path)
-                        break
-            for file_name in files:
-                file_full_path = os.path.join(root, file_name)
-                file_name_without_ext, file_ext = os.path.splitext(file_name)
-                for rule in file_name_rules:
-                    regex_pattern = r'^.*' + re.escape(rule) + r'.*$'
-                    if not rule:
-                        continue
-                    # print(regex_pattern)
-                    if re.search(regex_pattern, file_name_without_ext):
+
+                # 处理文件名称
+                for file_name in files:
+                    file_full_path = os.path.join(root, file_name)
+                    file_name_without_ext, file_ext = os.path.splitext(file_name)
+                    if keyword_processor.extract_keywords(file_name_without_ext):
                         paths.append(file_full_path)
-                        break
-        # paths=tools.add_quotes_forpath(paths)
-        print('\n'.join(paths))
-    except Exception as e:
-        print(e)
+
+            # 打印匹配的路径
+            for path in paths:
+                print(path)
+
+        except Exception as e:
+            print(e)
 
 def create_symbolic_links():
     tools.admin_process()
@@ -211,8 +219,8 @@ def same_file_createsymbolic_links():
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
+    print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         input_str = input()
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
             break
@@ -253,14 +261,15 @@ def same_file_createsymbolic_links():
         print("非空格，程序继续.....")
 
 def get_file_paths_with_name():
-    """获取符合录入文件名的文件路径"""
+    """获取检索文件夹下和检索文件名相同的路径列表"""
     # 获取用户输入的文件名列表和路径
     print(r"请输入需要检索的文件夹路径：")
     folderpath = tools.process_input_str()
     found_files = []
+    print(r"请输入需要检索的文件列表：")
     filenames_list = tools.process_input_list()
     # 获取指定路径下及其子目录下的所有文件路径
-    if filenames_list:
+    if filenames_list and os.path.isdir(folderpath):
         files_in_folder = tools.get_list_files(folderpath)
         # 获取指定路径下的所有子目录路径
         dirs_in_folder = tools.get_list_dirs(folderpath)
@@ -369,7 +378,7 @@ def excel_compare():
         encode = tools.detect_encoding(excel_path)
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
-                print(file.readline())
+                print(file.readline().strip())
         print("请输入需要比较的文件夹路径: ")
         folder_path=tools.process_input_str()
         print("请输入比较文件大小限制（def:200): ")
@@ -647,7 +656,7 @@ def print_video_info_list_asy():
 
 
 def get_directories_and_copy_tree():
-    """获取指定文件夹下的目录结构"""
+    """获取指定文件夹下的目录结构并复制"""
     print("请输入需要复制目录结构的文件夹")
     folder = tools.process_input_str()
     print("请输入要复制结构到的文件夹")
