@@ -9,7 +9,7 @@ def remove_small_folders():
     # input_logger.start_logging()
     folder=tools.process_intput_strr("")
     print("请输入文件大小下限（单位：MB）：")
-    min_size_str=tools.process_input_str("")
+    min_size_str=tools.process_input_str()
     min_size = float(min_size_str) * 1024 * 1024
     """删除小于指定大小的文件所在的文件夹"""
     print("是否使用回收站Y/N:")

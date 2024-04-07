@@ -15,12 +15,12 @@ import tools
 def check_zip_password():
     """判断指定文件夹下的压缩文件是否加密"""
     print("请输入需要检索的文件夹")
-    var = input()
+    var = tools.process_input_str()
     print("是否处理7zip格式？ y/n")
-    zipflag = input()
-    if str(zipflag).lower() == 'y':
+    zipflag = tools.process_input_str()
+    if str(zipflag).upper() == 'y':
         print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
-        flag = input() or 'r'
+        flag = input().strip() or 'r'
         flag = str(flag)
     rar_lists = []
     sevenzip_lists = []
@@ -37,7 +37,7 @@ def check_zip_password():
     # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
-    if zipflag.lower() == 'y':
+    if zipflag.upper() == 'Y':
         # print(datetime.datetime.now())
         for sevenzip_list in sevenzip_lists:
             try:
@@ -96,7 +96,7 @@ def check_zip_password():
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     print("请输入文件夹")
-    folder = input()
+    folder = tools.process_input_str()
     password = "password"
     # filelists = tools.get_file_paths(folder)
     filelists = tools.get_file_paths_limit(folder, *constants.ZIP_SUFFIX)

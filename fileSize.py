@@ -69,9 +69,9 @@ def filter_files_by_sizeordate():
         print('\n'.join(filtered_paths))
     else:
         print("纯净输出Y/N?")
-        cflag=input()
+        cflag=tools.process_input_str()
         print("打印父路径？Y/N?")
-        pflag=input()
+        pflag=tools.process_input_str()
         print("输入开始时间段 示例格式20180302")
         start_date=tools.process_input_str("")
         print("输入结束时间段 示例格式20180519")

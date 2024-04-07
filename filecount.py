@@ -23,24 +23,16 @@ def getfoldercount_by_include():
         5: constants.EXTENSIONS,
     }
     print("请输入要包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
-    index = int(input(""))
+    index = tools.process_input_str()
     extensions=suffix_map.get(index)
     if list and index<=5:
         path_list=tools.get_file_paths_list_limit(list,*extensions)
     elif os.path.isdir(dir) and index<=5:
         path_list=tools.get_file_paths_limit(dir,*extensions)
     else:
+        path_list=None
         print("参数有误，不是合法的路径？")
-    if path_list is not None:
-        count = tools.count_files(path_list)
-        print("index: {}".format(index))
-        print(count)
-        print("是否输出符合条件的文件路径 Y/N")
-        flag=input()
-        if flag.upper()=='Y':
-            for path in path_list:
-
-                print(path)
+    tools.cont_files_processor(path_list,index)
 
 def getfoldercount_by_exclude():
     """获取指定文件类型外文件的数量和路径"""
@@ -53,25 +45,18 @@ def getfoldercount_by_exclude():
         5: constants.EXTENSIONS,
     }
     print("请输入要不包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
-    index = int(input(""))
+    index = tools.process_input_str()
     extensions=suffix_map.get(index)
-    if list:
+    if list and index<=5:
         print("是否遍历子文件夹  Y/N")
-        flag=input()
+        flag=tools.process_input_str()
         path_list=tools.find_matching_files_or_folder_exclude(list,*extensions,folder=dir,flag=flag)
-    elif dir:
+    elif os.path.isdir(dir) and index<=5:
         path_list=tools.find_matching_files_or_folder_exclude(paths=list,*extensions,folder=dir)
     else:
+        path_list=None
         print("参数有误，不是合法的路径？")
-    if path_list is not None:
-        count = tools.count_files(path_list)
-        print("index: {}".format(index))
-        print(count)
-        print("是否输出符合条件的文件路径 Y/N")
-        flag=input()
-        if flag.upper()=='Y':
-            for path in path_list:
-                print(path)
+    tools.cont_files_processor(path_list, index)
 
 
 

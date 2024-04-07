@@ -5,14 +5,14 @@ import shutil
 import subprocess
 from datetime import datetime,time,timedelta
 
-def create_symbolic_links():
+def same_file_createsymbolic_links():
     """获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）"""
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
     print("请输入源文件夹路径:")
-    source_folder_path = input("")
+    source_folder_path = input("").strip()
     print("请输入目标文件夹路径:")
-    target_folder_path = input("")
+    target_folder_path = input("").strip()
     source_files_list = []
     same_list = []
 
@@ -56,13 +56,13 @@ def create_symbolic_links():
     else:
         print("非空格，程序继续.....")
 
-def same_file_createsymbolic_links():
+def create_symbolic_links():
     """为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合"""
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
+    print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         input_str = input()
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
             break
@@ -73,7 +73,7 @@ def same_file_createsymbolic_links():
             source_dirs.append(path)
     # 指定目标目录
     print("请输入要创建的目标目录：")
-    target_dir = input().strip()
+    target_dir =tools.process_input_str()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
     # # 输出结果
@@ -153,9 +153,9 @@ def create_linked_items():
     # tools.admin_process()
     # source_folder=create_symbolic_links_recursive()
     print("请输入符号链接所在文件夹")
-    source_folder = input()
+    source_folder = tools.process_input_str()
     print("请输入要复制源文件到的所在文件夹")
-    destination_folder = input()
+    destination_folder = tools.process_input_str()
     # 获取源文件夹中的所有文件路径
     item_paths = tools.get_file_paths(source_folder)
 

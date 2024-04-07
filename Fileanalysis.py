@@ -9,11 +9,11 @@ import constants
 def get_low_resolution_media_files():
     """通过视频目录查找符合区间条件分辨率的媒体文件"""
     print("-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
-    size_limit1 = input("")
+    size_limit1 = input("").strip()
     width_limit1, height_limit1 = map(int, size_limit1.split("*"))
 
     print("-----------------------请输入第二个分辨率阈值（格式为 宽*高）:--------------------------")
-    size_limit2 = input("")
+    size_limit2 = input("").strip()
     width_limit2, height_limit2 = map(int, size_limit2.split("*"))
 
     if width_limit1 > width_limit2:
@@ -26,7 +26,7 @@ def get_low_resolution_media_files():
     print("请输入视频文件夹：")
     path = tools.process_input_str("")
     print("比特率排序Y/N")
-    flag = input()
+    flag = tools.process_input_str()
     files = []
     for file_path in tools.get_file_paths(path):
         _, ext = os.path.splitext(file_path)
@@ -70,9 +70,9 @@ def get_video_duration_sorted():
         paths = path_list
 
     print("是否输出文件时长大小一致的列表？Y/N de:N")
-    same_flag = input().strip().upper()
+    same_flag = tools.process_input_str().upper()
     print("是否纯净输出y/n")
-    flag = input().strip().lower()
+    flag = tools.process_input_str().upper()
 
     VIDEO_SUFFIX=constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
@@ -142,7 +142,7 @@ def print_video_info_list():
 
     file_paths_list, video_dir = tools.process_paths_list_or_folder()
     print("是否纯净输出y/n")
-    flag = input()
+    flag = tools.process_input_str()
     if file_paths_list:
         folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
     elif os.path.isdir(video_dir):
@@ -194,7 +194,7 @@ def get_video_audio():
 def getfiletypeislegal():
     """校验文件是否合法"""
     print("请输入文件夹路径:")
-    source_folder_path = input("")
+    source_folder_path = tools.process_input_str()
     path=tools.get_file_paths(source_folder_path)
     # print(path)
     tools.check_file_access(path)
@@ -207,7 +207,7 @@ def split_video():
     input_video_list,input_video_dir=tools.process_paths_list_or_folder()
     if input_video_list:
         print("拆分后每段文件的大小限制 单位：MB")
-        max_size_mb = int(input()) * 1024 * 1024
+        max_size_mb = int(tools.process_input_str()) * 1024 * 1024
 
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
@@ -226,7 +226,7 @@ def split_video():
         tools.make_dir(output_dir)
 
         print("拆分后每段文件的大小限制 单位：MB")
-        max_size_mb = int(input()) * 1024 * 1024
+        max_size_mb = int(tools.process_input_str()) * 1024 * 1024
         input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
             for input_video in input_video_list:
@@ -248,35 +248,36 @@ def add_srt():
     print("输入字幕文件路径")
     srt_path=input().replace('"','')
     print("硬字幕还是软字幕 Y/N def:N")
-    flag=input() or 'N'
-    if os.path.isfile(video_path):
-        dir_path = os.path.dirname(video_path)
-        # base_name = os.path.basename(video_path).split('.')[0]
-        base_name, extension = os.path.splitext(video_path.split('\\')[-1])
-        print(base_name)
-        # 构建输出文件名
-        video_out_name = f"{base_name}_CN.mp4"
-        video_out_name = os.path.join(dir_path, video_out_name)
-        bat_file=''
-    if flag.upper()=='Y':
-            # 定义 FFmpeg 命令
-            #可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
-            # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
-            srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
-            # video_path = video_path.replace('\\','\\\\')
-            # print(video_path)
-            srt_path="'"+srt_path+"'"
-            # print(srt_path)
-            command=f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
-            print(command)
-            bat_file=tools.generate_bat_script("run_addSrt.bat",command)
-            tools.subprocess_common_bat(bat_file,command)
-    else:
-            # 定义 FFmpeg 命令
-            command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
-            bat_file=tools.generate_bat_script("run_addSrt.bat",command)
-            result=tools.subprocess_common_bat(bat_file,command)
-            print(result)
+    flag=tools.process_input_str() or 'N'
+    if video_path and srt_path and flag:
+        if os.path.isfile(video_path):
+            dir_path = os.path.dirname(video_path)
+            # base_name = os.path.basename(video_path).split('.')[0]
+            base_name, extension = os.path.splitext(video_path.split('\\')[-1])
+            print(base_name)
+            # 构建输出文件名
+            video_out_name = f"{base_name}_CN.mp4"
+            video_out_name = os.path.join(dir_path, video_out_name)
+            bat_file=''
+        if flag.upper()=='Y':
+                # 定义 FFmpeg 命令
+                #可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
+                # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
+                srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
+                # video_path = video_path.replace('\\','\\\\')
+                # print(video_path)
+                srt_path="'"+srt_path+"'"
+                # print(srt_path)
+                command=f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
+                print(command)
+                bat_file=tools.generate_bat_script("run_addSrt.bat",command)
+                tools.subprocess_common_bat(bat_file,command)
+        else:
+                # 定义 FFmpeg 命令
+                command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
+                bat_file=tools.generate_bat_script("run_addSrt.bat",command)
+                result=tools.subprocess_common_bat(bat_file,command)
+                print(result)
 
 def check_files_subtitle_stream():
     """

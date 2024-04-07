@@ -9,7 +9,7 @@ def createog():
     # 获取当前日志文件编号
     log_count_file = os.path.join(log_dir, 'log_count.txt')
     if os.path.exists(log_count_file):
-        with open(log_count_file, 'r') as f:
+        with open(log_count_file, 'r',encoding='UTF-8') as f:
             log_count = int(f.read().strip())
     else:
         log_count = 1
@@ -21,7 +21,7 @@ def createog():
         log_file = os.path.join(log_dir, f'{log_prefix}-{log_count}.log')
 
     # 将新的日志文件编号写入文件
-    with open(log_count_file, 'w') as f:
+    with open(log_count_file, 'w',encoding='UTF-8') as f:
         f.write(str(log_count))
 
     # 创建日志对象
