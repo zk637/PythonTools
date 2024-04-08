@@ -221,7 +221,7 @@ def same_file_createsymbolic_links():
     source_dirs = []
     print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        input_str = input()
+        input_str = tools.process_input_str().strip('"')
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
             break
         input_list = input_str.split('\n')  # 将输入字符串转换为列表，按行分割
@@ -357,23 +357,20 @@ def check_symbolic_link():
     # 打印分类结果
     print("\nRelative Symbolic Links:")
     print("-"*70)
-    for link in relative_links:
-        print(link)
+    tools.for_in_for_print(relative_links)
 
     print("\nAbsolute Symbolic Links:")
     print("-"*70)
-    for link in absolute_links:
-        print(link)
+    tools.for_in_for_print(absolute_links)
 
     print("\nInvalid Symbolic Links:")
     print("-"*70)
-    for link in invalid_links:
-        print(link)
+    tools.for_in_for_print(invalid_links)
 
 def excel_compare():
     """文件夹内容与csv对比"""
     print("请输入需要比较的CSV文件: ")
-    excel_path=input().replace('"', '')
+    excel_path=tools.process_input_str().replace('"', '')
     if excel_path:
         encode = tools.detect_encoding(excel_path)
         with open(excel_path, 'r', encoding=encode) as file:
@@ -394,7 +391,7 @@ def excel_compare():
         #             print(file.readline())
         # 获取需要比较的列名列表
         print("请输入需要比较的列名，以逗号分隔: ")
-        compare_columns = input().split(',')
+        compare_columns = tools.process_input_str().split(',')
         print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
         flag=tools.process_input_str() or 'N'
         find_missing_files(excel_path, folder_path, size_threshold,compare_columns,flag)
@@ -462,8 +459,7 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
         # 输出匹配结果
         if matche_lists:
             print("以下内容文件夹中有但CSV文件中没有：")
-            for matche_list in matche_lists:
-                print(matche_list)
+            tools.for_in_for_print(matche_lists)
         else:
             print("没有任何匹配的结果")
 
@@ -471,8 +467,7 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
             if no_matche_lists:
                 print('\n' + '-' * 100)
                 print("以下内容文件夹中和CSV中都存在：")
-                for no_matche in no_matche_lists:
-                    print(no_matche)
+                tools.for_in_for_print(no_matche_lists)
         else:
             print("没有任何匹配的结果")
 
@@ -592,13 +587,13 @@ async def main():
     print(start)
 
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input().lower().strip() or 'n'
+    flag = tools.process_input_str().lower().strip() or 'n'
 
     if flag == 'y':
         print("请输入文件夹")
         folder = tools.process_input_str()
         print("是否纯净输出y/n")
-        flag = input().lower()
+        flag = tools.process_input_str().lower()
 
 
 
@@ -608,7 +603,7 @@ async def main():
             print("请输入视频文件夹")
             folder = tools.process_input_str()
             print("是否纯净输出y/n")
-            flag = input().lower()
+            flag = tools.process_input_str().lower()
 
             file_paths_list = await get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
         except Exception as e:
@@ -656,7 +651,7 @@ def print_video_info_list_asy():
 
 
 def get_directories_and_copy_tree():
-    """获取指定文件夹下的目录结构并复制"""
+    """获取指定文件夹下的目录结构"""
     print("请输入需要复制目录结构的文件夹")
     folder = tools.process_input_str()
     print("请输入要复制结构到的文件夹")

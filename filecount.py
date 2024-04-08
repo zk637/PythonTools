@@ -59,9 +59,36 @@ def getfoldercount_by_exclude():
     tools.cont_files_processor(path_list, index)
 
 
+def get_file_count_by_underfolder_size():
+    """
+    获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
+    """
+    file_paths_folder_paths=tools.process_input_list()
+    print("是否打印每个文件夹下的具体内容？Y/N def:N")
+    flag =tools.process_input_str() or 'N'
+    if file_paths_folder_paths:
+        result_list=set()
+        result_wipe_list=set()
+        file_list = set()
+        folder_list = set()
+        file_list,folder_list=tools.check_file_or_folder(file_paths_folder_paths)
 
+        if folder_list:
+            result_list=[folder for folder in folder_list if tools.get_file_count(folder)>=3 and tools.get_folder_size
+                (folder) >= 3*1024*1024*1024]
+            result_wipe_list = set(folder_list) - set(result_list)
 
-
-
-
-
+        if flag.upper() =='N':
+            print('录入列表的单个文件\n')
+            tools.for_in_for_print(file_list)
+            print('录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
+            tools.for_in_for_print(result_wipe_list)
+            print('录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
+            tools.for_in_for_print(result_list)
+        else:
+            print('录入列表的单个文件\n')
+            tools.for_in_for_print(file_list)
+            print('录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
+            tools.for_in_for_print([folder for folder in result_wipe_list if tools.get_file_paths(folder)])
+            print('录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
+            tools.for_in_for_print([folder for folder in result_list if tools.get_file_paths(folder)])

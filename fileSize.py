@@ -20,20 +20,16 @@ def get_total_file_size(file_paths):
 def get_total_size(file_paths):
     """获取不同子目录下的文件大小"""
     total_size = 0
-    try:
-        for file_path in file_paths:
-            if os.path.isfile(file_path):
-                total_size += os.path.getsize(file_path)
-
-            elif os.path.isdir(file_path):
-                for root, dirs, files in os.walk(file_path):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        total_size += os.path.getsize(file_path)
-        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
-    except Exception as e:
-        print(str(e))
-    return total_size / (1024 ** 3)
+    file_paths, folder_path = tools.check_file_or_folder(file_paths)
+    if file_paths:
+        try:
+            for file_path in file_paths:
+                if os.path.exists(file_path):
+                    total_size += os.path.getsize(file_path)
+            print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+        except Exception as e:
+            print(str(e))
+        return total_size / (1024 ** 3)
 
 def filter_files_by_sizeordate():
     """获取文件在大小区间下的列表或在修改时间区间下的列表"""
