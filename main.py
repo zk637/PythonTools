@@ -175,7 +175,7 @@ if __name__ == '__main__':
         print("--------------------------------------------------In-----------------------------------------------------")
         try:
             print("Enter a number: \n")
-            user_input = int(input().strip())
+            user_input = int(tools.process_input_str().strip())
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
@@ -194,7 +194,7 @@ if __name__ == '__main__':
                 while True:
                     # input_logger = InputLogger('output.txt')
                     # input_logger.start_logging()
-                    path = input()
+                    path = tools.process_input_str()
                     # input_logger.stop_logging()
                     # input_logger.close()
                     if not path:

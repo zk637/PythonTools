@@ -15,27 +15,37 @@ import subprocess
 import contextlib
 import sys
 
-
 # 定义一个全局变量，用于记录程序开始时间和用户输入时间
 program_start_time = None
-input_time = None
+last_input_time = None
+input_durations =[]
 
 def get_program_start_time():
     return program_start_time
 
 def get_input_time():
-    return input_time
+    return last_input_time
+
+def get_input_duration():
+    return input_durations
+
 
 # 定义一个新的输入函数，用于替换标准的 input 函数
 def custom_input(prompt=''):
     global program_start_time
-    global input_time
+    global last_input_time
+
     if program_start_time is None:
-        program_start_time = time.process_time()  # 记录程序开始时间
+        program_start_time = time.perf_counter()  # 记录程序开始时间
+    start_time = time.perf_counter()  # 记录输入开始时间
     user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
-    current_input_time = time.process_time() - program_start_time
-    if user_input.strip() != '' and (input_time is None or current_input_time >= input_time):
-        input_time = current_input_time  # 更新用户输入的时间
+    end_time = time.perf_counter()  # 记录输入结束时间
+    current_time = time.perf_counter()  # 获取当前进程的运行时间
+    if user_input.strip() != '':
+        if last_input_time is not None and current_time >= last_input_time:
+            input_duration = end_time - start_time  # 计算实际输入耗时
+            input_durations.append(input_duration)  # 将时间差添加到列表中
+        last_input_time = current_time  # 更新上次输入时间
     return user_input
 
 # 保存原始的 input 函数
