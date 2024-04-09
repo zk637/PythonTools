@@ -20,7 +20,7 @@ def check_zip_password():
     zipflag = tools.process_input_str()
     if str(zipflag).upper() == 'y':
         print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
-        flag = input().strip() or 'r'
+        flag = tools.process_input_str() or 'r'
         flag = str(flag)
     rar_lists = []
     sevenzip_lists = []

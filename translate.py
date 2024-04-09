@@ -183,15 +183,11 @@ def getSrt():
                             path_list.append(subtitle_path)
         if match_list:
             match_list = set(match_list)
-            for match_tip in match_list:
-                # 打印匹配列表
-                print(match_tip)
+            tools.for_in_for_print(match_list)
         print('-' * 150)
         if path_list:
             path_list = set(path_list)
-            for path in path_list:
-                # 打印路径列表
-                print(path)
+            tools.for_in_for_print(path_list)
 
 
 # 匹配文件夹下视频与字幕对应 并输出列表
@@ -249,15 +245,13 @@ def process_files(video_folder, subtitle_folder):
 
     if match_list:
         match_list=set(match_list)
-        for match_tip in match_list:
-            # 打印匹配列表
-            print(match_tip)
+        # 打印匹配列表
+        tools.for_in_for_print(match_list)
     print('-' * 150)
     if path_list:
         path_list=set(path_list)
-        for path in path_list:
-            # 打印路径列表
-            print(path)
+        #打印路径列表
+        tools.for_in_for_print(path_list)
 
 
 # def process_files(video_folder, subtitle_folder):

@@ -5,6 +5,7 @@ import shutil
 
 import chardet
 import cProfile
+import builtins
 import time
 from difflib import SequenceMatcher
 
@@ -14,25 +15,87 @@ import subprocess
 import contextlib
 import sys
 
+# 定义一个全局变量，用于记录程序开始时间和用户输入时间
+program_start_time = None
+last_input_time = None
+input_durations =[]
 
+def get_program_start_time():
+    return program_start_time
+
+def get_input_time():
+    return last_input_time
+
+def get_input_duration():
+    return input_durations
+
+
+# 定义一个新的输入函数，用于替换标准的 input 函数
+def custom_input(prompt=''):
+    global program_start_time
+    global last_input_time
+
+    if program_start_time is None:
+        program_start_time = time.perf_counter()  # 记录程序开始时间
+    start_time = time.perf_counter()  # 记录输入开始时间
+    user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
+    end_time = time.perf_counter()  # 记录输入结束时间
+    current_time = time.perf_counter()  # 获取当前进程的运行时间
+    if user_input.strip() != '':
+        if last_input_time is not None and current_time >= last_input_time:
+            input_duration = end_time - start_time  # 计算实际输入耗时
+            input_durations.append(input_duration)  # 将时间差添加到列表中
+        last_input_time = current_time  # 更新上次输入时间
+    return user_input
+
+# 保存原始的 input 函数
+builtins.original_input = builtins.input
+# 替换标准的 input 函数为自定义的输入函数
+builtins.input = custom_input
+
+from my_profile import profile
+
+@profile(enable=False)
+def process_input_str():
+    """输入参数为字符串"""
+    str = input().strip()
+    return str
+
+@profile(enable=False)
 def process_input_list():
     """输入参数为列表"""
-    file_paths = []
+    list = []
     print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
         path = input().strip('"')
         if not path:
             break
-        file_paths.append(path)
-    return file_paths
+        list.append(path.strip('"'))
+    return list
 
+def check_file_or_folder(str_list):
+    """
+    获取用户输入的文件路径列表和文件夹路径。
+    Returns:
+        Tuple[List[str], str]: 一个包含文件路径列表和文件夹路径列表的元组。
+    """
+    file_list=set()
+    folder_list=set()
+    if str_list:
+        for str_item in str_list:
+            if os.path.isfile(str_item):
+                file_list.add(str_item)
+            elif os.path.isdir(str_item):
+                folder_list.add(str_item)
+                folder_files = set(get_file_paths(str_item))  # 获取文件夹中的文件路径
+                file_list.update(folder_files)  # 将文件夹中的文件路径添加到文件集合中
+    else:
+        print("参数列表为空！")
 
-def process_input_str(s=None):
-    """输入参数为字符串"""
-    str =""
-    str=input().strip()
-    return str
+    # 将集合转换为列表并返回
+    return list(file_list), list(folder_list)
 
+@profile(enable=False)
 def process_paths_list_or_folder():
     """
     获取用户输入的文件路径列表或文件夹路径。
@@ -51,7 +114,7 @@ def process_paths_list_or_folder():
             path = input().strip('"')
             if not path:
                 break
-            video_paths_list.append(path)
+            video_paths_list.append(path.strip('"'))
             folder_path = None
     elif flag == 'n':
         print("请输入文件夹路径：")
@@ -59,6 +122,7 @@ def process_paths_list_or_folder():
 
     return video_paths_list,folder_path
 
+@profile(enable=False)
 def process_intput_strr(s=None):
     """参数字符串且有“”包裹"""
     str=""
@@ -82,9 +146,26 @@ def get_file_count(folder):
     """获取文件夹下所有文件的数量"""
     return len(get_file_paths(folder))
 
+def get_folder_size(folder_path):
+    """获取文件夹下所有文件的大小（及文件夹大小）"""
+    total_size = 0
+
+    # 遍历文件夹中的所有文件和文件夹
+    for item in os.listdir(folder_path):
+        item_path = os.path.join(folder_path, item)
+
+        # 如果是文件，累加文件大小
+        if os.path.isfile(item_path):
+            total_size += os.path.getsize(item_path)
+        # 如果是文件夹，递归计算子文件夹的大小
+        elif os.path.isdir(item_path):
+            total_size += get_folder_size(item_path)
+
+    return total_size
+
 def count_files(file_paths: list) -> int:
     """
-    计算文件数量。
+    计算文件列表的文件数量。
 
     Args:
         file_paths (list): 包含文件路径的列表。
@@ -99,6 +180,24 @@ def count_files(file_paths: list) -> int:
             file_count += 1
 
     return file_count
+
+def for_in_for_print(list):
+    """
+    通用的单纯for循环输出结果
+    example：
+    ---------------符合条件的内容---------------
+    print()
+    ---------------不符合条件的内容---------------
+    print()
+    """
+    if list:
+        try:
+            for str in list:
+                print(str)
+        except Exception as e:
+            print(e)
+    else:
+        print("参数有误")
 
 def cont_files_processor(path_list,index):
     try:
@@ -591,7 +690,7 @@ def get_video_info_list(paths):
     }
     # 手动录入排序属性的数字
     print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
-    sort_index = int(input("") or 3)
+    sort_index = int(process_input_str() or 3)
     # print("Debug: Paths before processing:", paths)
     for path in paths:
         try:
@@ -983,34 +1082,8 @@ class Profiler:
         print("Elapsed time:", end_time - self.start_time, "seconds")
         return self.profiler
 
-import pstats
-from io import StringIO
-
-def profile(enable=False):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if enable:
-                start_time = time.time()
-                profiler = cProfile.Profile()
-                profiler.enable()
-            result = func(*args, **kwargs)
-            if enable:
-                # profiler.disable()
-                # end_time = time.time()
-                # print("Elapsed time:", end_time - start_time, "seconds")
-                profiler.disable()
-                # 创建一个 StringIO 对象来保存性能分析结果
-                stream = StringIO()
-                stats = pstats.Stats(profiler, stream=stream)
-                stats.sort_stats('cumulative')  # 按累计时间排序
-                stats.print_stats()  # 打印性能分析结果
-                print(stream.getvalue())  # 输出到控制台
-            return result
-        return wrapper
-    return decorator
 
 from functools import wraps
-from tools import profile
 
 def profile_all_functions(enable=False):
     """

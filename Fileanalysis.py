@@ -244,9 +244,9 @@ def split_video():
 def add_srt():
     """为视频文件添加字幕"""
     print("输入视频文件路径")
-    video_path=input().replace('"','')
+    video_path=tools.process_input_str.replace('"','')
     print("输入字幕文件路径")
-    srt_path=input().replace('"','')
+    srt_path=tools.process_input_str.replace('"','')
     print("硬字幕还是软字幕 Y/N def:N")
     flag=tools.process_input_str() or 'N'
     if video_path and srt_path and flag:

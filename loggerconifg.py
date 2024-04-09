@@ -1,4 +1,5 @@
 import os
+import io
 import sys
 
 def createog():
@@ -50,24 +51,25 @@ class Logger(object):
 
 class InputLogger:
     def __init__(self, filename):
-        # self.logfile = open(filename, 'a')
         self.logfile = open(filename, 'a', encoding='utf-8')
         self.stdin_backup = sys.stdin
-        self.input_str = ''
+        self.input_buffer = io.StringIO()
 
     def write_input(self, input_str):
         self.logfile.write(input_str + '\n')
         self.logfile.flush()
-        self.input_str += input_str
+        self.input_buffer.write(input_str)
 
     def start_logging(self):
+        self.stdin_backup = sys.stdin
         sys.stdin = self
 
     def stop_logging(self):
         sys.stdin = self.stdin_backup
+        self.close()
 
     def read(self, size=-1):
-        return self.stdin_backup.read(size)
+        return self.input_buffer.read(size)
 
     def readline(self, size=-1):
         input_str = self.stdin_backup.readline(size)
@@ -76,6 +78,7 @@ class InputLogger:
 
     def close(self):
         self.logfile.close()
+        self.input_buffer.close()  # 关闭缓冲区
         sys.stdin = self.stdin_backup
 
 

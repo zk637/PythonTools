@@ -77,7 +77,8 @@ if __name__ == '__main__':
     #  33、获取指定文件夹下的目录结构并复制
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
-    #  36、获取指定文件类型外文件的数量和路径"""
+    #  36、获取指定文件类型外文件的数量和路径
+    #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -122,6 +123,7 @@ if __name__ == '__main__':
             34: fileanalysis.check_video_integrity,
             35: filecount.getfoldercount_by_include,
             36: filecount.getfoldercount_by_exclude,
+            37: filecount.get_file_count_by_underfolder_size,
             # 35: filecomparison.print_video_info_list_asy,
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
@@ -129,17 +131,17 @@ if __name__ == '__main__':
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
         print(f"\n-------------------------------------当前时间是: {time_str}-------------------------------------")
-        print("""       1、获取相同子目录下的文件大小            code==01
-    #  2、获取不同子目录下的文件大小         code==02
-    #  3、使用关键词来查找字幕文件           code==03
-    #  4、匹配视频目录下对应的字幕文件并返回列表  code==04
-    #  5、通过视频路径查找字幕文件列表（支持模糊匹配）           code==05
-    #  6、通过视频路径查找字幕文件并创建目录     code==06
-    #  7、通过视频目录查找符合区间条件分辨率的媒体文件          code==07
-    #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表   code==08
-    #  9、获取文件列表下的文件数量                           code==09
-    #  10、获取文件在大小区间下的列表或在修改时间区间下的列表     code==10
-    #  11、取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件       code==11
+        print("""    #  1、获取相同子目录下的文件大小          
+    #  2、获取不同子目录下的文件大小         
+    #  3、使用关键词来查找字幕文件          
+    #  4、匹配视频目录下对应的字幕文件并返回列表 
+    #  5、通过视频路径查找字幕文件列表（支持模糊匹配）           
+    #  6、通过视频路径查找字幕文件并创建目录    
+    #  7、通过视频目录查找符合区间条件分辨率的媒体文件         
+    #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表  
+    #  9、获取文件列表下的文件数量                           
+    #  10、获取文件在大小区间下的列表或在修改时间区间下的列表     
+    #  11、取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件      
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
     #  13、获取给定文件夹下在检索路径列表中以相同文件名匹配的列表或获取不匹配相同文件名的列表
     #  14、取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入
@@ -164,7 +166,8 @@ if __name__ == '__main__':
     #  33、获取指定文件夹下的目录结构并复制
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
-    #  36、获取指定文件类型外文件的数量和路径""")
+    #  36、获取指定文件类型外文件的数量和路径
+    #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹""")
         profile_file = 'Profile'
         input_logger = loggerconifg.check_log_size(out_put)
         input_logger.start_logging()
@@ -172,7 +175,7 @@ if __name__ == '__main__':
         print("--------------------------------------------------In-----------------------------------------------------")
         try:
             print("Enter a number: \n")
-            user_input = int(input().strip())
+            user_input = int(tools.process_input_str().strip())
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
@@ -191,7 +194,7 @@ if __name__ == '__main__':
                 while True:
                     # input_logger = InputLogger('output.txt')
                     # input_logger.start_logging()
-                    path = input()
+                    path = tools.process_input_str()
                     # input_logger.stop_logging()
                     # input_logger.close()
                     if not path:
