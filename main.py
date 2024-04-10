@@ -17,7 +17,6 @@ import removefolder
 import datetime
 
 from loggerconifg import Logger
-from loggerconifg import InputLogger
 from loggerconifg import createog
 from loggerconifg import exit_handler
 import sys
@@ -37,8 +36,6 @@ atexit.register(exit_handler)
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
 
 
 if __name__ == '__main__':
@@ -130,6 +127,8 @@ if __name__ == '__main__':
         }
         now = datetime.datetime.now()
         time_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        logger = loggerconifg.check_log_size(out_put)
+        logger.start_logging()
         print(f"\n-------------------------------------当前时间是: {time_str}-------------------------------------")
         print("""    #  1、获取相同子目录下的文件大小          
     #  2、获取不同子目录下的文件大小         
@@ -169,8 +168,6 @@ if __name__ == '__main__':
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹""")
         profile_file = 'Profile'
-        input_logger = loggerconifg.check_log_size(out_put)
-        input_logger.start_logging()
         print("# 输入对应的编号")
         print("--------------------------------------------------In-----------------------------------------------------")
         try:
@@ -201,10 +198,10 @@ if __name__ == '__main__':
                         break
                     file_paths.append(path.strip('"'))
                 methods.get(user_input, default_method)(file_paths)
-                input_logger.stop_logging()
-                input_logger.close()
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
+                logger.stop_logging()
+                # logger.close()
             else:
                 if os.path.exists(profile_file):
                     enable_profile = True
@@ -212,8 +209,6 @@ if __name__ == '__main__':
                 methods.get(user_input, default_method())()
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
-            input_logger.stop_logging()
-            input_logger.close()
             print("是否继续执行？(Y/N)\n")
             user_input = tools.process_input_str()
             if user_input.upper() == "Y":
@@ -223,6 +218,8 @@ if __name__ == '__main__':
                 # 结束循环，退出程序
                 if os.path.exists(profile_file):
                     os.remove(profile_file)
+                print("手动终止程序\n")
+                logger.stop_logging()
                 break
             else:
                 # 提示输入有误，请重新输入
@@ -231,7 +228,9 @@ if __name__ == '__main__':
         except ValueError:
             if os.path.exists(profile_file):
                 os.remove(profile_file)
-            print("Invalid input. Please enter a valid integer.")
+            print("Invalid input. Please enter a valid integer.\n")
+        finally:
+            logger.stop_logging()
     # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
     #                     datefmt='%Y-%m-%d %H:%M:%S')
 

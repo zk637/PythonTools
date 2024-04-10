@@ -32,9 +32,9 @@ def createog():
 def check_log_size(out_put):
     if os.path.exists(out_put) and os.path.getsize(out_put) >= 20 * 1024 * 1024:
         out_put=createog()
-        return InputLogger(out_put)
+        return ConsoleLogger(out_put)
     else:
-        return InputLogger(out_put)
+        return ConsoleLogger(out_put)
 
 class Logger(object):
     def __init__(self, filename='default.log', stream=sys.stdout):
@@ -48,39 +48,76 @@ class Logger(object):
     def flush(self):
         pass
 
+def clear_stdin():
+    sys.stdin = io.StringIO()
 
-class InputLogger:
-    def __init__(self, filename):
-        self.logfile = open(filename, 'a', encoding='utf-8')
-        self.stdin_backup = sys.stdin
-        self.input_buffer = io.StringIO()
+def clear_stdout():
+    sys.stdout = io.StringIO()
 
-    def write_input(self, input_str):
-        self.logfile.write(input_str + '\n')
-        self.logfile.flush()
-        self.input_buffer.write(input_str)
+def clear_stderr():
+    sys.stderr = io.StringIO()
+
+
+class ConsoleLogger:
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self.log_handle = open(self.log_file, 'a', encoding='utf-8')
+        self.stdin_backup = None
+        self.log_cache = io.StringIO()
+        # 实例化 LogWriter 和 LogReader 对象
+        self.log_writer = self.LogWriter(self.log_handle, self.log_cache)
+        self.log_reader = self.LogReader(self.log_handle, self.log_cache)
 
     def start_logging(self):
+        sys.stdout = self.log_writer
+        sys.stderr = self.log_writer
         self.stdin_backup = sys.stdin
-        sys.stdin = self
+        sys.stdin = self.log_reader
 
     def stop_logging(self):
         sys.stdin = self.stdin_backup
+        sys.stderr = sys.stderr
         self.close()
 
-    def read(self, size=-1):
-        return self.input_buffer.read(size)
-
-    def readline(self, size=-1):
-        input_str = self.stdin_backup.readline(size)
-        self.write_input(input_str)
-        return input_str
-
     def close(self):
-        self.logfile.close()
-        self.input_buffer.close()  # 关闭缓冲区
         sys.stdin = self.stdin_backup
+        clear_stdin()
+        clear_stdout()
+        clear_stderr()
+        self.log_handle.close()
 
+    class LogWriter:
+        def __init__(self, log_handle, log_cache):
+            self.log_handle = log_handle
+            self.log_cache = log_cache
+
+        def write(self, data):
+            sys.__stdout__.write(data)
+            sys.__stdout__.flush()
+            self.log_cache.write(data)
+            self.flush()
+            # 如果缓冲区大小达到一定阈值，则写入文件
+            # if self.log_cache.tell() > 1024:
+            #     self.flush()
+
+        def flush(self):
+            sys.__stdout__.flush()
+            self.log_handle.write(self.log_cache.getvalue())
+            self.log_handle.flush()
+            self.log_cache.seek(0)
+            self.log_cache.truncate()
+
+    class LogReader:
+        def __init__(self, log_handle, log_cache):
+            self.log_handle = log_handle
+            self.log_cache = log_cache
+
+        def readline(self):
+            line = sys.__stdin__.readline()
+            if not line:
+                return None
+            self.log_cache.write(line)
+            return line
 
 def exit_handler():
     sys.stderr.write('\n' + '-' * 50 + 'End' + '-' * 52)

@@ -953,7 +953,7 @@ def get_video_integrity(video_path):
         print(command)
     try:
         output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
-        if output is '':
+        if output == '':
             print("True:", f"文件{video_path}：文件完整")
         else:
             print("False:", f"文件{video_path}：文件不完整")
