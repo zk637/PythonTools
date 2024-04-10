@@ -1,4 +1,3 @@
-import re
 import sys
 import shutil
 import pandas as pd
@@ -322,9 +321,15 @@ def get_exclude_suffix_list():
 
 def get_file_rule_sort():
     """过滤规则格式化"""
-    rules=[]
-    tools.get_sort_list(rules)
-    return None
+    rules, folder = tools.process_paths_list_or_folder()
+    if folder:
+        rules = tools.read_rules_from_file()
+        tools.get_sort_list(rules)
+    elif rules:
+        tools.get_sort_list(rules)
+    else:
+        print("参数有误！")
+        return None
 
 
 def check_symbolic_link():

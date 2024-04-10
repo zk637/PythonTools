@@ -10,6 +10,8 @@ def profile(enable=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             global input_durations
+            global last_input_time
+            global program_start_time
             if enable:
                 # 创建一个性能分析器
                 # 记录开始时间
@@ -35,13 +37,15 @@ def profile(enable=False):
 
                 input_durations= tools.get_input_duration()
                 if input_durations is not None and start_time is not None and end_time is not None:
-                    print(f"用户输入时间: {sum(input_durations)} 秒")
-                    print("去除用户输入后的时间：",end_time-start_time-sum(input_durations), "seconds")
+                    print(f"用户输入时间: {sum(input_durations)} 秒") if sum(input_durations) > (end_time - start_time) \
+                        else None
+                    print("去除用户输入后的时间：", end_time - start_time - sum(input_durations), "seconds") \
+                        if end_time - start_time - sum(input_durations) > 0 else None
 
-                program_start_time = tools.get_program_start_time()
-                input_time = tools.get_input_time()
-                program_start_time =None
-                input_time = None
+                # 重置tools模块中的全局变量
+                tools.program_start_time = None
+                tools.last_input_time = None
+                tools.input_durations = []
             return result
 
         return wrapper
