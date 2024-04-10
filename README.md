@@ -43,6 +43,7 @@ the following is a list of existing functions
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
+    #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
     
     # 1. Get the size of files in the same subdirectory code==01
     # 2. Get the size of files in different subdirectories code==02
@@ -80,5 +81,5 @@ the following is a list of existing functions
     # 34, get the video under the specified file list or folder is complete
     # 35. Gets the number and path of files for the specified file type
     # 36. Get the number and path of files outside the specified file type
-
+    # 37. Get the folders whose sub-files are larger than 3GB and have more than 3 files in the input file list and output the folders that do not meet the conditions
   
