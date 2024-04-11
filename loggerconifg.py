@@ -2,6 +2,7 @@ import os
 import io
 import sys
 
+
 def createog():
     # 设置日志文件夹和文件名前缀
     log_dir = './logs'
@@ -10,7 +11,7 @@ def createog():
     # 获取当前日志文件编号
     log_count_file = os.path.join(log_dir, 'log_count.txt')
     if os.path.exists(log_count_file):
-        with open(log_count_file, 'r',encoding='UTF-8') as f:
+        with open(log_count_file, 'r', encoding='UTF-8') as f:
             log_count = int(f.read().strip())
     else:
         log_count = 1
@@ -22,19 +23,21 @@ def createog():
         log_file = os.path.join(log_dir, f'{log_prefix}-{log_count}.log')
 
     # 将新的日志文件编号写入文件
-    with open(log_count_file, 'w',encoding='UTF-8') as f:
+    with open(log_count_file, 'w', encoding='UTF-8') as f:
         f.write(str(log_count))
 
     # 创建日志对象
     logger = Logger(log_file, sys.stdout)
     return log_file
 
+
 def check_log_size(out_put):
     if os.path.exists(out_put) and os.path.getsize(out_put) >= 20 * 1024 * 1024:
-        out_put=createog()
+        out_put = createog()
         return ConsoleLogger(out_put)
     else:
         return ConsoleLogger(out_put)
+
 
 class Logger(object):
     def __init__(self, filename='default.log', stream=sys.stdout):
@@ -48,11 +51,14 @@ class Logger(object):
     def flush(self):
         pass
 
+
 def clear_stdin():
     sys.stdin = io.StringIO()
 
+
 def clear_stdout():
     sys.stdout = io.StringIO()
+
 
 def clear_stderr():
     sys.stderr = io.StringIO()
@@ -77,14 +83,13 @@ class ConsoleLogger:
     def stop_logging(self):
         sys.stdin = self.stdin_backup
         sys.stderr = sys.stderr
-        self.close()
 
     def close(self):
         sys.stdin = self.stdin_backup
-        clear_stdin()
-        clear_stdout()
-        clear_stderr()
-        self.log_handle.close()
+        # clear_stdin()
+        # clear_stdout()
+        # clear_stderr()
+        # self.log_handle.close()
 
     class LogWriter:
         def __init__(self, log_handle, log_cache):
@@ -118,6 +123,7 @@ class ConsoleLogger:
                 return None
             self.log_cache.write(line)
             return line
+
 
 def exit_handler():
     sys.stderr.write('\n' + '-' * 50 + 'End' + '-' * 52)

@@ -13,7 +13,6 @@ import fileanalysis
 import filecomparison
 import removefolder
 
-
 import datetime
 
 from loggerconifg import Logger
@@ -21,11 +20,14 @@ from loggerconifg import createog
 from loggerconifg import exit_handler
 import sys
 
+# 注册全局异常处理函数
+from my_exception import global_exception_handler
 
+global_exception_handler = global_exception_handler
 
 sys.stdin.reconfigure(encoding='utf-8')
 sys.stdout.reconfigure(encoding='utf-8')
-out_put=createog()
+out_put = createog()
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
 # sys.stderr = Logger('output_f.log', sys.stderr)
@@ -167,18 +169,20 @@ if __name__ == '__main__':
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹""")
-        profile_file = 'Profile'
-        print("# 输入对应的编号")
-        print("--------------------------------------------------In-----------------------------------------------------")
         try:
+            profile_file = 'Profile'
+            print("# 输入对应的编号")
+            print(
+                "--------------------------------------------------In-----------------------------------------------------")
+            # try:
             print("Enter a number: \n")
-            user_input = int(tools.process_input_str().strip())
+            user_input = int(tools.process_input_str())
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
                 print("Profile enabled.")
                 # 创建一个空的 Profile 文件
-                with open(profile_file, 'w',encoding='UTF-8'):
+                with open(profile_file, 'w', encoding='UTF-8'):
                     pass
                 continue
             elif user_input == -1:
@@ -206,7 +210,7 @@ if __name__ == '__main__':
                 if os.path.exists(profile_file):
                     enable_profile = True
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
-                methods.get(user_input, default_method())()
+                methods.get(user_input, default_method)()
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
             print("是否继续执行？(Y/N)\n")
@@ -220,19 +224,19 @@ if __name__ == '__main__':
                     os.remove(profile_file)
                 print("手动终止程序\n")
                 logger.stop_logging()
+                logger.close()
                 break
             else:
                 # 提示输入有误，请重新输入
                 print("输入有误，请重新输入！")
                 continue
-        except ValueError:
+        except Exception as e:
+            profile_file = 'Profile'
             if os.path.exists(profile_file):
                 os.remove(profile_file)
-            print("Invalid input. Please enter a valid integer.\n")
+            global_exception_handler(type(e), e, e.__traceback__)
         finally:
             logger.stop_logging()
+            logger.close()
     # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
     #                     datefmt='%Y-%m-%d %H:%M:%S')
-
-
-

@@ -6,6 +6,11 @@ from flashtext import KeywordProcessor
 import constants
 import tools
 
+# 注册全局异常处理函数
+from my_exception import global_exception_handler
+
+global_exception_handler = global_exception_handler
+
 
 def compare_and_move_files():
     """取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入"""
@@ -25,7 +30,7 @@ def compare_and_move_files():
             elif file_extension not in excluded_extensions:
                 non_jpg_files.append(file_path)
     for non_jpg_file in non_jpg_files:
-        if (model.lower()=='y'):
+        if (model.lower() == 'y'):
             file_name = os.path.basename(non_jpg_file)
         else:
             file_name = os.path.splitext(os.path.basename(non_jpg_file))[0]
@@ -53,17 +58,18 @@ def compare_and_move_files():
                 if file_extension == '.jpg':
                     try:
                         # shutil.move(file,ts_dir)
-                        f_path=shutil.copy(file, ts_dir)
+                        f_path = shutil.copy(file, ts_dir)
                         jpg_files.remove(file)
                         # non_jpg_files.remove(non_jpg_file)
                         os.remove(file)
                     except Exception as e:
                         print(f'处理发生错误：{file}')
-                        print(e)
+                        global_exception_handler(type(e), e, e.__traceback__)
                     # finally:
                     #     print(f'{f_path}')
                     # finally:
                     #     print(f'{file}n')
+
 
 def check_files_in_folder(file_list):
     """获取给定文件夹下在检索路径列表中以相同文件名匹配的列表或获取不匹配相同文件名的列表"""
@@ -107,19 +113,20 @@ def check_files_in_folder(file_list):
         return None
 
     # 输出不匹配的文件路径
-    if non_matching_paths and "Y"==flag.upper():
-        non_matching_paths=set(non_matching_paths)
+    if non_matching_paths and "Y" == flag.upper():
+        non_matching_paths = set(non_matching_paths)
         print("找到不匹配的文件：")
         for file_path in non_matching_paths:
             print('"' + f"{file_path}" + '"')
     else:
         # 如果找到了匹配的文件，则输出每个匹配的文件的路径
         print("找到匹配的文件：")
-        matching_paths=set(matching_paths)
+        matching_paths = set(matching_paths)
         for file_path in matching_paths:
             print('"' + f"{file_path}" + '"')
 
     return matching_paths, non_matching_paths
+
 
 def get_file_paths_with_rules():
     """
@@ -131,7 +138,7 @@ def get_file_paths_with_rules():
     folder_path = tools.process_input_str("")
     file_name_rules = tools.read_rules_from_file()
     # 创建 KeywordProcessor 对象
-    if file_name_rules:
+    if not tools.check_is_None(folder_path):
 
         keyword_processor = KeywordProcessor()
 
@@ -140,28 +147,24 @@ def get_file_paths_with_rules():
 
         paths = []
         # print(f"规则列表：{file_name_rules}")
-        try:
+        for root, dirs, files in os.walk(folder_path, topdown=False):
+            # 处理文件夹名称
+            for folder_name in dirs:
+                folder_full_path = os.path.join(root, folder_name)
+                if keyword_processor.extract_keywords(folder_name):
+                    paths.append(folder_full_path)
 
-            for root, dirs, files in os.walk(folder_path, topdown=False):
-                # 处理文件夹名称
-                for folder_name in dirs:
-                    folder_full_path = os.path.join(root, folder_name)
-                    if keyword_processor.extract_keywords(folder_name):
-                        paths.append(folder_full_path)
+            # 处理文件名称
+            for file_name in files:
+                file_full_path = os.path.join(root, file_name)
+                file_name_without_ext, file_ext = os.path.splitext(file_name)
+                if keyword_processor.extract_keywords(file_name_without_ext):
+                    paths.append(file_full_path)
 
-                # 处理文件名称
-                for file_name in files:
-                    file_full_path = os.path.join(root, file_name)
-                    file_name_without_ext, file_ext = os.path.splitext(file_name)
-                    if keyword_processor.extract_keywords(file_name_without_ext):
-                        paths.append(file_full_path)
+        # 打印匹配的路径
+        for path in paths:
+            print(path)
 
-            # 打印匹配的路径
-            for path in paths:
-                print(path)
-
-        except Exception as e:
-            print(e)
 
 def create_symbolic_links():
     tools.admin_process()
@@ -196,16 +199,13 @@ def create_symbolic_links():
             target_dir = item[1]
             cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)), source_file]
             print('\n' + '-' * 50)
-            print("\n"+"执行命令: " + ' '.join(cmd)+"\n")
-            try:
-                # os.system(" ".join(cmd))
-                subprocess.check_call(cmd, shell=True)
-                # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-                # print("result: " + output+"\n")
-                print("源文件路径: " + source_file)
-                print("目标文件夹路径: " + target_dir)
-            except Exception as e:
-                print("符号链接创建失败: " + str(e))
+            print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+            # os.system(" ".join(cmd))
+            subprocess.check_call(cmd, shell=True)
+            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+            # print("result: " + output+"\n")
+            print("源文件路径: " + source_file)
+            print("目标文件夹路径: " + target_dir)
     print("输入空格结束程序")
     input_str = input("")
     if input_str.isspace():
@@ -213,8 +213,8 @@ def create_symbolic_links():
     else:
         print("非空格，程序继续.....")
 
-def same_file_createsymbolic_links():
 
+def same_file_createsymbolic_links():
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
@@ -230,7 +230,7 @@ def same_file_createsymbolic_links():
             source_dirs.append(path)
     # 指定目标目录
     print("请输入要创建的目标目录：")
-    target_dir =tools.process_input_str()
+    target_dir = tools.process_input_str()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
     # # 输出结果
@@ -259,6 +259,7 @@ def same_file_createsymbolic_links():
     else:
         print("非空格，程序继续.....")
 
+
 def get_file_paths_with_name():
     """获取检索文件夹下和检索文件名相同的路径列表"""
     # 获取用户输入的文件名列表和路径
@@ -281,13 +282,13 @@ def get_file_paths_with_name():
                     found_files.append(file)
             for subdir in dirs_in_folder:
                 if os.path.splitext(os.path.basename(subdir))[0] == filename:
-                        found_files.append(subdir)
+                    found_files.append(subdir)
 
         # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
         if len(found_files) > 0:
             print("找到的文件有:")
             for file in found_files:
-                file=tools.add_quotes_forpath(file)
+                file = tools.add_quotes_forpath(file)
                 print(file)
         else:
             print("这些文件都不存在！")
@@ -295,12 +296,13 @@ def get_file_paths_with_name():
         print("文件为空，需检查条件或参数！")
         return
 
+
 def get_exclude_suffix_list():
     """获取不在指定后缀的文件路径（输入为路径列表或文件夹）"""
-    path_list,dir=tools.process_paths_list_or_folder()
+    path_list, dir = tools.process_paths_list_or_folder()
     print("是否检索子文件夹Y/N（默认不检索）")
     sub_folder_flag = tools.process_input_str() or "N"
-    file_list =[]
+    file_list = []
     if path_list:
         file_list.extend(path_list)
     elif dir:
@@ -319,6 +321,7 @@ def get_exclude_suffix_list():
     else:
         print("No matching files found")
 
+
 def get_file_rule_sort():
     """过滤规则格式化"""
     rules, folder = tools.process_paths_list_or_folder()
@@ -336,7 +339,7 @@ def check_symbolic_link():
     """检查录入文件夹下的符号链接是否可用"""
     print("请输入要检查的符号链接所在文件夹")
     destination_folder = tools.process_input_str()
-    link_paths=tools.get_file_paths(destination_folder)
+    link_paths = tools.get_file_paths(destination_folder)
     relative_links = []
     absolute_links = []
     invalid_links = []
@@ -352,37 +355,38 @@ def check_symbolic_link():
                 # 判断路径是否为绝对路径
                 if os.path.isabs(target_path):
                     absolute_links.append(link_path)
-                    absolute_links.append("target_path:"+target_path + "\n")
+                    absolute_links.append("target_path:" + target_path + "\n")
                 else:
                     relative_links.append(link_path)
-                    relative_links.append("target_path:"+target_path + "\n")
+                    relative_links.append("target_path:" + target_path + "\n")
 
         except OSError as e:
             print(f"Error: {e}")
     # 打印分类结果
     print("\nRelative Symbolic Links:")
-    print("-"*70)
+    print("-" * 70)
     tools.for_in_for_print(relative_links)
 
     print("\nAbsolute Symbolic Links:")
-    print("-"*70)
+    print("-" * 70)
     tools.for_in_for_print(absolute_links)
 
     print("\nInvalid Symbolic Links:")
-    print("-"*70)
+    print("-" * 70)
     tools.for_in_for_print(invalid_links)
+
 
 def excel_compare():
     """文件夹内容与csv对比"""
     print("请输入需要比较的CSV文件: ")
-    excel_path=tools.process_input_str().replace('"', '')
-    if excel_path:
+    excel_path = tools.process_input_str().replace('"', '')
+    if not tools.check_is_None(excel_path):
         encode = tools.detect_encoding(excel_path)
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
                 print(file.readline().strip())
         print("请输入需要比较的文件夹路径: ")
-        folder_path=tools.process_input_str()
+        folder_path = tools.process_input_str()
         print("请输入比较文件大小限制（def:200): ")
         size_threshold = int(tools.process_input_str() or 200)
         # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
@@ -398,8 +402,9 @@ def excel_compare():
         print("请输入需要比较的列名，以逗号分隔: ")
         compare_columns = tools.process_input_str().split(',')
         print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
-        flag=tools.process_input_str() or 'N'
-        find_missing_files(excel_path, folder_path, size_threshold,compare_columns,flag)
+        flag = tools.process_input_str() or 'N'
+        find_missing_files(excel_path, folder_path, size_threshold, compare_columns, flag)
+
 
 def get_file_paths(folder, size_threshold):
     """获取文件夹下满足大小阈值的所有文件的路径"""
@@ -411,9 +416,10 @@ def get_file_paths(folder, size_threshold):
                 paths.append(path)
     return paths
 
-def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,flag):
+
+def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, flag):
     if csv_path and folder_path and size_threshold and compare_columns:
-        encode=tools.detect_encoding(csv_path)
+        encode = tools.detect_encoding(csv_path)
         # 读取 CSV 文件，指定 encoding 参数为 'gbk'
         df_csv = None  # 将 df_excel 初始化为 None
         for header_row in range(0, 5):
@@ -433,7 +439,7 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
         # all_files = [f for f in os.listdir(folder_path) ifG:\Videos\3d
         #              os.path.isfile(os.path.join(folder_path, f)) and os.path.getsize(
         #                  os.path.join(folder_path, f)) > size_threshold]
-        all_files =get_file_paths(folder_path,size_threshold)
+        all_files = get_file_paths(folder_path, size_threshold)
         csv_files = set(df_csv[compare_columns].values.flatten())
 
         # 遍历目标列的值
@@ -455,7 +461,7 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
             # 如果差集不为空，表示找到了CSV中没有的内容
             if unmatched_set:
                 matche_lists.append(file)
-            if flag.upper()=='Y':
+            if flag.upper() == 'Y':
                 # 取两个集合的并集
                 matched_set = file_name_set.intersection(csv_files_names)
                 if matched_set:
@@ -468,7 +474,7 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
         else:
             print("没有任何匹配的结果")
 
-        if flag.upper()=='Y':
+        if flag.upper() == 'Y':
             if no_matche_lists:
                 print('\n' + '-' * 100)
                 print("以下内容文件夹中和CSV中都存在：")
@@ -476,42 +482,41 @@ def find_missing_files(csv_path, folder_path, size_threshold,compare_columns,fla
         else:
             print("没有任何匹配的结果")
 
+
 def rename_with_dir():
     """文件夹下视频命名规范化"""
     print("请输入要重命名的文件夹： ")
-    path=tools.process_input_str()
-    files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
-    for file in files:
-        rename_file(file)
+    path = tools.process_input_str()
+    if not tools.check_is_None(path):
+        files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
+        for file in files:
+            rename_file(file)
+
 
 def rename_file(filepath):
     if os.path.isfile(filepath):
-        try:
-            filename, file_extension = os.path.splitext(os.path.basename(filepath))
-            year_part = filename[:4]  # 修改这里以确保获取正确的年份部分
-            rest_part = filename[4:]
+        filename, file_extension = os.path.splitext(os.path.basename(filepath))
+        year_part = filename[:4]  # 修改这里以确保获取正确的年份部分
+        rest_part = filename[4:]
 
-            # 确保年份是数字
-            if year_part.isdigit():
-                # 首字母大写
-                words = rest_part.split()
-                words[0] = words[0].capitalize()
-                rest_part = ' '.join(words)
+        # 确保年份是数字
+        if year_part.isdigit():
+            # 首字母大写
+            words = rest_part.split()
+            words[0] = words[0].capitalize()
+            rest_part = ' '.join(words)
 
-                new_name = f"{rest_part} ({year_part}){file_extension}"
-                new_path = os.path.join(os.path.dirname(filepath), new_name)
-                os.rename(filepath, new_path)
-                print(f"已将文件 {filename} 重命名为 {new_name}")
-            else:
-                print(f"无法获取有效的年份部分于文件 {filename}")
-        except Exception as e:
-            print(e)
+            new_name = f"{rest_part} ({year_part}){file_extension}"
+            new_path = os.path.join(os.path.dirname(filepath), new_name)
+            os.rename(filepath, new_path)
+            print(f"已将文件 {filename} 重命名为 {new_name}")
+        else:
+            print(f"无法获取有效的年份部分于文件 {filename}")
     else:
         print(f"{filepath} 不是一个有效的文件路径")
 
 
-
-#---------------------------------------------------------------
+# ---------------------------------------------------------------
 
 import io
 import os
@@ -530,6 +535,7 @@ def poolTool():
 
 from functools import partial, wraps
 
+
 async def get_file_paths_limit(folder, *extensions):
     """获取文件夹下指定后缀的所有文件的路径"""
     paths = []
@@ -541,6 +547,7 @@ async def get_file_paths_limit(folder, *extensions):
     if not paths:
         print("未找到任何文件")
     return paths
+
 
 async def get_video_details(path):
     """获取视频文件的详细信息"""
@@ -557,6 +564,7 @@ async def get_video_details(path):
         # height = int(video_stream['height'])
         return duration, bitrate, width, height
 
+
 async def get_video_info_list(paths):
     # 异步获取视频信息的逻辑
     video_info_list = []
@@ -565,15 +573,17 @@ async def get_video_info_list(paths):
     for path in paths:
         try:
             duration, bitrate, width, height = await get_video_details(path)
-            size = os.path.getsize(path) / (1024*1024)
+            size = os.path.getsize(path) / (1024 * 1024)
             video_info_list.append((path, size, duration, bitrate, width, height))
             max_path_len = max(max_path_len, len(path))
             video_info_list.sort(key=lambda x: x[3])  # 按比特率排序
         except Exception as e:
             print(f"处理文件 {path} 时出错：{e}")
+            global_exception_handler(type(e), e, e.__traceback__)
             continue
 
     return video_info_list, max_path_len
+
 
 async def get_file_paths_list_limit(file_paths_list, *extensions):
     """获取文件列表中指定后缀的所有文件的路径"""
@@ -600,20 +610,14 @@ async def main():
         print("是否纯净输出y/n")
         flag = tools.process_input_str().lower()
 
-
-
         file_paths_list = await get_file_paths_list_limit(folder, *constants.VIDEO_SUFFIX)
     else:
-        try:
-            print("请输入视频文件夹")
-            folder = tools.process_input_str()
-            print("是否纯净输出y/n")
-            flag = tools.process_input_str().lower()
+        print("请输入视频文件夹")
+        folder = tools.process_input_str()
+        print("是否纯净输出y/n")
+        flag = tools.process_input_str().lower()
 
-            file_paths_list = await get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
-        except Exception as e:
-            print(e)
-            return
+        file_paths_list = await get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
 
     if not file_paths_list:
         print("文件为空，需检查条件或参数！")
@@ -624,19 +628,21 @@ async def main():
     for video_info in video_info_list:
         path, size, duration, bitrate, width, height = video_info
         size_str = "{:.2f}MB".format(size)
-        duration_str = "{:.2f}min".format(duration / (60*60))
+        duration_str = "{:.2f}min".format(duration / (60 * 60))
         bitrate_str = "{:.2f}kbps".format(bitrate / 1024)
 
         if flag == 'y':
             print(path)
         else:
-            print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size_str, duration_str, bitrate_str, f"{width}x{height}"),
+            print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size_str, duration_str, bitrate_str,
+                                                          f"{width}x{height}"),
                   end="")
             print(" " * (max_path_len - len(path) + 1))
 
     end = time.time()
     print(end)
     print("cost:", end - start, "seconds")
+
 
 def print_video_info_list_asy():
     # 创建 cProfile 对象
@@ -666,29 +672,25 @@ def get_directories_and_copy_tree():
     """
 
     if os.path.isdir(folder) and os.path.isdir(point_folder):
-        try:
-            # 构造目标文件夹路径，注意这里需要使用 point_folder 作为根路径
-            target_dir = os.path.join(point_folder, os.path.basename(folder))
-            # 创建目标文件夹
-            os.makedirs(target_dir, exist_ok=True)
-            print(f"Directory copied from '{folder}' to '{target_dir}'")
+        # 构造目标文件夹路径，注意这里需要使用 point_folder 作为根路径
+        target_dir = os.path.join(point_folder, os.path.basename(folder))
+        # 创建目标文件夹
+        os.makedirs(target_dir, exist_ok=True)
+        print(f"Directory copied from '{folder}' to '{target_dir}'")
 
-            # 获取除起始文件夹外的所有子文件夹
-            directories = []
-            for root, dirs, files in os.walk(folder):
-                for dir_name in dirs:
-                    directories.append(os.path.join(root, dir_name))
+        # 获取除起始文件夹外的所有子文件夹
+        directories = []
+        for root, dirs, files in os.walk(folder):
+            for dir_name in dirs:
+                directories.append(os.path.join(root, dir_name))
 
-            if directories:
-                for directory in directories:
-                    # 构造目标文件夹路径，注意这里使用最初的目标文件夹作为基路径
-                    target_subdir = os.path.join(target_dir, os.path.relpath(directory, folder))
-                    # 创建目标文件夹
-                    os.makedirs(target_subdir, exist_ok=True)
-                    print(f"Directory copied from '{directory}' to '{target_subdir}'")
-
-        except Exception as e:
-            print(e)
+        if directories:
+            for directory in directories:
+                # 构造目标文件夹路径，注意这里使用最初的目标文件夹作为基路径
+                target_subdir = os.path.join(target_dir, os.path.relpath(directory, folder))
+                # 创建目标文件夹
+                os.makedirs(target_subdir, exist_ok=True)
+                print(f"Directory copied from '{directory}' to '{target_subdir}'")
 
     else:
         print("目录不存在，或不是目录")

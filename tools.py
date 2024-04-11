@@ -15,16 +15,24 @@ import subprocess
 import contextlib
 import sys
 
+# 注册全局异常处理函数
+from my_exception import global_exception_handler
+
+global_exception_handler = global_exception_handler
+
 # 定义一个全局变量，用于记录程序开始时间和用户输入时间
 program_start_time = None
 last_input_time = None
-input_durations =[]
+input_durations = []
+
 
 def get_program_start_time():
     return program_start_time
 
+
 def get_input_time():
     return last_input_time
+
 
 def get_input_duration():
     return input_durations
@@ -48,6 +56,7 @@ def custom_input(prompt=''):
         last_input_time = current_time  # 更新上次输入时间
     return user_input
 
+
 # 保存原始的 input 函数
 builtins.original_input = builtins.input
 # 替换标准的 input 函数为自定义的输入函数
@@ -55,11 +64,14 @@ builtins.input = custom_input
 
 from my_profile import profile
 
+
 @profile(enable=False)
-def process_input_str():
+def process_input_str(s=None):
     """输入参数为字符串"""
+    str = ""
     str = input().strip()
     return str
+
 
 @profile(enable=False)
 def process_input_list():
@@ -73,14 +85,28 @@ def process_input_list():
         list.append(path.strip('"'))
     return list
 
+
+def check_is_None(*args, **kwargs):
+    """通用的单纯验空函数，接受任何参数
+    Returns:
+        bool:
+        传入参数有一个非空则返回False
+    """
+    # 检查位置参数
+    if all(arg is not None and arg != '' for arg in args) or all(v is not None and v != '' for v in kwargs.values()):
+        return False
+    print("参数有误，为空？")
+    return True  # 如果所有参数都为空，则返回True
+
+
 def check_file_or_folder(str_list):
     """
     获取用户输入的文件路径列表和文件夹路径。
     Returns:
         Tuple[List[str], str]: 一个包含文件路径列表和文件夹路径列表的元组。
     """
-    file_list=set()
-    folder_list=set()
+    file_list = set()
+    folder_list = set()
     if str_list:
         for str_item in str_list:
             if os.path.isfile(str_item):
@@ -94,6 +120,7 @@ def check_file_or_folder(str_list):
 
     # 将集合转换为列表并返回
     return list(file_list), list(folder_list)
+
 
 @profile(enable=False)
 def process_paths_list_or_folder():
@@ -120,31 +147,43 @@ def process_paths_list_or_folder():
         print("请输入文件夹路径：")
         folder_path = process_input_str()
 
-    return video_paths_list,folder_path
+    return video_paths_list, folder_path
+
 
 @profile(enable=False)
 def process_intput_strr(s=None):
     """参数字符串且有“”包裹"""
-    str=""
-    str=input().replace('"', '').strip()
+    str = ""
+    str = input().replace('"', '').strip()
     return str
+
 
 def add_quotes_forpath(s):
     """使用“包裹字符串"""
-    str='"'+s+'"'
+    str = '"' + s + '"'
     return str
 
+def add_quotes_forpath_list(paths):
+    """
+    为路径列表中的每个路径添加双引号
+    Args:
+        paths (list): 路径列表
+
+    Returns:
+        list: 添加了双引号的路径列表
+    """
+    return ['"' + path + '"' for path in paths]
+
 def make_dir(s):
-    try:
-        os.makedirs(s, exist_ok=True)
-        if os.path.exists(s):
-            print(f"Folder '{s}' created successfully.")
-    except Exception as e:
-        print(e)
+    os.makedirs(s, exist_ok=True)
+    if os.path.exists(s):
+        print(f"Folder '{s}' created successfully.")
+
 
 def get_file_count(folder):
     """获取文件夹下所有文件的数量"""
     return len(get_file_paths(folder))
+
 
 def get_folder_size(folder_path):
     """获取文件夹下所有文件的大小（及文件夹大小）"""
@@ -162,6 +201,7 @@ def get_folder_size(folder_path):
             total_size += get_folder_size(item_path)
 
     return total_size
+
 
 def count_files(file_paths: list) -> int:
     """
@@ -181,6 +221,7 @@ def count_files(file_paths: list) -> int:
 
     return file_count
 
+
 def for_in_for_print(list):
     """
     通用的单纯for循环输出结果
@@ -191,27 +232,23 @@ def for_in_for_print(list):
     print()
     """
     if list:
-        try:
-            for str in list:
-                print(str)
-        except Exception as e:
-            print(e)
+        for str in list:
+            print(str)
     else:
-        print("参数有误")
+        print("参数有误,为空？")
 
-def cont_files_processor(path_list,index):
-    try:
-        if not path_list:
-            count = count_files(path_list)
-            print("index: {}".format(index))
-            print(count)
-            print("是否输出符合条件的文件路径 Y/N")
-            flag=process_input_str()
-            if flag.upper()=='Y':
-                for path in path_list:
-                    print(path)
-    except Exception as e:
-        print(e)
+
+def cont_files_processor(path_list, index):
+    if not path_list:
+        count = count_files(path_list)
+        print("index: {}".format(index))
+        print(count)
+        print("是否输出符合条件的文件路径 Y/N")
+        flag = process_input_str()
+        if flag.upper() == 'Y':
+            for path in path_list:
+                print(path)
+
 
 def get_file_paths(folder):
     """获取文件夹下所有文件的路径"""
@@ -221,6 +258,7 @@ def get_file_paths(folder):
             path = os.path.join(root, file)
             paths.append(path)
     return paths
+
 
 def get_listunder_fileandfolder(source_dirs):
     """分别获取输入列表中的文件路径和文件夹路径"""
@@ -233,7 +271,8 @@ def get_listunder_fileandfolder(source_dirs):
             files.append(abs_path)
         else:
             folders.append(abs_path)
-    return files,folders
+    return files, folders
+
 
 def get_file_paths_limit(folder, *extensions):
     """获取文件夹下指定后缀的所有文件的路径"""
@@ -247,6 +286,7 @@ def get_file_paths_limit(folder, *extensions):
         print("未找到任何文件")
     return paths
 
+
 def get_file_paths_list_limit(file_paths_list, *extensions):
     """获取文件列表中指定后缀的所有文件的路径"""
     paths = []
@@ -258,48 +298,43 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
         print("未找到任何文件")
     return paths
 
-def find_matching_files_or_folder_exclude(paths,*extensions,folder=None,flag=None):
+
+def find_matching_files_or_folder_exclude(paths, *extensions, folder=None, flag=None):
     print(flag)
     if folder:
         """获取文件夹下所有与指定后缀不匹配的文件路径"""
         excluded_files = []
-        try:
-            for root, dirs, files in os.walk(folder):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    if not file.endswith(extensions):
-                        excluded_files.append(file_path)
-        except Exception as e:
-            print(e)
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if not file.endswith(extensions):
+                    excluded_files.append(file_path)
         return excluded_files
     else:
         """获取文件列表下所有与指定后缀不匹配的文件路径"""
         extensions = [e.lower() for e in extensions]  # 将所有后缀名转换为小写
         matching_files = []
-        flag=flag
-        try:
-            for path in paths:
-                if os.path.isfile(path):
-                    path, ext = os.path.splitext(path)
-                    if ext.lower() in extensions:
+        flag = flag
+        for path in paths:
+            if os.path.isfile(path):
+                path, ext = os.path.splitext(path)
+                if ext.lower() in extensions:
+                    continue
+                dir_path = os.path.dirname(path)
+                for filename in os.listdir(dir_path):
+                    if not filename.startswith(os.path.basename(path)) or filename.lower().endswith(
+                            tuple(extensions)):
                         continue
-                    dir_path = os.path.dirname(path)
-                    for filename in os.listdir(dir_path):
-                        if not filename.startswith(os.path.basename(path)) or filename.lower().endswith(
-                                tuple(extensions)):
-                            continue
-                        matching_files.append(os.path.join(dir_path, filename))
-                elif os.path.isdir(path):
-                    if flag.upper() == 'Y':
-                        for root, dirs, files in os.walk(path):
-                            for filename in files:
-                                path, ext = os.path.splitext(filename)
-                                if ext.lower() not in extensions:
-                                    matching_files.append(os.path.join(root, filename))
-                else:
-                    raise ValueError(f"{path} is not a valid directory or file path")
-        except Exception as e:
-            print(e)
+                    matching_files.append(os.path.join(dir_path, filename))
+            elif os.path.isdir(path):
+                if flag.upper() == 'Y':
+                    for root, dirs, files in os.walk(path):
+                        for filename in files:
+                            path, ext = os.path.splitext(filename)
+                            if ext.lower() not in extensions:
+                                matching_files.append(os.path.join(root, filename))
+            else:
+                raise ValueError(f"{path} is not a valid directory or file path")
         return matching_files
 
 
@@ -316,7 +351,8 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
-def get_files_matching_pattern(folder_path,reg):
+
+def get_files_matching_pattern(folder_path, reg):
     """通用指定后缀模糊匹配工具"""
     files = []
     for root, dirs, filenames in os.walk(folder_path):
@@ -327,6 +363,8 @@ def get_files_matching_pattern(folder_path,reg):
     return files
 
     # 获取用户输入的文件名列表和路径
+
+
 def get_list_files(path):
     """
     获取指定路径下包括子目录的所有文件路径
@@ -337,6 +375,7 @@ def get_list_files(path):
         for filename in filenames:
             files.append(os.path.join(root, filename))
     return files
+
 
 def get_list_dirs(path):
     """
@@ -352,10 +391,12 @@ def get_list_dirs(path):
                 dirs.extend(subdirs)
     return dirs
 
+
 def get_sort_list(rules):
     sorted_rules = sorted(rules, key=len)
     for rule in sorted_rules:
         print(f'{rule}')
+
 
 def get_same_namefile(folder_path):
     all_files = []  # 用于保存所有文件路径
@@ -378,6 +419,7 @@ def get_same_namefile(folder_path):
     # 返回至少有两个相同文件名的路径
     return [path for file_paths in same_name_files for path in file_paths]
 
+
 # def get_same_namefile(folder_path):
 #     all_files = []  # 用于保存所有文件路径
 #
@@ -398,17 +440,18 @@ def get_same_namefile(folder_path):
 #     # 返回至少有两个相同文件名的路径
 #     return same_name_files
 
-#通用去重工具
-def DelRepat(data,key):
-    new_data= []
-    values =[]
+# 通用去重工具
+def DelRepat(data, key):
+    new_data = []
+    values = []
     for d in data:
         if d[key] not in values:
             new_data.append(d)
             values.append(d[key])
     return new_data
 
-#检查文件类型是否合法
+
+# 检查文件类型是否合法
 # def check_file_access(file_paths):
 #     for file_path in file_paths:
 #         try:
@@ -423,6 +466,7 @@ def DelRepat(data,key):
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
+
 def detect_encoding(file_path):
     """通用的文件编码检测
         输入参数为文件路径
@@ -435,6 +479,7 @@ def detect_encoding(file_path):
             return encoding
         else:
             return 'utf-8'  # 默认返回 utf-8 编码
+
 
 def check_file_access(file_paths):
     results = {
@@ -453,6 +498,7 @@ def check_file_access(file_paths):
                 results['has_file_type'].append({'file_path': file_path, 'file_type': kind.mime})
         except Exception as e:
             results['error_files'].append({'file_path': file_path, 'error_message': str(e)})
+            global_exception_handler(type(e), e, e.__traceback__)
 
     # Output files with "Cannot determine file type" error
     if results['cannot_determine_type']:
@@ -482,6 +528,7 @@ def check_file_access(file_paths):
             print(f"{file_data['file_path']}\nError: {file_data['error_message']}")
         print("_" * 30)  # Print a line to separate categories
 
+
 def remove_duplicate_files(file_list):
     files_by_name = {}
     for file_path in file_list:
@@ -506,7 +553,8 @@ def remove_duplicate_files(file_list):
                     break
     return unique_files
 
-#留重工具
+
+# 留重工具
 def keep_duplicate_files(file_list):
     # A dictionary to store files by their names
     files_by_name = {}
@@ -529,6 +577,7 @@ def keep_duplicate_files(file_list):
             ique_files.extend(info['paths'])
     return ique_files
 
+
 def subprocess_common(command, shell=True, capture_output=True, text=True):
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -548,7 +597,8 @@ def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, t
         command_with_bat = f'{bat_file} {command}'
         print(command_with_bat)
         # 调用批处理文件并传递命令作为参数
-        process = subprocess.Popen(command_with_bat, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=text)
+        process = subprocess.Popen(command_with_bat, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, text=text)
 
         # 获取标准输出和标准错误
         stdout, stderr = process.communicate()
@@ -566,10 +616,12 @@ def subprocess_with_progress(command, shell=True):
     """
     # 启动子进程
     print(command)
-    process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+    process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               universal_newlines=True)
 
     print(process)
     process.communicate()
+
 
 # -------------------------------
 
@@ -592,6 +644,7 @@ def remove_duplicate_files(file_list):
             unique_files.extend(file_paths)
     return unique_files
 
+
 def rm_folder(folder_path):
     """通用的删除工具 静默删除子文件夹下所有文件
        输入参数为文件夹路径。
@@ -602,13 +655,16 @@ def rm_folder(folder_path):
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
 
+
 def copy_folder(source_folder, destination_folder):
     """通用的复制文件工具
        输入参数为源文件地址和目标文件地址。
     """
     try:
         # 使用 robocopy 命令进行文件夹复制
-        result = subprocess.run(['robocopy', source_folder, destination_folder, '/E', '/XO', '/COPY:DAT', '/R:3', '/W:5'], check=False, capture_output=True, text=True, encoding='latin-1')
+        result = subprocess.run(
+            ['robocopy', source_folder, destination_folder, '/E', '/XO', '/COPY:DAT', '/R:3', '/W:5'], check=False,
+            capture_output=True, text=True, encoding='latin-1')
 
         # print(result.stdout)
         # print(result.stderr)
@@ -616,15 +672,13 @@ def copy_folder(source_folder, destination_folder):
     except subprocess.CalledProcessError as e:
         print(f"Error: {e}")
 
+
 def copy_file(source_file, destination_file):
     """通用的复制文件工具
        输入参数为源文件地址和目标文件地址。
     """
-    try:
-        result = shutil.copy(source_file, destination_file)
-        print(f"File copied from '{source_file}' to '{destination_file}'")
-    except Exception as e:
-        print(f"Error: {e}")
+    result = shutil.copy(source_file, destination_file)
+    print(f"File copied from '{source_file}' to '{destination_file}'")
 
 
 def create_symbolic_link(source, target_dir, is_folder=False):
@@ -641,21 +695,18 @@ def create_symbolic_link(source, target_dir, is_folder=False):
         print("目标文件夹路径: " + target_dir)
     except Exception as e:
         print("符号链接创建失败: " + str(e))
+        global_exception_handler(type(e), e, e.__traceback__)
 
 
 def read_rules_from_file():
-
     filename = "file_name_rules.txt"
     if not os.path.exists(filename):
-        with open(filename, "w",encoding='UTF-8') as f:
+        with open(filename, "w", encoding='UTF-8') as f:
             print("规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
-    encode=detect_encoding(filename)
+    encode = detect_encoding(filename)
     with open(filename, encoding=encode) as f:
-        try:
-            content = f.read().strip()
-        except Exception as e:
-            print("Exception:", e)
+        content = f.read().strip()
 
     if not content:
         print("file_name_rules规则文件为空")
@@ -663,6 +714,7 @@ def read_rules_from_file():
 
     rules = [rule.strip() for rule in content.split(",")]
     return rules
+
 
 def get_video_details(path):
     """获取视频文件的详细信息"""
@@ -678,6 +730,7 @@ def get_video_details(path):
         # width = int(video_stream['width'])
         # height = int(video_stream['height'])
         return duration, bitrate, width, height
+
 
 def get_video_info_list(paths):
     video_info_list = []
@@ -695,19 +748,21 @@ def get_video_info_list(paths):
     for path in paths:
         try:
             duration, bitrate, width, height = get_video_details(path)
-            size = os.path.getsize(path) / (1024*1024)
+            size = os.path.getsize(path) / (1024 * 1024)
             video_info_list.append((path, size, duration, bitrate, width, height))
             max_path_len = max(max_path_len, len(path))
             video_info_list.sort(key=lambda x: x[sort_index])  # 按比特率排序
         except Exception as e:
             print(f"处理文件 {path} 时出错：{e}")
+            global_exception_handler(type(e), e, e.__traceback__)
             continue
     sort_attribute = attribute_map.get(sort_index)
     print(sort_attribute)
 
     return video_info_list, max_path_len
 
-        # print(f'{len(rule)}: {rule}')
+    # print(f'{len(rule)}: {rule}')
+
 
 def get_video_duration(video_path):
     """获取视频时长"""
@@ -720,9 +775,10 @@ def get_video_duration(video_path):
         print(f"Error: Failed to get duration of video {video_path}.")
         return 0
 
+
 def convert_video_to_mp3(video_path):
-    video_name = os.path.splitext(os.path.basename(video_path))[0]+'.mp3'
-    video_final_path=os.path.join(os.path.dirname(video_path),video_name)
+    video_name = os.path.splitext(os.path.basename(video_path))[0] + '.mp3'
+    video_final_path = os.path.join(os.path.dirname(video_path), video_name)
     try:
         subprocess.run(
             ['ffmpeg', '-i', video_path, '-f', 'mp3', '-vn', video_final_path],
@@ -734,6 +790,7 @@ def convert_video_to_mp3(video_path):
     except subprocess.CalledProcessError as e:
         print(f"转换失败：{video_path}")
         print(f"错误输出：{e.stderr.decode()}")
+
 
 def getbitratesort(files):
     # 按比特率排序
@@ -762,6 +819,7 @@ def getbitratesort(files):
                 print(f"No video stream or bit rate information found in file {file_path}")
         except Exception as e:
             print(f"Error occurred while processing file {file_path}: {str(e)}")
+            global_exception_handler(type(e), e, e.__traceback__)
 
     files_bitrate.sort(key=lambda x: x[1], reverse=True)
     sorted_files = [file_path for file_path, _ in files_bitrate]
@@ -789,31 +847,25 @@ def getbitratesort(files):
 #         self.Destroy()
 
 
-def create_groups(lists,reg):
+def create_groups(lists, reg):
     """从给定的文件列表中找出文件名满足指定正则表达式条件并且出现多次的文件
         Return: List-> list
     """
-    lists_by_reg ={}
+    lists_by_reg = {}
     for list in lists:
-        try:
-            path,temeame=os.path.splitext(list)
-            var=os.path.basename(list)
-            tempfilename=os.path.basename(list).split('.')[0]
-            # tempfilename=tempfilename.index(1)
-        except Exception as e:
-            print(e)
-        try:
-            if path not in lists_by_reg:
-                # 构建正则
-                regf=re.compile(f""+tempfilename+reg+"")
-                match=re.search(regf,var,flags=0)
-            if not match:
-                lists_by_reg[tempfilename] = {'count': 0, 'path': [], 'name': []}
-            lists_by_reg[tempfilename]['count']+=1
-            lists_by_reg[tempfilename]['path'].append(list)
-            lists_by_reg[tempfilename]['name'].append(var)
-        except Exception as e:
-            print(e)
+        path, temeame = os.path.splitext(list)
+        var = os.path.basename(list)
+        tempfilename = os.path.basename(list).split('.')[0]
+        # tempfilename=tempfilename.index(1)
+        if path not in lists_by_reg:
+            # 构建正则
+            regf = re.compile(f"" + tempfilename + reg + "")
+            match = re.search(regf, var, flags=0)
+        if not match:
+            lists_by_reg[tempfilename] = {'count': 0, 'path': [], 'name': []}
+        lists_by_reg[tempfilename]['count'] += 1
+        lists_by_reg[tempfilename]['path'].append(list)
+        lists_by_reg[tempfilename]['name'].append(var)
     ique_files = []
     # Traverse the dictionary
     for name, info in lists_by_reg.items():
@@ -823,11 +875,13 @@ def create_groups(lists,reg):
             ique_files.extend(info['path'])
     return ique_files
 
+
 def seconds_to_hhmmss(seconds):
     """将秒数转换为时分秒格式"""
     hours, remainder = divmod(seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
+
 
 def get_video_info(path):
     try:
@@ -850,7 +904,8 @@ def get_video_info(path):
         print(f"Error probing file: {e}")
         return None
 
-def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
+
+def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
     video_info = get_video_info(output_prefix)
     if video_info is not None:
         duration, video_bitrate, audio_bitrate, width, height = video_info
@@ -862,26 +917,26 @@ def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
         existing_file_found = False
 
         output_prefix_tmp = output_prefix
-        output_prefix_tmp=output_prefix_tmp.replace("'",'-')
+        output_prefix_tmp = output_prefix_tmp.replace("'", '-')
         filename, file_extension = os.path.splitext(output_prefix_tmp)
-        output_prefix_tmp=filename
-        output_prefix_tmp.replace('.mp4','')
+        output_prefix_tmp = filename
+        output_prefix_tmp.replace('.mp4', '')
 
         part_index = output_prefix.rfind('_part')
         if part_index != -1:
             # 截取字符串，保留 '_part' 之前的部分
             output_prefix_tmp = output_prefix[:part_index]
-            output_prefix_tmp=output_prefix_tmp.replace('.mp4','')
+            output_prefix_tmp = output_prefix_tmp.replace('.mp4', '')
             # print("Original Name:", output_prefix_tmp)
         else:
             print("File name doesn't contain '_part'.")
-        part_index=0
+        part_index = 0
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
             if os.path.isfile(output_prefix_tmp):
                 print(f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
                 existing_file_found = True
-                output_prefix_tmp=''
+                output_prefix_tmp = ''
                 break  # 找到一个已存在的文件就跳出循环
 
         if not existing_file_found:
@@ -897,11 +952,12 @@ def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
                 '-reset_timestamps', '1',
                 '-y',
                 # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
-                processed_output_prefix+ '_part%d.mp4'
+                processed_output_prefix + '_part%d.mp4'
             ]
 
             # 使用 subprocess.run 运行拆分命令
-            subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,encoding='utf-8')
+            subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
+                           encoding='utf-8')
 
 
 # def check_subtitle_stream(video_path):
@@ -930,7 +986,7 @@ def split_video_for_size(part_max_size,part_num,output_prefix,output_dir):
 def check_subtitle_stream(video_path):
     if os.path.exists(video_path):
         video_path = video_path.replace('\\\\', '\\')
-        #ffprobe -v error -select_streams s -show_entries stream=index,codec_name -of default=noprint_wrappers=1:nokey=1 "H:\videos\test.mp4"
+        # ffprobe -v error -select_streams s -show_entries stream=index,codec_name -of default=noprint_wrappers=1:nokey=1 "H:\videos\test.mp4"
         command = ['ffprobe', '-v', 'error', '-select_streams', 's', '-show_entries', 'stream=index,codec_name', '-of',
                    'default=noprint_wrappers=1:nokey=1', video_path]
         # print(command)
@@ -959,32 +1015,31 @@ def get_video_integrity(video_path):
             print("False:", f"文件{video_path}：文件不完整")
     except Exception as e:
         print("Error:", f"文件{video_path}：无法获取视频信息")
-        print(e)
+        global_exception_handler(type(e), e, e.__traceback__)
         return False
 
-#----------------------------------------------------------
+
+# ----------------------------------------------------------
 # TODO
 def register_findone(lists, reg):
     lists_by_reg = {}
     # Traverse all the files
-    final_name=os.path.basename(lists[0]).split('.')[0]
+    final_name = os.path.basename(lists[0]).split('.')[0]
     for file_path in lists:
-        try:
-            tempfilename = os.path.basename(file_path).split('.')[0]
-            if tempfilename not in lists_by_reg:
-                lists_by_reg[tempfilename] = {
-                    'count': 0,
-                    'path': [],
-                    'name': []
-                }
-            regf = re.compile(tempfilename + reg)
-            match = regf.search(os.path.basename(file_path))
-            if match and not final_name!=tempfilename:
-                lists_by_reg[tempfilename]['count'] += 1
-                lists_by_reg[tempfilename]['path'].append(file_path)
-                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
-        except Exception as e:
-            print(e)
+        tempfilename = os.path.basename(file_path).split('.')[0]
+        if tempfilename not in lists_by_reg:
+            lists_by_reg[tempfilename] = {
+                'count': 0,
+                'path': [],
+                'name': []
+            }
+        regf = re.compile(tempfilename + reg)
+        match = regf.search(os.path.basename(file_path))
+        if match and not final_name != tempfilename:
+            lists_by_reg[tempfilename]['count'] += 1
+            lists_by_reg[tempfilename]['path'].append(file_path)
+            lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+
 
     # Traverse the dictionary
     ique_files = []
@@ -994,28 +1049,27 @@ def register_findone(lists, reg):
             # Add all the paths to the result list
             ique_files.extend(info['path'])
     return ique_files
+
 
 # TODO
 def register_find(lists, reg):
     lists_by_reg = {}
     for file_path in lists:
-        try:
-            tempfilename = os.path.basename(file_path).split('.')[0]
-            # Create an entry in the dictionary if it does not exist
-            if tempfilename not in lists_by_reg:
-                lists_by_reg[tempfilename] = {
-                    'count': 0,
-                    'path': [],
-                    'name': []
-                }
-            regf = re.compile(tempfilename + reg)
-            match = regf.search(os.path.basename(file_path))
-            if match :
-                lists_by_reg[tempfilename]['count'] += 1
-                lists_by_reg[tempfilename]['path'].append(file_path)
-                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
-        except Exception as e:
-            print(e)
+        tempfilename = os.path.basename(file_path).split('.')[0]
+        # Create an entry in the dictionary if it does not exist
+        if tempfilename not in lists_by_reg:
+            lists_by_reg[tempfilename] = {
+                'count': 0,
+                'path': [],
+                'name': []
+            }
+        regf = re.compile(tempfilename + reg)
+        match = regf.search(os.path.basename(file_path))
+        if match:
+            lists_by_reg[tempfilename]['count'] += 1
+            lists_by_reg[tempfilename]['path'].append(file_path)
+            lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+
 
     # Traverse the dictionary
     ique_files = []
@@ -1026,44 +1080,45 @@ def register_find(lists, reg):
             ique_files.extend(info['path'])
     return ique_files
 
+
 # def get_free_space_cmd(path="."):
-    # # 使用命令行获取磁盘剩余空间
-    # command = f"dir /-C {path} | findstr bytes free"
-    # result = subprocess.run(command, capture_output=True, text=True, shell=True)
-    #
-    # # 提取剩余空间信息
-    # lines = result.stdout.splitlines()
-    # if len(lines) >= 2:
-    #     free_space_line = lines[1].strip()
-    #     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
-    #     return free_space_gb
-    # else:
-    #     return None
-    # 使用命令行获取磁盘剩余空间
-    # 获取当前语言环境
-    # current_locale, _ = locale.getdefaultlocale()
-    #
-    # # 根据语言环境选择关键词
-    # if current_locale.startswith("en"):
-    #     keywords = "/C:\"bytes free\""
-    # elif current_locale.startswith("zh"):
-    #     keywords = "/C:\"字节 可用\""
-    # else:
-    #     # 默认选择英文关键词
-    #     keywords = "/C:\"bytes free\""
-    #
-    # # 使用命令行获取磁盘剩余空间
-    # command = f"dir {path} | findstr {keywords}"
-    # result = subprocess.run(command, capture_output=True, text=True, shell=True)
-    #
-    # # 提取剩余空间信息
-    # lines = result.stdout.splitlines()
-    # if len(lines) >= 2:
-    #     free_space_line = lines[1].strip()
-    #     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
-    #     return free_space_gb
-    # else:
-    #     return None
+# # 使用命令行获取磁盘剩余空间
+# command = f"dir /-C {path} | findstr bytes free"
+# result = subprocess.run(command, capture_output=True, text=True, shell=True)
+#
+# # 提取剩余空间信息
+# lines = result.stdout.splitlines()
+# if len(lines) >= 2:
+#     free_space_line = lines[1].strip()
+#     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
+#     return free_space_gb
+# else:
+#     return None
+# 使用命令行获取磁盘剩余空间
+# 获取当前语言环境
+# current_locale, _ = locale.getdefaultlocale()
+#
+# # 根据语言环境选择关键词
+# if current_locale.startswith("en"):
+#     keywords = "/C:\"bytes free\""
+# elif current_locale.startswith("zh"):
+#     keywords = "/C:\"字节 可用\""
+# else:
+#     # 默认选择英文关键词
+#     keywords = "/C:\"bytes free\""
+#
+# # 使用命令行获取磁盘剩余空间
+# command = f"dir {path} | findstr {keywords}"
+# result = subprocess.run(command, capture_output=True, text=True, shell=True)
+#
+# # 提取剩余空间信息
+# lines = result.stdout.splitlines()
+# if len(lines) >= 2:
+#     free_space_line = lines[1].strip()
+#     free_space_gb = int(free_space_line.split()[0]) / (1024 ** 3)  # 转换为GB
+#     return free_space_gb
+# else:
+#     return None
 
 
 class Profiler:
@@ -1085,10 +1140,12 @@ class Profiler:
 
 from functools import wraps
 
+
 def profile_all_functions(enable=False):
     """
     一个装饰器，用于动态地为函数添加 @profile(enable=True)
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -1096,8 +1153,11 @@ def profile_all_functions(enable=False):
                 return profile(enable=True)(func)(*args, **kwargs)
             else:
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 def apply_profile_to_methods(enable_profile, methods):
     """
@@ -1107,6 +1167,7 @@ def apply_profile_to_methods(enable_profile, methods):
         for key, value in methods.items():
             methods[key] = profile_all_functions(enable=True)(value)
     return methods
+
 
 def admin_process():
     def is_admin():
@@ -1136,12 +1197,13 @@ def admin_process():
         os.execl(sys.executable, *([sys.executable] + sys.argv))
         sys.exit()
 
+
 def get_free_space_cmd(folder_path):
     """检查磁盘是否有空余空间
         输入文件路径
     """
     # 提取文件夹所在磁盘的根目录
-    #TODO 多语言环境兼容
+    # TODO 多语言环境兼容
     drive_letter = os.path.splitdrive(os.path.abspath(folder_path))[0]
     # drive_letter=drive_letter+r'\\'
     # 使用命令行获取磁盘剩余空间
@@ -1159,11 +1221,13 @@ def get_free_space_cmd(folder_path):
             return int(free_space.replace(',', ''))
         else:
             print("未找到剩余空间信息")
-            return 1/0
+            return 1 / 0
+
 
 # 设置 cmd 窗口的标题
 def set_cmd_title(title):
     ctypes.windll.kernel32.SetConsoleTitleW(title)
+
 
 def capture_output_to_file(func):
     def wrapper(*args, **kwargs):
@@ -1171,9 +1235,11 @@ def capture_output_to_file(func):
             # f.write(os.linesep.join(output))
             with contextlib.redirect_stdout(f):
                 func(*args, **kwargs)
+
     return wrapper
 
-#TODO 更加多样的参数逻辑支持
+
+# TODO 更加多样的参数逻辑支持
 def generate_bat_script(bat_file, command):
     """通用的bat文件生成工具
        输入参数为bat文件路径和command
@@ -1185,7 +1251,7 @@ def generate_bat_script(bat_file, command):
         return bat_file
 
     # 打开批处理文件以写入模式
-    with open(bat_file, 'w',encoding='UTF-8') as f:
+    with open(bat_file, 'w', encoding='UTF-8') as f:
         # 写入批处理文件的内容
         f.write('@echo off\n')
         f.write('REM 获取 Python 传递的命令参数\n')
