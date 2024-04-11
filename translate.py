@@ -104,7 +104,7 @@ def find_matching_subtitles_create():
     video_path = tools.process_intput_strr("").strip()
     print("请输入字幕文件夹路径")
     subtitles_folder = tools.process_input_str().strip()
-    if not tools.check_is_None(video_path, subtitles_folder):
+    if not tools.check_is_not_None(video_path, subtitles_folder):
         # 遍历字幕文件夹获取所有的字幕文件路径
         SRT_SUFFIX = constants.SRT_SUFFIX
         subtitle_files = tools.get_file_paths_limit(subtitles_folder, *SRT_SUFFIX)

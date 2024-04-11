@@ -74,7 +74,7 @@ def get_file_count_by_underfolder_size():
     file_paths_folder_paths = tools.process_input_list()
     print("是否打印每个文件夹下的具体内容？Y/N def:N")
     flag = tools.process_input_str() or 'N'
-    if not tools.check_is_None(file_paths_folder_paths):
+    if not tools.check_is_not_None(file_paths_folder_paths):
         result_list = set()
         result_wipe_list = set()
         file_list = set()

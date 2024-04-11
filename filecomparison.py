@@ -138,7 +138,7 @@ def get_file_paths_with_rules():
     folder_path = tools.process_input_str("")
     file_name_rules = tools.read_rules_from_file()
     # 创建 KeywordProcessor 对象
-    if not tools.check_is_None(folder_path):
+    if not tools.check_is_not_None(folder_path):
 
         keyword_processor = KeywordProcessor()
 
@@ -380,7 +380,7 @@ def excel_compare():
     """文件夹内容与csv对比"""
     print("请输入需要比较的CSV文件: ")
     excel_path = tools.process_input_str().replace('"', '')
-    if not tools.check_is_None(excel_path):
+    if not tools.check_is_not_None(excel_path):
         encode = tools.detect_encoding(excel_path)
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
@@ -487,7 +487,7 @@ def rename_with_dir():
     """文件夹下视频命名规范化"""
     print("请输入要重命名的文件夹： ")
     path = tools.process_input_str()
-    if not tools.check_is_None(path):
+    if not tools.check_is_not_None(path):
         files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
         for file in files:
             rename_file(file)

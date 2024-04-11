@@ -64,7 +64,7 @@ builtins.input = custom_input
 
 from my_profile import profile
 
-
+# TODO 针对参数输入长度限制
 @profile(enable=False)
 def process_input_str(s=None):
     """输入参数为字符串"""
@@ -86,17 +86,17 @@ def process_input_list():
     return list
 
 
-def check_is_None(*args, **kwargs):
+def check_is_not_None(*args, **kwargs):
     """通用的单纯验空函数，接受任何参数
     Returns:
         bool:
-        传入参数有一个非空则返回False
+        传入参数有一个非空则返回True
     """
     # 检查位置参数
     if all(arg is not None and arg != '' for arg in args) or all(v is not None and v != '' for v in kwargs.values()):
-        return False
+        return True
     print("参数有误，为空？")
-    return True  # 如果所有参数都为空，则返回True
+    return False  # 如果所有参数都为空，则返回True
 
 
 def check_file_or_folder(str_list):
