@@ -11,6 +11,11 @@ import rarfile
 import constants
 import tools
 
+# 注册全局异常处理函数
+from my_exception import global_exception_handler
+
+global_exception_handler = global_exception_handler
+
 
 def check_zip_password():
     """判断指定文件夹下的压缩文件是否加密"""
@@ -80,7 +85,7 @@ def check_zip_password():
                 ex_final_lists.append(rar_list)
         except Exception as e:
             print(rar_list + "发生错误：")
-            print(e)
+            global_exception_handler(type(e), e, e.__traceback__)
             pass
     """遍历结果"""
     print("--------------------------------------------------无密码----------------------------------------------------")
@@ -91,7 +96,8 @@ def check_zip_password():
         print(final_list)
     # print(datetime.datetime.now())
 
-#TODO 更多格式支持和更精确的检索
+
+# TODO 更多格式支持和更精确的检索
 
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
@@ -108,26 +114,26 @@ def extract_archive():
     # file_rarparts_lists=tools.register_find(filelists,"(([\*^\.$]part\d)([\*^\.$]rar))")
     final_lists = []
     ex_lists = []
-    flag=True
+    flag = True
     if hasattr(sys, '_MEIPASS') and flag:
         # 打包后的 exe 运行环境
         exe_path = sys.executable
         target_path = os.path.join(os.path.dirname(exe_path), '7z.exe')
-        flag=False
+        flag = False
         target_path_dll = os.path.join(os.path.dirname(exe_path), '7z.dll')
     else:
         # 非打包调试环境
         target_path = os.path.join(os.getcwd(), '7z.exe')
         target_path_dll = os.path.join(os.getcwd(), '7z.dll')
-        flag=False
+        flag = False
     if not os.path.exists(target_path):
         # 从打包后的 exe 文件中复制
         source_path = os.path.join(sys._MEIPASS, '7z.exe')
-        source_path_dll=os.path.join(sys._MEIPASS, '7z.dll')
+        source_path_dll = os.path.join(sys._MEIPASS, '7z.dll')
         shutil.copy2(source_path, target_path)
         shutil.copy2(source_path_dll, target_path_dll)
-        flag=False
-    if flag==False:
+        flag = False
+    if flag == False:
         print(datetime.datetime.now())
         print("正在执行：压缩文件的加密判断...")
         for filelist in filelists:
@@ -148,14 +154,15 @@ def extract_archive():
                     final_lists.append(filelist)
                 # print(f"Wrong password for {filelist}")
             else:
-                match=re.search(r"(([\*^\.$]part\d)([\*^\.$]rar))", filelist,
-                              re.UNICODE)
+                match = re.search(r"(([\*^\.$]part\d)([\*^\.$]rar))", filelist,
+                                  re.UNICODE)
                 if not match:
                     ex_lists.append(filelist)
 
         print("正在执行：7z分卷压缩文件的加密判断...")
         for file_parts_list in file_parts_lists:
-            match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))", file_parts_list,
+            match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))",
+                              file_parts_list,
                               re.UNICODE)
             if match:
                 try:
@@ -177,43 +184,44 @@ def extract_archive():
             # match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))", file_parts_list,
             #                   re.UNICODE)
             # if match:
-                try:
-                    file_zipparts_lists = tools.register_findone(file_parts_lists, "([\*^\.$]+[z$][0$+][0$+\d])+")
-                    list=','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(','," ")
-                    # command = f'cmd_zip.bat "{filelist}"'
-                    command = f'7z t -p {list}'
-                    output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-                except subprocess.CalledProcessError as err:
-                    output = err.output
-                output = output.decode('gbk')
-                if "ERROR: Wrong password" in output or "Data Error" in output:
-                    final_lists.append(file_parts_list)
-                    # print(f"Wrong password for {filelist}")
-                else:
-                    ex_lists.append(file_parts_list)
+            try:
+                file_zipparts_lists = tools.register_findone(file_parts_lists, "([\*^\.$]+[z$][0$+][0$+\d])+")
+                list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
+                # command = f'cmd_zip.bat "{filelist}"'
+                command = f'7z t -p {list}'
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as err:
+                output = err.output
+            output = output.decode('gbk')
+            if "ERROR: Wrong password" in output or "Data Error" in output:
+                final_lists.append(file_parts_list)
+                # print(f"Wrong password for {filelist}")
+            else:
+                ex_lists.append(file_parts_list)
         print("正在执行：rar分卷压缩文件的加密判断...")
-        file_rarparts_lists=tools.register_find( filelists,"(([\*^\.$]part\d)([\*^\.$]rar))")
+        file_rarparts_lists = tools.register_find(filelists, "(([\*^\.$]part\d)([\*^\.$]rar))")
         for file_rarparts_list in file_rarparts_lists:
             # match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))", file_parts_list,
             #                   re.UNICODE)
             # if match:
-                try:
-                    file_rarparts_lists_group = tools.register_findone(file_rarparts_lists, "(([\*^\.$]part\d)([\*^\.$]rar))")
-                    list=','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(','," ")
-                    # print(list)
-                    # command = f'cmd_zip.bat "{filelist}"'
-                    command = f'7z t -p {list}'
-                    # print(command)
-                    output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-                except subprocess.CalledProcessError as err:
-                    output = err.output
-                output = output.decode('gbk')
-                # print(output)
-                if "ERROR: Wrong password" in output or "Data Error" in output:
-                    final_lists.append(file_rarparts_list)
-                    # print(f"Wrong password for {filelist}")
-                else:
-                    ex_lists.append(file_rarparts_list)
+            try:
+                file_rarparts_lists_group = tools.register_findone(file_rarparts_lists,
+                                                                   "(([\*^\.$]part\d)([\*^\.$]rar))")
+                list = ','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(',', " ")
+                # print(list)
+                # command = f'cmd_zip.bat "{filelist}"'
+                command = f'7z t -p {list}'
+                # print(command)
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as err:
+                output = err.output
+            output = output.decode('gbk')
+            # print(output)
+            if "ERROR: Wrong password" in output or "Data Error" in output:
+                final_lists.append(file_rarparts_list)
+                # print(f"Wrong password for {filelist}")
+            else:
+                ex_lists.append(file_rarparts_list)
         if ex_lists:
             print(
                 "--------------------------------------------------无密码----------------------------------------------------")

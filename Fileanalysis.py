@@ -4,6 +4,10 @@ import cv2
 import tools
 import constants
 
+# 注册全局异常处理函数
+from my_exception import global_exception_handler
+
+global_exception_handler = global_exception_handler
 
 
 def get_low_resolution_media_files():
@@ -45,23 +49,27 @@ def get_low_resolution_media_files():
                         files.append(file_path)
             except Exception as e:
                 print(f"Error occurred while processing file {file_path}: {str(e)}")
+                global_exception_handler(type(e), e, e.__traceback__)
+
     if ('Y' == flag.upper()):
         try:
             files = tools.getbitratesort(files)
-            files=tools.add_quotes_forpath(files)
+            files = tools.add_quotes_forpath_list(files)
             print("分辨率符合要求的媒体文件列表（按比特率由大到小排序）：")
             print("\n".join(files))
         except Exception as e:
             print(f"Error occurred while sorting files by bitrate: {str(e)}")
+            global_exception_handler(type(e), e, e.__traceback__)
     else:
         print("分辨率符合要求的媒体文件列表：")
-        files = tools.add_quotes_forpath(files)
+        files = tools.add_quotes_forpath_list(files)
         print("\n".join(files))
+
 
 def get_video_duration_sorted():
     """取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件"""
-    path_list,folder=tools.process_paths_list_or_folder()
-    folder_flag=False
+    path_list, folder = tools.process_paths_list_or_folder()
+    folder_flag = False
     if folder:
         folder_flag = os.path.isdir(folder)
 
@@ -74,7 +82,7 @@ def get_video_duration_sorted():
     print("是否纯净输出y/n")
     flag = tools.process_input_str().upper()
 
-    VIDEO_SUFFIX=constants.VIDEO_SUFFIX
+    VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
     if same_flag == 'N':
         if folder_flag:
@@ -137,7 +145,6 @@ def get_video_duration_sorted():
 
 
 def print_video_info_list():
-
     """输出视频文件的大小、时长、比特率和分辨率（支持文件列表和文件夹）"""
 
     file_paths_list, video_dir = tools.process_paths_list_or_folder()
@@ -163,15 +170,16 @@ def print_video_info_list():
     for video_info in video_info_list:
         path = video_info[0]
         size = "{:.2f}MB".format(video_info[1])
-        duration = "{:.2f}min".format(video_info[2] / (60*60))
+        duration = "{:.2f}min".format(video_info[2] / (60 * 60))
         bitrate = "{:.2f}kbps".format(video_info[3] / 1024)
         width = video_info[4]
         height = video_info[5]
         if (flag == 'y'.lower()):
             print(path)
         else:
-            print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size, duration, bitrate, f"{width}x{height}"),
-              end="")
+            print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size, duration, bitrate,
+                                                          f"{width}x{height}"),
+                  end="")
             print(" " * (max_path_len - len(path) + 1))
 
 
@@ -179,7 +187,7 @@ def get_video_audio():
     """
      获取给定文件夹或文件的音频文件（支持文件列表和文件夹）
      """
-    file_paths_list,folder=tools.process_paths_list_or_folder()
+    file_paths_list, folder = tools.process_paths_list_or_folder()
     if file_paths_list:
         folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
     elif os.path.isdir(folder):
@@ -191,20 +199,22 @@ def get_video_audio():
         tools.convert_video_to_mp3(path)
     print("队列执行完成")
 
+
 def getfiletypeislegal():
     """校验文件是否合法"""
     print("请输入文件夹路径:")
     source_folder_path = tools.process_input_str()
-    path=tools.get_file_paths(source_folder_path)
-    # print(path)
-    tools.check_file_access(path)
-    return None
+    if not tools.check_is_None():
+        path = tools.get_file_paths(source_folder_path)
+        # print(path)
+        tools.check_file_access(path)
+
 
 def split_video():
     """
      根据限制大小拆分视频为多段（支持文件列表和文件夹）
      """
-    input_video_list,input_video_dir=tools.process_paths_list_or_folder()
+    input_video_list, input_video_dir = tools.process_paths_list_or_folder()
     if input_video_list:
         print("拆分后每段文件的大小限制 单位：MB")
         max_size_mb = int(tools.process_input_str()) * 1024 * 1024
@@ -241,15 +251,16 @@ def split_video():
     else:
         print("参数有误，不是合法的路径？")
 
+
 def add_srt():
     """为视频文件添加字幕"""
     print("输入视频文件路径")
-    video_path=tools.process_input_str.replace('"','')
+    video_path = tools.process_input_str().replace('"', '')
     print("输入字幕文件路径")
-    srt_path=tools.process_input_str.replace('"','')
+    srt_path = tools.process_input_str().replace('"', '')
     print("硬字幕还是软字幕 Y/N def:N")
-    flag=tools.process_input_str() or 'N'
-    if video_path and srt_path and flag:
+    flag = tools.process_input_str() or 'N'
+    if not tools.check_is_None(video_path, srt_path):
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)
             # base_name = os.path.basename(video_path).split('.')[0]
@@ -258,37 +269,38 @@ def add_srt():
             # 构建输出文件名
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
-            bat_file=''
-        if flag.upper()=='Y':
-                # 定义 FFmpeg 命令
-                #可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
-                # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
-                srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
-                # video_path = video_path.replace('\\','\\\\')
-                # print(video_path)
-                srt_path="'"+srt_path+"'"
-                # print(srt_path)
-                command=f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
-                print(command)
-                bat_file=tools.generate_bat_script("run_addSrt.bat",command)
-                tools.subprocess_common_bat(bat_file,command)
+            bat_file = ''
+        if flag.upper() == 'Y':
+            # 定义 FFmpeg 命令
+            # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
+            # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
+            srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
+            # video_path = video_path.replace('\\','\\\\')
+            # print(video_path)
+            srt_path = "'" + srt_path + "'"
+            # print(srt_path)
+            command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
+            print(command)
+            bat_file = tools.generate_bat_script("run_addSrt.bat", command)
+            tools.subprocess_common_bat(bat_file, command)
         else:
-                # 定义 FFmpeg 命令
-                command=f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
-                bat_file=tools.generate_bat_script("run_addSrt.bat",command)
-                result=tools.subprocess_common_bat(bat_file,command)
-                print(result)
+            # 定义 FFmpeg 命令
+            command = f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
+            bat_file = tools.generate_bat_script("run_addSrt.bat", command)
+            result = tools.subprocess_common_bat(bat_file, command)
+            print(result)
+
 
 def check_files_subtitle_stream():
     """
      检查视频是否存在字幕流（支持文件列表和文件夹）
      """
-    video_paths_list,video_dir=tools.process_paths_list_or_folder()
-    video_files =[]
+    video_paths_list, video_dir = tools.process_paths_list_or_folder()
+    video_files = []
     if video_paths_list:
         video_files.extend(video_paths_list)
     elif os.path.isdir(video_dir):
-        video_lists = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
+        video_files = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
     else:
         print("参数有误，不是合法的路径？")
         return
@@ -298,6 +310,7 @@ def check_files_subtitle_stream():
 
 
 from tools import profile_all_functions
+
 
 @profile_all_functions(enable=False)
 def check_video_integrity():
@@ -319,6 +332,3 @@ def check_video_integrity():
     # 检查视频完整性
     for video_path in video_files:
         tools.get_video_integrity(video_path)
-
-
-
