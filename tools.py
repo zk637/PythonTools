@@ -14,7 +14,7 @@ import filetype
 import subprocess
 import contextlib
 import sys
-
+import my_exception
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -64,13 +64,28 @@ builtins.input = custom_input
 
 from my_profile import profile
 
-# TODO 针对参数输入长度限制
+
 @profile(enable=False)
 def process_input_str(s=None):
     """输入参数为字符串"""
     str = ""
     str = input().strip()
     return str
+
+
+temp_input = []
+
+
+@profile(enable=False)
+def process_input_str_limit(s=None):
+    """输入参数为字符串，限制总长度不超过195个字符"""
+    global temp_input
+    while True:
+        line = input().strip()
+        temp_input += line  # 将每行输入连接成一个字符串，并添加换行符
+        if len(temp_input) > 195:
+            raise my_exception.InputLengthExceededException()
+        return line
 
 
 @profile(enable=False)
@@ -86,17 +101,22 @@ def process_input_list():
     return list
 
 
-def check_is_not_None(*args, **kwargs):
+def check_is_None(*args, **kwargs):
     """通用的单纯验空函数，接受任何参数
     Returns:
         bool:
-        传入参数有一个非空则返回True
+        传入参数有一个非空则返回False
     """
     # 检查位置参数
-    if all(arg is not None and arg != '' for arg in args) or all(v is not None and v != '' for v in kwargs.values()):
-        return True
+    if args and all(
+            arg is not None and arg != '' and arg != [] and arg != {} and args != () and set() != () for arg in args):
+        return False
+    # 检查关键字参数
+    elif kwargs and all(
+            v is not None and v != '' and v != [] and v != {} and args != () and set() != () for v in kwargs.values()):
+        return False
     print("参数有误，为空？")
-    return False  # 如果所有参数都为空，则返回True
+    return True  # 如果存在参数为空，则返回True
 
 
 def check_file_or_folder(str_list):
@@ -133,12 +153,12 @@ def process_paths_list_or_folder():
     video_paths_list = []
 
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = input().lower() or 'n'
+    flag = process_input_str_limit().lower() or 'n'
 
     if flag == 'y':
         print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         while True:
-            path = input().strip('"')
+            path = process_input_str().strip('"')
             if not path:
                 break
             video_paths_list.append(path.strip('"'))
@@ -150,18 +170,11 @@ def process_paths_list_or_folder():
     return video_paths_list, folder_path
 
 
-@profile(enable=False)
-def process_intput_strr(s=None):
-    """参数字符串且有“”包裹"""
-    str = ""
-    str = input().replace('"', '').strip()
-    return str
-
-
 def add_quotes_forpath(s):
     """使用“包裹字符串"""
     str = '"' + s + '"'
     return str
+
 
 def add_quotes_forpath_list(paths):
     """
@@ -173,6 +186,7 @@ def add_quotes_forpath_list(paths):
         list: 添加了双引号的路径列表
     """
     return ['"' + path + '"' for path in paths]
+
 
 def make_dir(s):
     os.makedirs(s, exist_ok=True)
@@ -239,12 +253,12 @@ def for_in_for_print(list):
 
 
 def cont_files_processor(path_list, index):
-    if not path_list:
+    if path_list:
         count = count_files(path_list)
         print("index: {}".format(index))
         print(count)
         print("是否输出符合条件的文件路径 Y/N")
-        flag = process_input_str()
+        flag = process_input_str_limit()
         if flag.upper() == 'Y':
             for path in path_list:
                 print(path)
@@ -291,16 +305,14 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
     """获取文件列表中指定后缀的所有文件的路径"""
     paths = []
     for file_path in file_paths_list:
-        file_ext = os.path.splitext(file_path)[1].lower().replace('"', '')
-        if file_ext in extensions:
+        if file_path.endswith(extensions):
             paths.append(file_path)
     if not paths:
         print("未找到任何文件")
     return paths
 
 
-def find_matching_files_or_folder_exclude(paths, *extensions, folder=None, flag=None):
-    print(flag)
+def find_matching_files_or_folder_exclude(paths=None, *extensions, folder=None, flag=None):
     if folder:
         """获取文件夹下所有与指定后缀不匹配的文件路径"""
         excluded_files = []
@@ -743,7 +755,7 @@ def get_video_info_list(paths):
     }
     # 手动录入排序属性的数字
     print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
-    sort_index = int(process_input_str() or 3)
+    sort_index = int(process_input_str_limit() or 3)
     # print("Debug: Paths before processing:", paths)
     for path in paths:
         try:
@@ -1040,7 +1052,6 @@ def register_findone(lists, reg):
             lists_by_reg[tempfilename]['path'].append(file_path)
             lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
 
-
     # Traverse the dictionary
     ique_files = []
     for tempfilename, info in lists_by_reg.items():
@@ -1069,7 +1080,6 @@ def register_find(lists, reg):
             lists_by_reg[tempfilename]['count'] += 1
             lists_by_reg[tempfilename]['path'].append(file_path)
             lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
-
 
     # Traverse the dictionary
     ique_files = []

@@ -13,11 +13,11 @@ global_exception_handler = global_exception_handler
 def get_low_resolution_media_files():
     """通过视频目录查找符合区间条件分辨率的媒体文件"""
     print("-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
-    size_limit1 = input("").strip()
+    size_limit1 = str(tools.process_input_str_limit())
     width_limit1, height_limit1 = map(int, size_limit1.split("*"))
 
     print("-----------------------请输入第二个分辨率阈值（格式为 宽*高）:--------------------------")
-    size_limit2 = input("").strip()
+    size_limit2 = str(tools.process_input_str_limit())
     width_limit2, height_limit2 = map(int, size_limit2.split("*"))
 
     if width_limit1 > width_limit2:
@@ -28,9 +28,9 @@ def get_low_resolution_media_files():
     print(f"分辨率区间阈值：{width_limit1}*{height_limit1}~{width_limit2}*{height_limit2}")
 
     print("请输入视频文件夹：")
-    path = tools.process_input_str("")
+    path = tools.process_input_str_limit()
     print("比特率排序Y/N")
-    flag = tools.process_input_str()
+    flag = tools.process_input_str_limit()
     files = []
     for file_path in tools.get_file_paths(path):
         _, ext = os.path.splitext(file_path)
@@ -78,9 +78,9 @@ def get_video_duration_sorted():
         paths = path_list
 
     print("是否输出文件时长大小一致的列表？Y/N de:N")
-    same_flag = tools.process_input_str().upper()
+    same_flag = tools.process_input_str_limit().upper()
     print("是否纯净输出y/n")
-    flag = tools.process_input_str().upper()
+    flag = tools.process_input_str_limit().upper()
 
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
@@ -149,7 +149,7 @@ def print_video_info_list():
 
     file_paths_list, video_dir = tools.process_paths_list_or_folder()
     print("是否纯净输出y/n")
-    flag = tools.process_input_str()
+    flag = tools.process_input_str_limit()
     if file_paths_list:
         folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
     elif os.path.isdir(video_dir):
@@ -182,10 +182,9 @@ def print_video_info_list():
                   end="")
             print(" " * (max_path_len - len(path) + 1))
 
-
 def get_video_audio():
     """
-     获取给定文件夹或文件的音频文件（支持文件列表和文件夹）
+     提取视频的音频文件（支持文件列表和文件夹）
      """
     file_paths_list, folder = tools.process_paths_list_or_folder()
     if file_paths_list:
@@ -203,7 +202,7 @@ def get_video_audio():
 def getfiletypeislegal():
     """校验文件是否合法"""
     print("请输入文件夹路径:")
-    source_folder_path = tools.process_input_str()
+    source_folder_path = tools.process_input_str_limit()
     if not tools.check_is_None():
         path = tools.get_file_paths(source_folder_path)
         # print(path)
@@ -217,7 +216,7 @@ def split_video():
     input_video_list, input_video_dir = tools.process_paths_list_or_folder()
     if input_video_list:
         print("拆分后每段文件的大小限制 单位：MB")
-        max_size_mb = int(tools.process_input_str()) * 1024 * 1024
+        max_size_mb = int(tools.process_input_str_limit()) * 1024 * 1024
 
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
@@ -255,11 +254,11 @@ def split_video():
 def add_srt():
     """为视频文件添加字幕"""
     print("输入视频文件路径")
-    video_path = tools.process_input_str().replace('"', '')
+    video_path = tools.process_input_str_limit().replace('"', '')
     print("输入字幕文件路径")
-    srt_path = tools.process_input_str().replace('"', '')
+    srt_path = tools.process_input_str_limit().replace('"', '')
     print("硬字幕还是软字幕 Y/N def:N")
-    flag = tools.process_input_str() or 'N'
+    flag = tools.process_input_str_limit() or 'N'
     if not tools.check_is_None(video_path, srt_path):
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)

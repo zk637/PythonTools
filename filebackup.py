@@ -16,9 +16,9 @@ def same_file_createsymbolic_links():
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
     print("请输入源文件夹路径:")
-    source_folder_path = input("").strip()
+    source_folder_path = tools.process_input_str_limit()
     print("请输入目标文件夹路径:")
-    target_folder_path = input("").strip()
+    target_folder_path = tools.process_input_str_limit()
     source_files_list = []
     same_list = []
 
@@ -57,7 +57,7 @@ def same_file_createsymbolic_links():
                 print("符号链接创建失败: " + str(e))
                 global_exception_handler(type(e), e, e.__traceback__)
     print("输入空格结束程序")
-    input_str = input("")
+    input_str = tools.process_input_str_limit()
     if input_str.isspace():
         sys.exit()
     else:
@@ -71,7 +71,7 @@ def create_symbolic_links():
     source_dirs = []
     print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
-        input_str = input()
+        input_str = tools.process_input_str()
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
             break
         input_list = input_str.split('\n')  # 将输入字符串转换为列表，按行分割
@@ -81,7 +81,7 @@ def create_symbolic_links():
             source_dirs.append(path)
     # 指定目标目录
     print("请输入要创建的目标目录：")
-    target_dir = tools.process_input_str()
+    target_dir = tools.process_input_str_limit()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
     # # 输出结果
@@ -131,6 +131,7 @@ def create_symbolic_links():
     print("输入空格结束程序")
     input_str = input("")
     if input_str.isspace():
+        print("手动终止程序\n")
         sys.exit()
     else:
         print("非空格，程序继续.....")

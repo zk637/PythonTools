@@ -16,9 +16,9 @@ def compare_and_move_files():
     """取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入"""
     excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
     print("请输入需要对比的文件夹")
-    folder_path = tools.process_input_str()
+    folder_path = tools.process_input_str_limit()
     print("是否保留多个后缀比较【默认保留】")
-    model = str(input("").strip() or 'y')
+    model = str(tools.process_input_str_limit() or 'y')
     jpg_files = []
     non_jpg_files = []
     for root, dirs, files in os.walk(folder_path):
@@ -75,9 +75,9 @@ def check_files_in_folder(file_list):
     """获取给定文件夹下在检索路径列表中以相同文件名匹配的列表或获取不匹配相同文件名的列表"""
     # 提示用户输入目录路径
     print("请输入要检索的目录：")
-    folder_path = tools.process_input_str()
+    folder_path = tools.process_input_str_limit()
     print("只输出不匹配的文件？ Y/N def:N")
-    flag = tools.process_input_str() or "N"
+    flag = tools.process_input_str_limit() or "N"
     # 将 file_list 中的双引号去除
     file_list = [file.strip('"') for file in file_list]
 
@@ -135,10 +135,10 @@ def get_file_paths_with_rules():
     :return: 符合规则的文件路径列表
     """
     print("请输入需要对比的文件夹")
-    folder_path = tools.process_input_str("")
+    folder_path = tools.process_input_str_limit()
     file_name_rules = tools.read_rules_from_file()
     # 创建 KeywordProcessor 对象
-    if not tools.check_is_not_None(folder_path):
+    if not tools.check_is_None(folder_path):
 
         keyword_processor = KeywordProcessor()
 
@@ -264,7 +264,7 @@ def get_file_paths_with_name():
     """获取检索文件夹下和检索文件名相同的路径列表"""
     # 获取用户输入的文件名列表和路径
     print(r"请输入需要检索的文件夹路径：")
-    folderpath = tools.process_input_str()
+    folderpath = tools.process_input_str_limit()
     found_files = []
     print(r"请输入需要检索的文件列表：")
     filenames_list = tools.process_input_list()
@@ -301,7 +301,7 @@ def get_exclude_suffix_list():
     """获取不在指定后缀的文件路径（输入为路径列表或文件夹）"""
     path_list, dir = tools.process_paths_list_or_folder()
     print("是否检索子文件夹Y/N（默认不检索）")
-    sub_folder_flag = tools.process_input_str() or "N"
+    sub_folder_flag = tools.process_input_str_limit() or "N"
     file_list = []
     if path_list:
         file_list.extend(path_list)
@@ -312,8 +312,8 @@ def get_exclude_suffix_list():
         return
     print("输入需要排除的后缀 多个参数用空格隔开")
     excluded_extensions = input()
-    matching_files = tools.find_matching_files_or_folder_exclude(file_list, *excluded_extensions,
-                                                                 flag=sub_folder_flag)
+    matching_files = tools.find_matching_files_or_folder_exclude(file_list,
+                                                                 flag=sub_folder_flag, *excluded_extensions)
     if matching_files:
         print("Matching files:")
         for file_path in matching_files:
@@ -379,16 +379,16 @@ def check_symbolic_link():
 def excel_compare():
     """文件夹内容与csv对比"""
     print("请输入需要比较的CSV文件: ")
-    excel_path = tools.process_input_str().replace('"', '')
-    if not tools.check_is_not_None(excel_path):
+    excel_path = tools.process_input_str_limit().replace('"', '')
+    if not tools.check_is_None(excel_path):
         encode = tools.detect_encoding(excel_path)
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
                 print(file.readline().strip())
         print("请输入需要比较的文件夹路径: ")
-        folder_path = tools.process_input_str()
+        folder_path = tools.process_input_str_limit()
         print("请输入比较文件大小限制（def:200): ")
-        size_threshold = int(tools.process_input_str() or 200)
+        size_threshold = int(tools.process_input_str_limit() or 200)
         # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
         # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
         size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
@@ -400,9 +400,9 @@ def excel_compare():
         #             print(file.readline())
         # 获取需要比较的列名列表
         print("请输入需要比较的列名，以逗号分隔: ")
-        compare_columns = tools.process_input_str().split(',')
+        compare_columns = tools.process_input_str_limit().split(',')
         print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
-        flag = tools.process_input_str() or 'N'
+        flag = tools.process_input_str_limit() or 'N'
         find_missing_files(excel_path, folder_path, size_threshold, compare_columns, flag)
 
 
@@ -486,8 +486,8 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
 def rename_with_dir():
     """文件夹下视频命名规范化"""
     print("请输入要重命名的文件夹： ")
-    path = tools.process_input_str()
-    if not tools.check_is_not_None(path):
+    path = tools.process_input_str_limit()
+    if not tools.check_is_None(path):
         files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
         for file in files:
             rename_file(file)
@@ -664,9 +664,9 @@ def print_video_info_list_asy():
 def get_directories_and_copy_tree():
     """获取指定文件夹下的目录结构"""
     print("请输入需要复制目录结构的文件夹")
-    folder = tools.process_input_str()
+    folder = tools.process_input_str_limit()
     print("请输入要复制结构到的文件夹")
-    point_folder = tools.process_input_str()
+    point_folder = tools.process_input_str_limit()
     """
     获取给定文件夹中的所有子文件夹，并将其复制到指定文件夹中。
     """
