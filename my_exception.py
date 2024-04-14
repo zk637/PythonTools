@@ -2,6 +2,12 @@ import sys
 import traceback
 import ffmpeg
 
+class InputLengthExceededException(Exception):
+    """自定义输入长度超出异常类"""
+
+    def __init__(self, message="输入长度超过限制！"):
+        self.message = message
+        super().__init__(self.message)
 
 def global_exception_handler(exctype, value, tb, *args):
     """
@@ -18,16 +24,17 @@ def global_exception_handler(exctype, value, tb, *args):
     try:
         # 构建异常字典，键是数字，值是包含异常类型和处理字符串的列表 以便维护和逻辑扩充
         exception_dict = {
-            1: [MemoryError, "MemoryError: {value}"],
-            2: [ArithmeticError, "ArithmeticError: {value}"],
-            3: [LookupError, "LookupError: {value}"],
-            4: [OSError, "OSError occurred: {value}"],
+            1: [MemoryError, "MemoryError: {value}\n"],
+            2: [ArithmeticError, "ArithmeticError: {value}\n"],
+            3: [LookupError, "LookupError: {value}\n"],
+            4: [OSError, "OSError occurred: {value}\n"],
             5: [(PermissionError, FileNotFoundError),
                 "Error:权限不足或文件不存在\nFilename: {value.filename}" if hasattr(value, 'filename') else "Error:权限不足或文件不存在"],
-            6: [TimeoutError, "Error:操作超时"],
-            7: [BlockingIOError, "Error:IO阻塞"],
-            8: [ConnectionError, "Error:连接错误"],
-            9: [ValueError, "Error:值不正确"],
+            6: [TimeoutError, "Error:操作超时\n"],
+            7: [BlockingIOError, "Error:IO阻塞\n"],
+            8: [ConnectionError, "Error:连接错误\n"],
+            9: [ValueError, "Error:值不正确\n"],
+            10: [InputLengthExceededException ,"过长的参数！\n"]
         }
 
         # 在异常处理过程中关闭传入的资源对象
@@ -39,7 +46,7 @@ def global_exception_handler(exctype, value, tb, *args):
                     arg.close()
 
         # 如果异常不是 ffmpeg._probe.Error，则打印堆栈跟踪信息
-        if not issubclass(exctype, ffmpeg._probe.Error):
+        if not issubclass(exctype, ffmpeg._probe.Error) and not issubclass(exctype, InputLengthExceededException):
             tb_str = ''.join(traceback.format_tb(tb))
             if tb_str:
                 print(tb_str)
@@ -56,7 +63,7 @@ def global_exception_handler(exctype, value, tb, *args):
                     # 输出处理字符串
                     print(message.format(value=value))
                     # 处理特定类型的异常
-                    if key == 1 or key == 2 or key == 3:
+                    if key == 1 or key == 2 or key == 3 or key == 10:
                         sys.exit(1)
                     break
         else:

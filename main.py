@@ -159,7 +159,7 @@ if __name__ == '__main__':
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
     #  27、文件夹内容与csv对比
-    #  28、获取给定文件夹或文件的音频文件
+    #  28、提取视频的音频文件（支持文件列表和文件夹）
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
     #  31、为视频文件添加字幕
@@ -176,7 +176,7 @@ if __name__ == '__main__':
                 "--------------------------------------------------In-----------------------------------------------------")
             # try:
             print("Enter a number: \n")
-            user_input = int(tools.process_input_str())
+            user_input = int(tools.process_input_str_limit())
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
             print("是否继续执行？(Y/N)\n")
-            user_input = tools.process_input_str()
+            user_input = tools.process_input_str_limit()
             if user_input.upper() == "Y":
                 # 继续执行，回到程序开头
                 continue
@@ -231,6 +231,7 @@ if __name__ == '__main__':
                 print("输入有误，请重新输入！")
                 continue
         except Exception as e:
+            print(e)  # 打印异常对象 e
             profile_file = 'Profile'
             if os.path.exists(profile_file):
                 os.remove(profile_file)

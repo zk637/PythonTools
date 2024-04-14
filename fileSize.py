@@ -1,6 +1,7 @@
 import datetime
 import os
 # 相同子目录下
+import constants
 import tools
 
 # 注册全局异常处理函数
@@ -34,21 +35,32 @@ def get_total_size(file_paths):
 def filter_files_by_sizeordate():
     """获取文件在大小区间下的列表或在修改时间区间下的列表"""
     exclude_dirs = [".ts", "WarmSnow"]
-    exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
-                            ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
-    print("请输入文件夹路径")
-    # input_logger = InputLogger('output.txt')
-    # input_logger.start_logging()
-    paths = tools.process_input_str("")
+    # exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
+    #                         ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
+    paths,folder=tools.process_paths_list_or_folder()
+    suffix_map = {
+        1: constants.ZIP_SUFFIX,
+        2: constants.OFFICE_SUFFIX,
+        3: constants.VIDEO_SUFFIX,
+        4: constants.AUDIO_SUFFIX,
+        5: constants.EXTENSIONS,
+    }
+    print("请输入要不包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
+    index = int(tools.process_input_str_limit())
+    exclude_extensions = suffix_map.get(index)
     if not tools.check_is_None(paths):
-        paths = tools.get_file_paths_e(paths,exclude_dirs, exclude_extensions)
+        paths = tools.find_matching_files_or_folder_exclude(paths, *exclude_extensions, flag='Y')
+    elif not tools.check_is_None(folder):
+        paths = tools.get_file_paths_e(folder,exclude_dirs, exclude_extensions)
+    if paths:
+        paths = set(paths)
         print("要执行的操作：Y按照大小输出 N按照修改时间输出")
-        flag=tools.process_input_str("")
+        flag=tools.process_input_str_limit()
         if flag.upper()=='Y':
             print("请输入最小值（MB）")
-            min_size = float(tools.process_input_str("")) * 1024*1024
+            min_size = float(tools.process_input_str_limit()) * 1024*1024
             print("请输入最大值（MB）")
-            max_size = float(tools.process_input_str("")) * 1024*1024
+            max_size = float(tools.process_input_str_limit()) * 1024*1024
             print(f"-------------------------------------end-------------------------------------")
             # input_logger.stop_logging()
             # input_logger.close()
@@ -66,13 +78,13 @@ def filter_files_by_sizeordate():
             print('\n'.join(filtered_paths))
         else:
             print("纯净输出Y/N?")
-            cflag=tools.process_input_str()
+            cflag=tools.process_input_str_limit()
             print("打印父路径？Y/N?")
-            pflag=tools.process_input_str()
+            pflag=tools.process_input_str_limit()
             print("输入开始时间段 示例格式20180302")
-            start_date=tools.process_input_str("")
+            start_date=str(tools.process_input_str_limit())
             print("输入结束时间段 示例格式20180519")
-            end_date=tools.process_input_str("")
+            end_date=str(tools.process_input_str_limit())
             """按文件修改日期倒序排列打印文件路径"""
             file_dates = {}
 

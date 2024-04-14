@@ -20,13 +20,15 @@ global_exception_handler = global_exception_handler
 def check_zip_password():
     """判断指定文件夹下的压缩文件是否加密"""
     print("请输入需要检索的文件夹")
-    var = tools.process_input_str()
+    var = tools.process_input_str_limit()
     print("是否处理7zip格式？ y/n")
-    zipflag = tools.process_input_str()
+    zipflag = tools.process_input_str_limit()
     if str(zipflag).upper() == 'y':
         print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
-        flag = tools.process_input_str() or 'r'
-        flag = str(flag)
+        flag = tools.process_input_str_limit() or 'R'
+        flag = str(flag).upper()
+        if flag !='R' or flag !='W' or 'A':
+            raise ValueError('错误的参数！')
     rar_lists = []
     sevenzip_lists = []
     # final_lists_rar=[]
@@ -102,7 +104,7 @@ def check_zip_password():
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     print("请输入文件夹")
-    folder = tools.process_input_str()
+    folder = tools.process_input_str_limit()
     password = "password"
     # filelists = tools.get_file_paths(folder)
     filelists = tools.get_file_paths_limit(folder, *constants.ZIP_SUFFIX)

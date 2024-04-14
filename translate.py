@@ -61,9 +61,9 @@ def find_subtitle():
 def find_matching_subtitles():
     """通过视频路径查找字幕文件列表（支持模糊匹配）   """
     print("请输入视频路径")
-    video_path = tools.process_intput_strr("").strip()
+    video_path = tools.process_input_str_limit().strip()
     print("请输入字幕文件夹路径")
-    subtitles_folder = tools.process_input_str().strip()
+    subtitles_folder = tools.process_input_str_limit().strip()
     if os.path.isfile(video_path) and os.path.isdir(subtitles_folder):
         # 遍历字幕文件夹获取所有的字幕文件路径
         # subtitle_files = tools.get_file_paths(subtitles_folder)
@@ -101,9 +101,9 @@ def find_matching_subtitles():
 def find_matching_subtitles_create():
     """通过视频路径查找字幕文件并创建目录"""
     print("请输入视频路径")
-    video_path = tools.process_intput_strr("").strip()
+    video_path = tools.process_input_str_limit().strip()
     print("请输入字幕文件夹路径")
-    subtitles_folder = tools.process_input_str().strip()
+    subtitles_folder = tools.process_input_str_limit().strip()
     if not tools.check_is_None(video_path, subtitles_folder):
         # 遍历字幕文件夹获取所有的字幕文件路径
         SRT_SUFFIX = constants.SRT_SUFFIX
@@ -158,11 +158,11 @@ def getSrt():
     # 匹配的关键字，这里假设匹配文件名中包含"abc"的视频文件和字幕文件
     # keywords = "Romeo and Juliet"
     print("请输入keyword：")
-    keywords = tools.process_input_str()
+    keywords = tools.process_input_str_limit()
     print("请输入视频文件夹路径")
-    video_folder = tools.process_input_str()
+    video_folder = tools.process_input_str_limit()
     print("请输入字幕文件夹路径")
-    subtitle_folder = tools.process_input_str()
+    subtitle_folder = tools.process_input_str_limit()
     if keywords and os.path.isdir(video_folder) and os.path.isdir(subtitle_folder):
         # 遍历视频文件夹中的所有文件
         match_list = []
@@ -208,9 +208,9 @@ def getSrtNew():
     # video_dir = "/path/to/video/directory"
     # subtitles_dir = "/path/to/subtitles/directory"
     print("请输入视频文件夹路径")
-    video_folder = tools.process_input_str()
+    video_folder = tools.process_input_str_limit()
     print("请输入字幕文件夹路径")
-    subtitle_folder = tools.process_input_str()
+    subtitle_folder = tools.process_input_str_limit()
     # match_files(video_folder, subtitle_folder)
     if os.path.isdir(video_folder) and os.path.isdir(subtitle_folder):
         process_files(video_folder, subtitle_folder)
