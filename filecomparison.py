@@ -382,6 +382,7 @@ def excel_compare():
     excel_path = tools.process_input_str_limit().replace('"', '')
     if not tools.check_is_None(excel_path):
         encode = tools.detect_encoding(excel_path)
+        # excel_path = tools.convert_to_utf8(excel_path,encode)
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
                 print(file.readline().strip())
@@ -420,6 +421,7 @@ def get_file_paths(folder, size_threshold):
 def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, flag):
     if csv_path and folder_path and size_threshold and compare_columns:
         encode = tools.detect_encoding(csv_path)
+        # csv_path = tools.convert_to_utf8(csv_path,encode)
         # 读取 CSV 文件，指定 encoding 参数为 'gbk'
         df_csv = None  # 将 df_excel 初始化为 None
         for header_row in range(0, 5):

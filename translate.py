@@ -133,6 +133,7 @@ def find_matching_subtitles_create():
                 # 尝试打开字幕文件，如果文件已被占用，则设置 subtitle_path 为 None 并重试
                 try:
                     encode = tools.detect_encoding(subtitle_path)
+                    subtitle_path = tools.convert_to_utf8(subtitle_path,encode)
                     with open(subtitle_path, "r", encoding=encode) as f:
                         pass
                 except IOError:

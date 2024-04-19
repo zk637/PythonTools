@@ -85,6 +85,7 @@ def process_input_str_limit(s=None):
         temp_input += line  # 将每行输入连接成一个字符串，并添加换行符
         if len(temp_input) > 195:
             raise my_exception.InputLengthExceededException()
+        temp_input = []
         return line
 
 
@@ -492,6 +493,30 @@ def detect_encoding(file_path):
         else:
             return 'utf-8'  # 默认返回 utf-8 编码
 
+def convert_to_utf8(input_file_path, encoding):
+    """将文件转换为 UTF-8 编码"""
+    # 如果未指定输出文件路径，并且编码不是 UTF-8
+    if input_file_path and encoding.lower() != 'utf-8':
+        # 获取输入文件的目录和文件名
+        input_dir, input_filename = os.path.split(input_file_path)
+        # 构造输出文件路径
+        output_file_path = os.path.join(input_dir, os.path.splitext(input_filename)[0] + "_utf8.txt")
+    else:
+        # 如果输入文件路径不存在或者编码为 UTF-8，则直接返回
+        print("输入文件路径不存在或者编码为 UTF-8，无需转换")
+        return input_file_path
+
+    # 打开输入文件，并以指定的编码方式读取内容
+    with open(input_file_path, 'r', encoding=encoding) as input_file:
+        content = input_file.read()
+
+    # 将内容以 UTF-8 编码方式写入到新文件中
+    with open(output_file_path, 'w', encoding='utf-8') as output_file:
+        output_file.write(content)
+
+    print(f"文件已成功转换为 UTF-8 编码，并保存为：{output_file_path}")
+    return output_file_path
+
 
 def check_file_access(file_paths):
     results = {
@@ -744,6 +769,19 @@ def get_video_details(path):
         return duration, bitrate, width, height
 
 
+def get_audio_details(path):
+    """获取音频文件的常见参数"""
+    if os.path.exists(path):
+        probe = ffmpeg.probe(path)
+        format_info = probe.get("format", {})
+
+        duration = float(format_info.get("duration", 0)) * 60
+        bitrate = int(format_info.get("bit_rate", 0))
+
+        return duration, bitrate
+    else:
+        return 0, 0
+
 def get_video_info_list(paths):
     video_info_list = []
     max_path_len = 0
@@ -787,10 +825,26 @@ def get_video_duration(video_path):
         print(f"Error: Failed to get duration of video {video_path}.")
         return 0
 
+def check_audio_stream(video_path):
+    try:
+        # 运行 ffprobe 命令来检查视频文件的音频流
+        result = subprocess.run(['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a:0', '-loglevel', 'error'], capture_output=True)
+        # 检查输出中是否包含音频流信息
+        if result.stdout.strip():
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(f"检查音频流时发生错误：{e}")
+        return False
 
 def convert_video_to_mp3(video_path):
     video_name = os.path.splitext(os.path.basename(video_path))[0] + '.mp3'
     video_final_path = os.path.join(os.path.dirname(video_path), video_name)
+    # 检查文件是否包含音频流
+    if not check_audio_stream(video_path):
+        print(f"警告：文件 '{video_path}' 不包含音频流，无法转换为 MP3。")
+        return
     try:
         subprocess.run(
             ['ffmpeg', '-i', video_path, '-f', 'mp3', '-vn', video_final_path],
@@ -798,7 +852,7 @@ def convert_video_to_mp3(video_path):
             stderr=subprocess.PIPE,
             check=True
         )
-        print(f"转换成功：{video_name}.mp3")
+        print(f"转换成功：{video_name}")
     except subprocess.CalledProcessError as e:
         print(f"转换失败：{video_path}")
         print(f"错误输出：{e.stderr.decode()}")
@@ -970,6 +1024,16 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             # 使用 subprocess.run 运行拆分命令
             subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
                            encoding='utf-8')
+
+
+def split_audio_for_duration(path, duration):
+    filename, file_extension = os.path.splitext(path)
+    video_duration = duration / 2 / 60
+    print(video_duration)
+    split_command = ['ffmpeg', '-i', path, '-f', 'segment', '-segment_time', str(video_duration), '-c', 'copy',
+                     filename + '_part%d.mp3']
+    subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
+                   encoding='utf-8')
 
 
 # def check_subtitle_stream(video_path):
@@ -1284,3 +1348,5 @@ def generate_bat_script(bat_file, command):
         f.write('pause\n')
 
     return bat_file
+
+

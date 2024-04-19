@@ -203,7 +203,7 @@ def getfiletypeislegal():
     """校验文件是否合法"""
     print("请输入文件夹路径:")
     source_folder_path = tools.process_input_str_limit()
-    if not tools.check_is_None():
+    if not tools.check_is_None(source_folder_path):
         path = tools.get_file_paths(source_folder_path)
         # print(path)
         tools.check_file_access(path)
@@ -251,6 +251,27 @@ def split_video():
         print("参数有误，不是合法的路径？")
 
 
+def split_audio():
+    """
+    拆分音频为两段（支持文件列表和文件夹）
+    """
+    input_video_list, input_video_dir = tools.process_paths_list_or_folder()
+    input_video_list = tools.get_file_paths_list_limit(input_video_list, *constants.AUDIO_SUFFIX)
+
+    if input_video_list:
+        path_list = [input_video for input_video in input_video_list if os.path.isfile(input_video)]
+    elif os.path.isdir(input_video_dir):
+        input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.AUDIO_SUFFIX)
+        path_list = [input_video for input_video in input_video_list if os.path.isfile(input_video)]
+    else:
+        return
+
+    for path in path_list:
+        duration, bitrate = tools.get_audio_details(path)
+        tools.split_audio_for_duration(path, duration)
+
+
+
 def add_srt():
     """为视频文件添加字幕"""
     print("输入视频文件路径")
@@ -278,7 +299,7 @@ def add_srt():
             # print(video_path)
             srt_path = "'" + srt_path + "'"
             # print(srt_path)
-            command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
+            command = f'ffmpeg  -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
             print(command)
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
             tools.subprocess_common_bat(bat_file, command)
