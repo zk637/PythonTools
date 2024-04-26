@@ -78,7 +78,8 @@ if __name__ == '__main__':
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
-    #  38、拆分音频为两段（支持文件列表和文件夹）"""
+    #  38、拆分音频为两段（支持文件列表和文件夹）
+    #  39、获取文件夹列表中文件夹不存在指定后缀的文件"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -125,6 +126,7 @@ if __name__ == '__main__':
             36: filecount.getfoldercount_by_exclude,
             37: filecount.get_file_count_by_underfolder_size,
             38: fileanalysis.split_audio,
+            39: filecomparison.get_exclude_suffix_folder_list,
             # 35: filecomparison.print_video_info_list_asy,
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
@@ -171,7 +173,8 @@ if __name__ == '__main__':
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
-    #  38、拆分音频为两段（支持文件列表和文件夹）""")
+    #  38、拆分音频为两段（支持文件列表和文件夹）
+    #  39、获取文件夹列表中文件夹不存在指定后缀的文件""")
         try:
             profile_file = 'Profile'
             print("# 输入对应的编号")

@@ -351,6 +351,16 @@ def find_matching_files_or_folder_exclude(paths=None, *extensions, folder=None, 
         return matching_files
 
 
+def find_matching_folder_with_exclude(folder, *extensions):
+    """检查传入文件夹下是否存在指定后缀的文件，存在一个则返回传入文件夹"""
+    paths = []
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            if file.endswith(tuple(extensions)):
+                paths.append(folder)
+    return paths
+
+
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
     """获取文件夹下的文件路径并排除后缀和文件夹"""
     paths = []
@@ -492,6 +502,7 @@ def detect_encoding(file_path):
             return encoding
         else:
             return 'utf-8'  # 默认返回 utf-8 编码
+
 
 def convert_to_utf8(input_file_path, encoding):
     """将文件转换为 UTF-8 编码"""
@@ -782,6 +793,7 @@ def get_audio_details(path):
     else:
         return 0, 0
 
+
 def get_video_info_list(paths):
     video_info_list = []
     max_path_len = 0
@@ -825,10 +837,13 @@ def get_video_duration(video_path):
         print(f"Error: Failed to get duration of video {video_path}.")
         return 0
 
+
 def check_audio_stream(video_path):
     try:
         # 运行 ffprobe 命令来检查视频文件的音频流
-        result = subprocess.run(['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a:0', '-loglevel', 'error'], capture_output=True)
+        result = subprocess.run(
+            ['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a:0', '-loglevel', 'error'],
+            capture_output=True)
         # 检查输出中是否包含音频流信息
         if result.stdout.strip():
             return True
@@ -837,6 +852,7 @@ def check_audio_stream(video_path):
     except Exception as e:
         print(f"检查音频流时发生错误：{e}")
         return False
+
 
 def convert_video_to_mp3(video_path):
     video_name = os.path.splitext(os.path.basename(video_path))[0] + '.mp3'
@@ -1348,5 +1364,3 @@ def generate_bat_script(bat_file, command):
         f.write('pause\n')
 
     return bat_file
-
-
