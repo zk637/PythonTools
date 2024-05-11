@@ -306,8 +306,10 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
     """获取文件列表中指定后缀的所有文件的路径"""
     paths = []
     for file_path in file_paths_list:
-        if file_path.endswith(extensions):
-            paths.append(file_path)
+        for extension in extensions:
+            if file_path.endswith(extension):
+                paths.append(file_path)
+                break  # 如果当前文件路径匹配了任一后缀，则立即跳出内层循环
     if not paths:
         print("未找到任何文件")
     return paths
@@ -1111,37 +1113,41 @@ def get_video_integrity(video_path):
         return False
 
 
-# ----------------------------------------------------------
-# TODO
 def register_findone(lists, reg):
-    lists_by_reg = {}
-    # Traverse all the files
-    final_name = os.path.basename(lists[0]).split('.')[0]
+    lists_by_reg = {}  # 用于存储每个文件名前缀对应的信息
+
     for file_path in lists:
         tempfilename = os.path.basename(file_path).split('.')[0]
-        if tempfilename not in lists_by_reg:
-            lists_by_reg[tempfilename] = {
-                'count': 0,
-                'path': [],
-                'name': []
-            }
-        regf = re.compile(tempfilename + reg)
-        match = regf.search(os.path.basename(file_path))
-        if match and not final_name != tempfilename:
+
+        # 如果文件名前缀已经存在于字典中，则更新字典中的信息
+        if tempfilename in lists_by_reg:
             lists_by_reg[tempfilename]['count'] += 1
             lists_by_reg[tempfilename]['path'].append(file_path)
             lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+        else:
+            lists_by_reg[tempfilename] = {  # 创建一个新的字典来存储每个文件名前缀对应的信息
+                'count': 1,
+                'path': [file_path],
+                'name': [os.path.basename(file_path)]
+            }
 
-    # Traverse the dictionary
-    ique_files = []
+    grouped_results = []  # 用于存储分组结果
     for tempfilename, info in lists_by_reg.items():
-        # If the name appears more than once
-        if info['count'] > 1:
-            # Add all the paths to the result list
-            ique_files.extend(info['path'])
-    return ique_files
+        regf = re.compile(tempfilename + reg)
+        matched_paths = []
+        for file_path in info['path']:
+            match = regf.search(os.path.basename(file_path))
+            if match:
+                matched_paths.append(file_path)
+        # 只有至少有两个文件路径匹配正则表达式时才将它们添加到结果列表中
+        if len(matched_paths) > 1:
+            grouped_results.append(matched_paths)
+
+    return grouped_results
 
 
+
+#--------------------------------------------------------------
 # TODO
 def register_find(lists, reg):
     lists_by_reg = {}
@@ -1168,8 +1174,14 @@ def register_find(lists, reg):
         if info['count'] > 1:
             # Add all the paths to the result list
             ique_files.extend(info['path'])
-    return ique_files
 
+    # Group the results by each distinct file prefix
+    grouped_results = []
+    for tempfilename, info in lists_by_reg.items():
+        if len(info['path']) > 1:
+            grouped_results.append(info['path'])
+
+    return grouped_results
 
 # def get_free_space_cmd(path="."):
 # # 使用命令行获取磁盘剩余空间

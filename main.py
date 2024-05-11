@@ -104,7 +104,7 @@ if __name__ == '__main__':
             15: filecomparison.get_file_paths_with_rules,
             16: filebackup.create_symbolic_links,
             17: filebackup.same_file_createsymbolic_links,
-            18: zippackage.check_zip_password,
+            18: zippackage.check_zip_password_old,
             19: zippackage.extract_archive,
             20: filecomparison.get_file_paths_with_name,
             21: filecomparison.get_exclude_suffix_list,

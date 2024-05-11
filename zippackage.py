@@ -17,7 +17,7 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
-def check_zip_password():
+def check_zip_password_old():
     """判断指定文件夹下的压缩文件是否加密"""
     print("请输入需要检索的文件夹")
     var = tools.process_input_str_limit()
@@ -99,23 +99,19 @@ def check_zip_password():
     # print(datetime.datetime.now())
 
 
-# TODO 更多格式支持和更精确的检索
-
+#TODO 更多格式的判断
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     print("请输入文件夹")
     folder = tools.process_input_str_limit()
-    password = "password"
-    # filelists = tools.get_file_paths(folder)
+
     filelists = tools.get_file_paths_limit(folder, *constants.ZIP_SUFFIX)
-    folder = tools.get_file_paths(folder)
-    # file_parts_lists = tools.get_files_matching_pattern(folder,r'.*.[^.]*0[^.]*$')
-    # lists=tools.get_same_namefile(folder)
-    file_parts_lists = tools.keep_duplicate_files(folder)
-    # file_zipparts_lists=tools.register_find(file_parts_lists,"([\*^\.$]+[z$][0$+][0$+\d])+")
-    # file_rarparts_lists=tools.register_find(filelists,"(([\*^\.$]part\d)([\*^\.$]rar))")
-    final_lists = []
-    ex_lists = []
+    file_list = tools.get_file_paths(folder)
+
+    file_parts_lists = tools.keep_duplicate_files(file_list)
+
+    final_lists = set()
+    ex_lists = set()
     flag = True
     if hasattr(sys, '_MEIPASS') and flag:
         # 打包后的 exe 运行环境
@@ -138,113 +134,171 @@ def extract_archive():
     if flag == False:
         print(datetime.datetime.now())
         print("正在执行：压缩文件的加密判断...")
-        for filelist in filelists:
-            try:
-                # command = f'cmd_·zip.bat "{filelist}"'
-                # path_to_7z=os.path.join("\\lib\\7z.exe")
-                command = f'7z t -p "{filelist}"'
-                # print(command)
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-            except subprocess.CalledProcessError as err:
-                output = err.output
+        zip_path_list = tools.get_file_paths_list_limit(filelists, '.zip')
+        rar_path_list = tools.get_file_paths_list_limit(filelists, '.rar')
+        seven_z_path_list = tools.get_file_paths_list_limit(filelists, '.7z')
 
-            output = output.decode('gbk')
-            if "ERROR: Wrong password" in output or "Data Error" in output:
-                match = re.search(r"(([\*^\.$]part\d)([\*^\.$]rar))", filelist,
-                                  re.UNICODE)
-                if not match:
-                    final_lists.append(filelist)
-                # print(f"Wrong password for {filelist}")
-            else:
-                match = re.search(r"(([\*^\.$]part\d)([\*^\.$]rar))", filelist,
-                                  re.UNICODE)
-                if not match:
-                    ex_lists.append(filelist)
+        if zip_path_list:
+            for zip in zip_path_list:
+                if check_zip_password(zip) == True:
+                    final_lists.add(zip)
+                else:
+                    ex_lists.add(zip)
+        if rar_path_list:
+            for rar in rar_path_list:
+                if check_rar_password(rar) == True:
+                    final_lists.add(rar)
+                else:
+                    ex_lists.add(rar)
+        if seven_z_path_list:
+            for seven in seven_z_path_list:
+                output = check_seven_z_password(seven)
+                if "ERROR: Wrong password" in output or "Data Error" in output or \
+                        'Cannot open encrypted archive. Wrong password?' in output:
+                    final_lists.add(seven)
+                else:
+                    ex_lists.add(seven)
 
         print("正在执行：7z分卷压缩文件的加密判断...")
-        for file_parts_list in file_parts_lists:
-            match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))",
-                              file_parts_list,
-                              re.UNICODE)
-            if match:
-                try:
-                    # command = f'cmd_zip.bat "{filelist}"'
-                    command = f'7z t -p "{file_parts_list}"'
-                    output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-                except subprocess.CalledProcessError as err:
-                    output = err.output
-
-                output = output.decode('gbk')
-
-                if "ERROR: Wrong password" in output or "Data Error" in output:
-                    final_lists.append(file_parts_list)
-                    # print(f"Wrong password for {filelist}")
+        file_sevenparts_lists=tools.register_findone(file_list,"(\.7z\.\d+)")
+        # print(file_sevenparts_lists)
+        if file_sevenparts_lists:
+            for file_parts_list in file_sevenparts_lists:
+                output = check_seven_z_password(file_parts_list[0])
+                if "ERROR: Wrong password" in output or "Data Error" in output or \
+                        'Cannot open encrypted archive. Wrong password?' in output:
+                    final_lists.update(file_parts_list)
                 else:
-                    ex_lists.append(file_parts_list)
+                    ex_lists.update(file_parts_list)
+
         print("正在执行：zip分卷压缩文件的加密判断...")
-        for file_parts_list in file_parts_lists:
-            # match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))", file_parts_list,
-            #                   re.UNICODE)
-            # if match:
-            try:
-                file_zipparts_lists = tools.register_findone(file_parts_lists, "([\*^\.$]+[z$][0$+][0$+\d])+")
-                list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
-                # command = f'cmd_zip.bat "{filelist}"'
-                command = f'7z t -p {list}'
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-            except subprocess.CalledProcessError as err:
-                output = err.output
-            output = output.decode('gbk')
-            if "ERROR: Wrong password" in output or "Data Error" in output:
-                final_lists.append(file_parts_list)
-                # print(f"Wrong password for {filelist}")
-            else:
-                ex_lists.append(file_parts_list)
+
+        file_zipparts_lists = tools.register_findone(file_parts_lists, "([\*^\.$]+[z$][0$+][0$+\d])+")
+        # print(file_zipparts_lists)
+        if file_zipparts_lists:
+            for file_zipparts in file_zipparts_lists:
+                # list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
+                #如果文件组有内容则代表是分卷因为是zip分卷需要手动替换后缀
+                if not tools.check_is_None(file_zipparts[0]):
+                    file_zipparts_head=file_zipparts[0][:file_zipparts[0].rfind('.')] + '.zip'
+                    # print(file_zipparts)
+                    if check_zip_password(file_zipparts_head) == True:
+                        final_lists.update(file_zipparts)
+                    else:
+                        ex_lists.update(file_zipparts)
+
         print("正在执行：rar分卷压缩文件的加密判断...")
-        file_rarparts_lists = tools.register_find(filelists, "(([\*^\.$]part\d)([\*^\.$]rar))")
-        for file_rarparts_list in file_rarparts_lists:
-            # match = re.search(r"([\*^\.$]+[z$][0$+][0$+\d])+|([\*^\.$]+[0$+])+|(([\*^\.$]part\d)([\*^\.$]rar))", file_parts_list,
-            #                   re.UNICODE)
-            # if match:
-            try:
-                file_rarparts_lists_group = tools.register_findone(file_rarparts_lists,
-                                                                   "(([\*^\.$]part\d)([\*^\.$]rar))")
-                list = ','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(',', " ")
-                # print(list)
-                # command = f'cmd_zip.bat "{filelist}"'
-                command = f'7z t -p {list}'
-                # print(command)
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-            except subprocess.CalledProcessError as err:
-                output = err.output
-            output = output.decode('gbk')
-            # print(output)
-            if "ERROR: Wrong password" in output or "Data Error" in output:
-                final_lists.append(file_rarparts_list)
-                # print(f"Wrong password for {filelist}")
-            else:
-                ex_lists.append(file_rarparts_list)
+        # print(file_parts_lists)
+        file_rarparts_lists = tools.register_findone(filelists, "([\*^\.$])part\d+\.rar")
+        if file_rarparts_lists:
+            for file_rarparts in file_rarparts_lists:
+                # list = ','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(',', " ")
+                if not tools.check_is_None(file_rarparts[0]):
+
+                    if check_rar_password(file_rarparts[0]) == True:
+                        final_lists.update(file_rarparts)
+                    else:
+                        ex_lists.update(file_rarparts)
+
         if ex_lists:
+            ex_lists=ex_lists - final_lists
             print(
                 "--------------------------------------------------无密码----------------------------------------------------")
-            for ex_list in ex_lists:
-                print(ex_list)
+            tools.for_in_for_print(sorted(ex_lists))
         if final_lists:
             print(
                 "--------------------------------------------------有密码----------------------------------------------------")
-            for final_list in final_lists:
-                print(final_list)
+            tools.for_in_for_print(sorted(final_lists))
         print(datetime.datetime.now())
 
 
-def ziptest():
-    file = "D:\\Green software\\zip\\test\\TreeSizeFree-Portable.zip"
-    zf = zipfile.ZipFile(file)
-    for zinfo in zf.infolist():
-        is_encrypted = zinfo.flag_bits & 0x1
-        if is_encrypted:
-            print("true")
-            return True
-        else:
-            print("false")
-            return False
+def get_rar_header_type(rar_file_path):
+    # 打开RAR文件
+    with rarfile.RarFile(rar_file_path) as rf:
+        # 获取文件信息列表
+        file_info_list = rf.infolist()
+
+        # 选择第一个文件信息对象
+        file_info = file_info_list[0]
+
+        # 获取 Header type 标头类型
+        header_type = file_info.flags
+        return header_type
+
+def check_rar_password(rar_file_path):
+    """检查rar文件是否需要密码，返回布尔值"""
+    try:
+        # 打开RAR文件
+        with rarfile.RarFile(rar_file_path) as rf:
+            # 检查RAR文件是否需要密码
+            needs_password = rf.needs_password()
+            if needs_password:
+                return True
+            else:
+                return False
+    except (rarfile.NotRarFile, subprocess.CalledProcessError, rarfile.NeedFirstVolume) as err:
+        pass
+        # print(err)
+        # print('as file:'+rar_file_path)
+
+
+def check_zip_password(zip_file_path):
+    """检查zip文件是否需要密码，返回布尔值"""
+    try:
+        zf = zipfile.ZipFile(zip_file_path)
+        for zinfo in zf.infolist():
+            is_encrypted = zinfo.flag_bits & 0x1
+            if is_encrypted:
+                return True
+            else:
+                return False
+    except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
+        pass
+        # print(err)
+        # print('as file:' + zip_file_path)
+
+
+def check_seven_z_password(seven_file_path):
+    """检查7z文件是否需要密码，返回布尔值"""
+    try:
+        command = f'7z t -p "{seven_file_path}"'
+        # print(command)
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as err:
+        output = err.output
+
+    output = output.decode('gbk')
+    return output
+
+
+def extract_and_print_binary_data(rar_file_path):
+    with rarfile.RarFile(rar_file_path) as rf:
+        # 读取压缩源文件数据区
+        print(rf.needs_password())
+        # compressed_data = rf.read('compressed_data.bin')
+        #
+        # # 读取压缩源文件目录区
+        # file_info_list = rf.infolist()
+        # directory_data = b''
+        # for file_info in file_info_list:
+        #     directory_data += file_info.FileHeader.to_binary() + file_info.file_header.raw
+        #
+        # # 读取压缩源文件目录结束标志
+        # end_of_directory = rf.end_of_directory
+        #
+        # return compressed_data, directory_data, end_of_directory
+
+
+def test():
+    # 调用函数并传入RAR文件路径
+    # rar_file_path = r"D:\Green software\zip\test\test2.part1.rar"
+    # extract_and_print_binary_data(rar_file_path)
+    res=check_rar_password(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar")
+    print(res)
+    # 打印提取的二进制数据
+    # print("Compressed Data:")
+    # print(compressed_data)
+    # print("\nDirectory Data:")
+    # print(directory_data)
+    # print("\nEnd of Directory:")
+    # print(end_of_directory)

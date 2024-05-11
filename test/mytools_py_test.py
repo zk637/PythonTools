@@ -438,13 +438,13 @@ def test_same_file_createsymbolic_links(monkeypatch):
     filebackup.same_file_createsymbolic_links()
 
 
-def test_check_zip_password(monkeypatch):
+def test_check_zip_password_old(monkeypatch):
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip', 'Y', 'r']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-    zippackage.check_zip_password()
+    zippackage.check_zip_password_old()
 
 
 def test_extract_archive(monkeypatch):
@@ -845,6 +845,7 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
         # 使用 monkeypatch 将 input 函数替换为 MagicMock 对象
         monkeypatch.setattr('builtins.input', mocked_input)
         filecomparison.get_exclude_suffix_folder_list()
+
 
 
 def test_flag_y(monkeypatch):
