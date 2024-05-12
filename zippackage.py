@@ -18,16 +18,15 @@ global_exception_handler = global_exception_handler
 
 
 def check_zip_password_old():
-    """判断指定文件夹下的压缩文件是否加密"""
+    """判断指定文件夹下的压缩文件是否加密（不支持7z分卷）"""
     print("请输入需要检索的文件夹")
     var = tools.process_input_str_limit()
     print("是否处理7zip格式？ y/n")
     zipflag = tools.process_input_str_limit()
-    if str(zipflag).upper() == 'y':
+    if zipflag.upper() == 'Y':
         print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
         flag = tools.process_input_str_limit() or 'R'
-        flag = str(flag).upper()
-        if flag !='R' or flag !='W' or 'A':
+        if flag.upper() not in ['R', 'W', 'A']:
             raise ValueError('错误的参数！')
     rar_lists = []
     sevenzip_lists = []
@@ -36,7 +35,7 @@ def check_zip_password_old():
     final_lists = []
     ex_final_lists = []
     # final_list=tools.get_zippartfile(var)
-    file_paths = tools.get_file_paths_limit(var, *constants.ZIP_SUFFIX)
+    zip_list = tools.get_file_paths_limit(var, '.zip')
     sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
     rar_lists = tools.get_file_paths_limit(var, ".rar")
     # file_paths = tools.get_file_paths_limit(var, ".zip")
@@ -44,7 +43,7 @@ def check_zip_password_old():
     # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
-    if zipflag.upper() == 'Y':
+    if zipflag.upper() == 'Y' and sevenzip_lists:
         # print(datetime.datetime.now())
         for sevenzip_list in sevenzip_lists:
             try:
@@ -56,50 +55,55 @@ def check_zip_password_old():
                         else:
                             ex_final_lists.append(sevenzip_list)
                             # print(f'{sevenzip_list} 没有密码')
-            except py7zr.exceptions.Bad7zFile as e:
+            except Exception as e:
+                if 'Password is required for extracting given archive.' in str(e):
+                    final_lists.append(sevenzip_list)
+                    pass
+                else:
+                    print(f'{sevenzip_list} 不是有效的7z压缩文件')
+    if zip_list:
+        for zip in zip_list:
+            try:
+                zf = zipfile.ZipFile(zip)
+                for zinfo in zf.infolist():
+                    is_encrypted = zinfo.flag_bits & 0x1
+                    if is_encrypted:
+                        final_lists.append(zip)
+                    else:
+                        ex_final_lists.append(zip)
+            except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
                 pass
-                print(f'{sevenzip_list} 不是有效的7z压缩文件')
-    for file_path in file_paths:
-        try:
-            patoolib.test_archive(file_path, verbosity=-1)
-            # patoolib.test_archive(file_path, program=f'D:\\Softwere green\\winrar\\WinRAR.exe' ,verbosity=-1)
-            # patoolib.test_archive(file_path, program=f"D:\\Green software\\7-Zip\\7zFM.exe" ,verbosity=-1)
-            ex_final_lists.append(file_path)
-            # print(file_path + "无密码")
-            # return False  # No password protection
-        except patoolib.util.PatoolError as e:
-            if "password required" in str(e):
-                final_lists.append(file_path)
-                # print(file_path + "存在密码")
-                # return True  # Password protected
-            else:
-                print(file_path + "发生错误：")
-                print(e)
+    if rar_lists:
+        for rar_list in rar_lists:
+            try:
+                rf = rarfile.RarFile(rar_list)
+                if rf.needs_password():
+                    final_lists.append(rar_list)
+                    # print(f"{rar_list} - Password required.")
+                else:
+                    # print(f"{rar_list} - No password needed.")
+                    ex_final_lists.append(rar_list)
+            except rarfile.NeedFirstVolume:
                 pass
-    for rar_list in rar_lists:
-        try:
-            rf = rarfile.RarFile(rar_list)
-            if rf.needs_password():
-                final_lists.append(rar_list)
-                # print(f"{rar_list} - Password required.")
-            else:
-                # print(f"{rar_list} - No password needed.")
-                ex_final_lists.append(rar_list)
-        except Exception as e:
-            print(rar_list + "发生错误：")
-            global_exception_handler(type(e), e, e.__traceback__)
-            pass
+            except Exception as e:
+                if isinstance(e, rarfile.NeedFirstVolume):
+                    pass
+                else:
+                    print(rar_list + "发生错误：")
+                    global_exception_handler(type(e), e, e.__traceback__)
+                    pass
+    #去重
+    ex_final_lists = set(ex_final_lists)
+    final_lists=set(final_lists)
     """遍历结果"""
     print("--------------------------------------------------无密码----------------------------------------------------")
-    for ex_final_list in ex_final_lists:
-        print(ex_final_list)
+    tools.for_in_for_print(sorted(ex_final_lists))
     print("--------------------------------------------------有密码----------------------------------------------------")
-    for final_list in final_lists:
-        print(final_list)
+    tools.for_in_for_print(sorted(final_lists))
     # print(datetime.datetime.now())
 
 
-#TODO 更多格式的判断
+# TODO 更多格式的判断
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     print("请输入文件夹")
@@ -160,7 +164,7 @@ def extract_archive():
                     ex_lists.add(seven)
 
         print("正在执行：7z分卷压缩文件的加密判断...")
-        file_sevenparts_lists=tools.register_findone(file_list,"(\.7z\.\d+)")
+        file_sevenparts_lists = tools.register_findone(file_list, r"(\.7z\.\d+)")
         # print(file_sevenparts_lists)
         if file_sevenparts_lists:
             for file_parts_list in file_sevenparts_lists:
@@ -178,9 +182,9 @@ def extract_archive():
         if file_zipparts_lists:
             for file_zipparts in file_zipparts_lists:
                 # list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
-                #如果文件组有内容则代表是分卷因为是zip分卷需要手动替换后缀
+                # 如果文件组有内容则代表是分卷因为是zip分卷需要手动替换后缀
                 if not tools.check_is_None(file_zipparts[0]):
-                    file_zipparts_head=file_zipparts[0][:file_zipparts[0].rfind('.')] + '.zip'
+                    file_zipparts_head = file_zipparts[0][:file_zipparts[0].rfind('.')] + '.zip'
                     # print(file_zipparts)
                     if check_zip_password(file_zipparts_head) == True:
                         final_lists.update(file_zipparts)
@@ -201,7 +205,7 @@ def extract_archive():
                         ex_lists.update(file_rarparts)
 
         if ex_lists:
-            ex_lists=ex_lists - final_lists
+            ex_lists = ex_lists - final_lists
             print(
                 "--------------------------------------------------无密码----------------------------------------------------")
             tools.for_in_for_print(sorted(ex_lists))
@@ -224,6 +228,7 @@ def get_rar_header_type(rar_file_path):
         # 获取 Header type 标头类型
         header_type = file_info.flags
         return header_type
+
 
 def check_rar_password(rar_file_path):
     """检查rar文件是否需要密码，返回布尔值"""
@@ -293,7 +298,7 @@ def test():
     # 调用函数并传入RAR文件路径
     # rar_file_path = r"D:\Green software\zip\test\test2.part1.rar"
     # extract_and_print_binary_data(rar_file_path)
-    res=check_rar_password(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar")
+    res = check_rar_password(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar")
     print(res)
     # 打印提取的二进制数据
     # print("Compressed Data:")

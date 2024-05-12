@@ -1115,39 +1115,40 @@ def get_video_integrity(video_path):
 
 def register_findone(lists, reg):
     lists_by_reg = {}  # 用于存储每个文件名前缀对应的信息
+    try:
+        for file_path in lists:
+            tempfilename = os.path.basename(file_path).split('.')[0]
 
-    for file_path in lists:
-        tempfilename = os.path.basename(file_path).split('.')[0]
+            # 如果文件名前缀已经存在于字典中，则更新字典中的信息
+            if tempfilename in lists_by_reg:
+                lists_by_reg[tempfilename]['count'] += 1
+                lists_by_reg[tempfilename]['path'].append(file_path)
+                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+            else:
+                lists_by_reg[tempfilename] = {  # 创建一个新的字典来存储每个文件名前缀对应的信息
+                    'count': 1,
+                    'path': [file_path],
+                    'name': [os.path.basename(file_path)]
+                }
 
-        # 如果文件名前缀已经存在于字典中，则更新字典中的信息
-        if tempfilename in lists_by_reg:
-            lists_by_reg[tempfilename]['count'] += 1
-            lists_by_reg[tempfilename]['path'].append(file_path)
-            lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
-        else:
-            lists_by_reg[tempfilename] = {  # 创建一个新的字典来存储每个文件名前缀对应的信息
-                'count': 1,
-                'path': [file_path],
-                'name': [os.path.basename(file_path)]
-            }
+        grouped_results = []  # 用于存储分组结果
+        for tempfilename, info in lists_by_reg.items():
+            regf = re.compile(tempfilename + reg)
+            matched_paths = []
+            for file_path in info['path']:
+                match = regf.search(os.path.basename(file_path))
+                if match:
+                    matched_paths.append(file_path)
+            # 只有至少有两个文件路径匹配正则表达式时才将它们添加到结果列表中
+            if len(matched_paths) > 1:
+                grouped_results.append(matched_paths)
 
-    grouped_results = []  # 用于存储分组结果
-    for tempfilename, info in lists_by_reg.items():
-        regf = re.compile(tempfilename + reg)
-        matched_paths = []
-        for file_path in info['path']:
-            match = regf.search(os.path.basename(file_path))
-            if match:
-                matched_paths.append(file_path)
-        # 只有至少有两个文件路径匹配正则表达式时才将它们添加到结果列表中
-        if len(matched_paths) > 1:
-            grouped_results.append(matched_paths)
-
-    return grouped_results
-
+        return grouped_results
+    except re.error as e:
+        pass
 
 
-#--------------------------------------------------------------
+# --------------------------------------------------------------
 # TODO
 def register_find(lists, reg):
     lists_by_reg = {}
@@ -1182,6 +1183,7 @@ def register_find(lists, reg):
             grouped_results.append(info['path'])
 
     return grouped_results
+
 
 # def get_free_space_cmd(path="."):
 # # 使用命令行获取磁盘剩余空间

@@ -847,7 +847,6 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
         filecomparison.get_exclude_suffix_folder_list()
 
 
-
 def test_flag_y(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
