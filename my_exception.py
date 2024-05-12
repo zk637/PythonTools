@@ -2,12 +2,14 @@ import sys
 import traceback
 import ffmpeg
 
+
 class InputLengthExceededException(Exception):
     """自定义输入长度超出异常类"""
 
     def __init__(self, message="输入长度超过限制！"):
         self.message = message
         super().__init__(self.message)
+
 
 def global_exception_handler(exctype, value, tb, *args):
     """
@@ -34,7 +36,7 @@ def global_exception_handler(exctype, value, tb, *args):
             7: [BlockingIOError, "Error:IO阻塞\n"],
             8: [ConnectionError, "Error:连接错误\n"],
             9: [ValueError, "Error:值不正确\n"],
-            10: [InputLengthExceededException ,"过长的参数！\n"]
+            10: [InputLengthExceededException, "过长的参数！\n"]
         }
 
         # 在异常处理过程中关闭传入的资源对象
@@ -71,6 +73,3 @@ def global_exception_handler(exctype, value, tb, *args):
 
     except Exception as e:
         print(e)
-
-
-

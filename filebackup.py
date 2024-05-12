@@ -263,7 +263,7 @@ def copy_source_update_from_symlink(symlink_path, destination_folder, flag):
                 # print(yesterday)
                 # print(file_modified_date)
                 # 如果文件比当前日期的前一天晚，则更新
-                if file_modified_date >= yesterday:
+                if file_modified_date >= yesterday and common_parent != destination_folder:
                     if os.path.exists(common_parent):
                         shutil.rmtree(common_parent)
                         print(f"Remove folder from '{source_path}' to '{final_path}'")

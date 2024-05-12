@@ -696,3 +696,21 @@ def get_directories_and_copy_tree():
 
     else:
         print("目录不存在，或不是目录")
+
+
+def get_exclude_suffix_folder_list():
+    print("请输入要检索的文件夹")
+    folder_list = tools.process_input_list()
+    print("输入需要排除的后缀，多个参数用空格隔开")
+    extensions = input()
+    excluded_folders = []  # 存储需要排除的文件夹路径列表
+    if folder_list:
+        excluded_folders = [folder for folder in folder_list if
+                            tools.find_matching_folder_with_exclude(folder, *extensions)]
+    all_folders = {folder for folder in folder_list if os.path.isdir(folder)}
+    # print(excluded_folders)
+    # 使用集合运算来计算不包含指定后缀文件的文件夹路径
+    folders_without_extension = all_folders - set(excluded_folders)
+    if folders_without_extension:
+        print("不含指定后缀的文件夹")
+        tools.for_in_for_print(folders_without_extension)

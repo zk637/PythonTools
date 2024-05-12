@@ -58,7 +58,7 @@ if __name__ == '__main__':
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名模糊规则匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
-    #  18、判断指定文件夹下的压缩文件是否加密
+    #  18、判断指定文件夹下的压缩文件是否加密（不支持7z分卷）
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取检索文件夹下和检索文件名相同的路径列表
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
@@ -78,7 +78,8 @@ if __name__ == '__main__':
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
-    #  38、拆分音频为两段（支持文件列表和文件夹）"""
+    #  38、拆分音频为两段（支持文件列表和文件夹）
+    #  39、获取文件夹列表中文件夹不存在指定后缀的文件"""
     while True:
         # 需要重复执行的代码
         # ...
@@ -103,7 +104,7 @@ if __name__ == '__main__':
             15: filecomparison.get_file_paths_with_rules,
             16: filebackup.create_symbolic_links,
             17: filebackup.same_file_createsymbolic_links,
-            18: zippackage.check_zip_password,
+            18: zippackage.check_zip_password_old,
             19: zippackage.extract_archive,
             20: filecomparison.get_file_paths_with_name,
             21: filecomparison.get_exclude_suffix_list,
@@ -125,6 +126,7 @@ if __name__ == '__main__':
             36: filecount.getfoldercount_by_exclude,
             37: filecount.get_file_count_by_underfolder_size,
             38: fileanalysis.split_audio,
+            39: filecomparison.get_exclude_suffix_folder_list,
             # 35: filecomparison.print_video_info_list_asy,
             # 26:fileduration.create_symbolic_links_recursive
             # 17: fileduration.compare_file_and_folder_names
@@ -171,7 +173,8 @@ if __name__ == '__main__':
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
-    #  38、拆分音频为两段（支持文件列表和文件夹）""")
+    #  38、拆分音频为两段（支持文件列表和文件夹）
+    #  39、获取文件夹列表中文件夹不存在指定后缀的文件""")
         try:
             profile_file = 'Profile'
             print("# 输入对应的编号")

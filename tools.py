@@ -306,8 +306,10 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
     """获取文件列表中指定后缀的所有文件的路径"""
     paths = []
     for file_path in file_paths_list:
-        if file_path.endswith(extensions):
-            paths.append(file_path)
+        for extension in extensions:
+            if file_path.endswith(extension):
+                paths.append(file_path)
+                break  # 如果当前文件路径匹配了任一后缀，则立即跳出内层循环
     if not paths:
         print("未找到任何文件")
     return paths
@@ -349,6 +351,16 @@ def find_matching_files_or_folder_exclude(paths=None, *extensions, folder=None, 
             else:
                 raise ValueError(f"{path} is not a valid directory or file path")
         return matching_files
+
+
+def find_matching_folder_with_exclude(folder, *extensions):
+    """检查传入文件夹下是否存在指定后缀的文件，存在一个则返回传入文件夹"""
+    paths = []
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            if file.endswith(tuple(extensions)):
+                paths.append(folder)
+    return paths
 
 
 def get_file_paths_e(folder, exclude_dirs, exclude_exts):
@@ -492,6 +504,7 @@ def detect_encoding(file_path):
             return encoding
         else:
             return 'utf-8'  # 默认返回 utf-8 编码
+
 
 def convert_to_utf8(input_file_path, encoding):
     """将文件转换为 UTF-8 编码"""
@@ -782,6 +795,7 @@ def get_audio_details(path):
     else:
         return 0, 0
 
+
 def get_video_info_list(paths):
     video_info_list = []
     max_path_len = 0
@@ -825,10 +839,13 @@ def get_video_duration(video_path):
         print(f"Error: Failed to get duration of video {video_path}.")
         return 0
 
+
 def check_audio_stream(video_path):
     try:
         # 运行 ffprobe 命令来检查视频文件的音频流
-        result = subprocess.run(['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a:0', '-loglevel', 'error'], capture_output=True)
+        result = subprocess.run(
+            ['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a:0', '-loglevel', 'error'],
+            capture_output=True)
         # 检查输出中是否包含音频流信息
         if result.stdout.strip():
             return True
@@ -837,6 +854,7 @@ def check_audio_stream(video_path):
     except Exception as e:
         print(f"检查音频流时发生错误：{e}")
         return False
+
 
 def convert_video_to_mp3(video_path):
     video_name = os.path.splitext(os.path.basename(video_path))[0] + '.mp3'
@@ -1095,37 +1113,42 @@ def get_video_integrity(video_path):
         return False
 
 
-# ----------------------------------------------------------
-# TODO
 def register_findone(lists, reg):
-    lists_by_reg = {}
-    # Traverse all the files
-    final_name = os.path.basename(lists[0]).split('.')[0]
-    for file_path in lists:
-        tempfilename = os.path.basename(file_path).split('.')[0]
-        if tempfilename not in lists_by_reg:
-            lists_by_reg[tempfilename] = {
-                'count': 0,
-                'path': [],
-                'name': []
-            }
-        regf = re.compile(tempfilename + reg)
-        match = regf.search(os.path.basename(file_path))
-        if match and not final_name != tempfilename:
-            lists_by_reg[tempfilename]['count'] += 1
-            lists_by_reg[tempfilename]['path'].append(file_path)
-            lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+    lists_by_reg = {}  # 用于存储每个文件名前缀对应的信息
+    try:
+        for file_path in lists:
+            tempfilename = os.path.basename(file_path).split('.')[0]
 
-    # Traverse the dictionary
-    ique_files = []
-    for tempfilename, info in lists_by_reg.items():
-        # If the name appears more than once
-        if info['count'] > 1:
-            # Add all the paths to the result list
-            ique_files.extend(info['path'])
-    return ique_files
+            # 如果文件名前缀已经存在于字典中，则更新字典中的信息
+            if tempfilename in lists_by_reg:
+                lists_by_reg[tempfilename]['count'] += 1
+                lists_by_reg[tempfilename]['path'].append(file_path)
+                lists_by_reg[tempfilename]['name'].append(os.path.basename(file_path))
+            else:
+                lists_by_reg[tempfilename] = {  # 创建一个新的字典来存储每个文件名前缀对应的信息
+                    'count': 1,
+                    'path': [file_path],
+                    'name': [os.path.basename(file_path)]
+                }
+
+        grouped_results = []  # 用于存储分组结果
+        for tempfilename, info in lists_by_reg.items():
+            regf = re.compile(tempfilename + reg)
+            matched_paths = []
+            for file_path in info['path']:
+                match = regf.search(os.path.basename(file_path))
+                if match:
+                    matched_paths.append(file_path)
+            # 只有至少有两个文件路径匹配正则表达式时才将它们添加到结果列表中
+            if len(matched_paths) > 1:
+                grouped_results.append(matched_paths)
+
+        return grouped_results
+    except re.error as e:
+        pass
 
 
+# --------------------------------------------------------------
 # TODO
 def register_find(lists, reg):
     lists_by_reg = {}
@@ -1152,7 +1175,14 @@ def register_find(lists, reg):
         if info['count'] > 1:
             # Add all the paths to the result list
             ique_files.extend(info['path'])
-    return ique_files
+
+    # Group the results by each distinct file prefix
+    grouped_results = []
+    for tempfilename, info in lists_by_reg.items():
+        if len(info['path']) > 1:
+            grouped_results.append(info['path'])
+
+    return grouped_results
 
 
 # def get_free_space_cmd(path="."):
@@ -1348,5 +1378,3 @@ def generate_bat_script(bat_file, command):
         f.write('pause\n')
 
     return bat_file
-
-

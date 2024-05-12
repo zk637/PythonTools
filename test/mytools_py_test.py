@@ -438,13 +438,13 @@ def test_same_file_createsymbolic_links(monkeypatch):
     filebackup.same_file_createsymbolic_links()
 
 
-def test_check_zip_password(monkeypatch):
+def test_check_zip_password_old(monkeypatch):
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip', 'Y', 'r']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-    zippackage.check_zip_password()
+    zippackage.check_zip_password_old()
 
 
 def test_extract_archive(monkeypatch):
@@ -819,10 +819,39 @@ def test_split_audio_n(monkeypatch):
         fileanalysis.split_audio()
 
 
+def test_get_exclude_suffix_folder_list(monkeypatch):
+    inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_folder_tree"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_size_10"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_ts"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_rename"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count",
+                   '""'  # 空行，用于结束输入
+                   ]
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
+    inputs = ['.mp4' '.srt']
+    with patch('tools.process_input_list', return_value=(path_list)):
+        # 创建一个 MagicMock 对象来模拟 input 函数
+        mocked_input = MagicMock(side_effect=inputs)
+        # 使用 monkeypatch 将 input 函数替换为 MagicMock 对象
+        monkeypatch.setattr('builtins.input', mocked_input)
+        filecomparison.get_exclude_suffix_folder_list()
+
+
 def test_flag_y(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\4",
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"
+                   r"st_count\4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
@@ -863,8 +892,8 @@ def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=Non
 
     # 调用函数
     path_list, folder = tools.process_paths_list_or_folder()
-    print(path_list)
-    print(folder)
+    # print(path_list)
+    # print(folder)
     return path_list, folder
 
 

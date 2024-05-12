@@ -9,7 +9,7 @@ VIDEO_SUFFIX = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', 
 
 ZIP_SUFFIX = (".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
               ".tar.xz",
-              ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx", '.rar')
+              ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx", '.rar', '.7z')
 
 AUDIO_SUFFIX = (".wav", ".mp3", ".aac", ".flac", ".ogg", ".aiff", ".aif", ".m4a", ".wma", ".mid", ".midi", ".opus")
 
