@@ -516,15 +516,17 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
+
 def get_file_matching_pattern(file_path, reg):
     """通用指定后缀模糊匹配工具
     :param folder_path: 文件路径
     :param reg: 正则表达式
     :return: 如果文件路径匹配给定的正则，则返回匹配到的路径
     """
-    matches=re.match(reg,file_path)
+    matches = re.match(reg, file_path)
     if matches:
         return file_path
+
 
 def get_files_matching_pattern(folder_path, reg):
     """通用指定后缀模糊匹配工具
@@ -1308,11 +1310,21 @@ def extract_start_5_minutes(video_path):
     duration = get_video_duration(video_path)
     if duration is not None:
         try:
-            command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 300 -f null - -xerror'
+            command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 25 -f null - -xerror'
             print(command)
             completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                                encoding='utf-8')
-            if completed_process.returncode == 0:
+            if completed_process.returncode == 0 \
+                    and 'Context scratch buffers could not be allocated due to unknown size' not in completed_process.stderr \
+                    and 'warning: first frame is no keyframe' not in completed_process.stderr \
+                    and 'ff asf bad header' not in completed_process.stderr \
+                    and 'Header missing' not in completed_process.stderr \
+                    and 'co located POCs unavailable' not in completed_process.stderr \
+                    and 'Packet mismatch' not in completed_process.stderr \
+                    and 'missing picture in access unit' not in completed_process.stderr \
+                    and 'Corrupt input packet in stream:' not in completed_process.stderr \
+                    and 'Task finished with error code:' not in completed_process.stderr \
+                    and 'Terminating thread with return code:' not in completed_process.stderr:
                 # print(completed_process.stdout)
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
                 return True
@@ -1335,7 +1347,7 @@ def extract_last_5_minutes(video_path):
         try:
             start_time = max(duration - 300, 0)
             formatted_start_time = f"{start_time:.6f}"
-            command = f'ffmpeg -v error -err_detect explode -ss {formatted_start_time} -i "{video_path}" -t 300 -f null - -xerror'
+            command = f'ffmpeg -v error -err_detect explode -ss {formatted_start_time} -i "{video_path}" -t 50 -f null - -xerror'
             print(command)
             completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                                encoding='utf-8')
@@ -1345,7 +1357,11 @@ def extract_last_5_minutes(video_path):
                     and 'ff asf bad header' not in completed_process.stderr \
                     and 'Header missing' not in completed_process.stderr \
                     and 'co located POCs unavailable' not in completed_process.stderr \
-                    and 'Packet mismatch' not in completed_process.stderr:
+                    and 'Packet mismatch' not in completed_process.stderr \
+                    and 'missing picture in access unit' not in completed_process.stderr \
+                    and 'Corrupt input packet in stream:' not in completed_process.stderr \
+                    and 'Task finished with error code:' not in completed_process.stderr \
+                    and 'Terminating thread with return code:' not in completed_process.stderr:
 
                 # print(completed_process.stdout)
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
