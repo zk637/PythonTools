@@ -1402,7 +1402,7 @@ def get_video_integrity(video_path):
         return False
 
 
-# 已废弃,该命令执行效率低资源占用高
+#TODO 已废弃,该命令执行效率低资源占用高
 def get_video_integrity_old(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
