@@ -6,6 +6,7 @@ import constants
 
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
+from tools import profile_all_functions
 
 global_exception_handler = global_exception_handler
 
@@ -182,6 +183,7 @@ def print_video_info_list():
                   end="")
             print(" " * (max_path_len - len(path) + 1))
 
+
 def get_video_audio():
     """
      提取视频的音频文件（支持文件列表和文件夹）
@@ -271,7 +273,6 @@ def split_audio():
         tools.split_audio_for_duration(path, duration)
 
 
-
 def add_srt():
     """为视频文件添加字幕"""
     print("输入视频文件路径")
@@ -324,31 +325,88 @@ def check_files_subtitle_stream():
     else:
         print("参数有误，不是合法的路径？")
         return
+    videos_with_subtitle_stream = []
+    videos_without_subtitle_stream = []
     # 检查视频完整性
     for video_path in video_files:
-        tools.check_subtitle_stream(video_path)
+        result = tools.check_subtitle_stream(video_path)
+        if result:
+            videos_with_subtitle_stream.append(video_path)
+        else:
+            videos_without_subtitle_stream.append(video_path)
+
+    print("True：存在字幕流的文件：" + '_' * 80)
+    tools.for_in_for_print(videos_with_subtitle_stream)
+    print("False：不存在字幕流的文件：" + '_' * 80)
+    tools.for_in_for_print(videos_without_subtitle_stream)
 
 
-from tools import profile_all_functions
-
-
-@profile_all_functions(enable=False)
 def check_video_integrity():
     """
     获取指定文件列表或文件夹下的视频是否完整（支持文件列表和文件夹）
     """
     video_paths_list, video_dir = tools.process_paths_list_or_folder()
 
+    parms = [video_paths_list, video_dir]
     # 获取需要检查完整性的视频文件列表
-    video_files = []
-    if video_paths_list:
-        video_files.extend(video_paths_list)
-    elif os.path.isdir(video_dir):
-        video_files = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
-    else:
-        print("参数有误，不是合法的路径？")
-        return
+    video_files = tools.process_paths_list_and_folder(
+        parms,
+        process_folder_func=tools.find_matching_files_or_folder_exclude,
+        folder_func_args=(constants.EXTENSIONS),
+        folder_func_kwargs={'folder': video_dir}
+    )
 
+    video_integrity = []
+    video_unintegrity = []
+
+    # for video_path in video_files:
+    #     print(f"Original file: {video_path}, extension: {tools.get_file_extension(video_path)}")
+
+    pattern = r"(.*)_thumbs_\[(\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}\.\d{2})\]\.jpg\.!qB"
+    # 去除不支持的文件格式和缓存
+    video_files = [video_path for video_path in video_files if
+                   not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX) and
+                   not tools.get_file_matching_pattern(video_path, pattern)]
+
+    # # 打印过滤后的文件列表
+    # print("Filtered video files:")
+    # for video_path in video_files:
+    #     print(video_path)
     # 检查视频完整性
-    for video_path in video_files:
-        tools.get_video_integrity(video_path)
+
+    for video_path in video_files[:]:
+        # 检查MP4文件的完整性
+        total_MB, realSize_MB = tools.check_mp4(video_path)
+        if total_MB == realSize_MB and not tools.check_str_is_None(total_MB) and not tools.check_str_is_None(
+                realSize_MB) and not tools.check_not_in_suffix(video_path, *constants.VIDEO_SUFFIX):
+            print("check_mp4：" + video_path)
+            video_integrity.append(video_path)
+            continue  # 视频完整，跳过后续检查
+
+        # 视频不完整，继续检查其他完整性条件
+        flag = None
+        if not tools.check_str_is_None(video_path) and flag is not True:
+            flag = tools.extract_last_5_minutes(video_path)
+            if not flag:
+                video_unintegrity.append(video_path)
+                continue  # 处理成功，文件不完整跳过后续检查
+
+        if not tools.check_str_is_None(video_path) and flag is not True:
+            flag = tools.extract_start_5_minutes(video_path)
+            if not flag:
+                video_unintegrity.append(video_path)
+                continue  # 处理成功，文件不完整跳过后续检查
+
+        # 最后上诉条件都不满足完整检查视频完整性
+        if not tools.check_str_is_None(video_path) and flag is True:
+            result = tools.get_video_integrity(video_path)
+            if result:
+                video_integrity.append(video_path)
+            else:
+                video_unintegrity.append(video_path)
+
+    #输出
+    print("True：视频文件完整的有：" + '_' * 80)
+    tools.for_in_for_print(video_integrity)
+    print("False：视频文件不完整的有：" + '_' * 80)
+    tools.for_in_for_print(video_unintegrity)

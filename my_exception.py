@@ -36,7 +36,8 @@ def global_exception_handler(exctype, value, tb, *args):
             7: [BlockingIOError, "Error:IO阻塞\n"],
             8: [ConnectionError, "Error:连接错误\n"],
             9: [ValueError, "Error:值不正确\n"],
-            10: [InputLengthExceededException, "过长的参数！\n"]
+            10: [InputLengthExceededException, "过长的参数！\n"],
+            11: [BaseException, "BaseException: {value}\n"]
         }
 
         # 在异常处理过程中关闭传入的资源对象
@@ -55,7 +56,10 @@ def global_exception_handler(exctype, value, tb, *args):
 
         # 如果异常是 ffmpeg._probe.Error 类型，则重新抛出异常
         if issubclass(exctype, ffmpeg._probe.Error):
-            raise exctype(value)
+            # 需要提供 stdout 和 stderr 参数
+            stderr_output = value.stderr if hasattr(value, 'stderr') else "ffmpeg stderr output"
+            stdout_output = value.stdout if hasattr(value, 'stdout') else "ffmpeg stdout output"
+            raise exctype(value, stdout=stdout_output, stderr=stderr_output)
 
         # 检查异常是否在异常字典中
         if exception_dict:

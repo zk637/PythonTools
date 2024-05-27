@@ -102,6 +102,18 @@ def process_input_list():
     return list
 
 
+def check_str_is_None(args):
+    """通用的单纯验空函数，接受字符串
+    Returns:
+        bool:
+        传入参数有一个非空则返回False
+    """
+    if args == '' and args == None:
+        return True
+    else:
+        return False
+
+
 def check_is_None(*args, **kwargs):
     """通用的单纯验空函数，接受任何参数
     Returns:
@@ -169,6 +181,58 @@ def process_paths_list_or_folder():
         folder_path = process_input_str()
 
     return video_paths_list, folder_path
+
+
+def process_paths_list_and_folder(paths: list,
+                                  process_list_func: callable = None,
+                                  process_folder_func: callable = None,
+                                  list_func_args: tuple = (),
+                                  list_func_kwargs: dict = {},
+                                  folder_func_args: tuple = (),
+                                  folder_func_kwargs: dict = {}) -> list:
+    """
+    处理文件列表和文件夹路径，根据传入的函数处理列表和文件夹的逻辑。
+
+    参数:
+    - paths (list): 包含文件路径或文件夹路径的列表，可以混合列表和文件夹。
+    - process_list_func (callable, 可选): 处理文件列表的函数。默认为 None。
+    - process_folder_func (callable, 可选): 处理文件夹的函数。默认为 None。
+    - list_func_args (tuple, 可选): 传递给 `process_list_func` 的位置参数。默认为空元组 ()。
+    - list_func_kwargs (dict, 可选): 传递给 `process_list_func` 的关键字参数。默认为空字典 {}。
+    - folder_func_args (tuple, 可选): 传递给 `process_folder_func` 的位置参数。默认为空元组 ()。
+    - folder_func_kwargs (dict, 可选): 传递给 `process_folder_func` 的关键字参数。默认为空字典 {}。
+
+    返回:
+    - list: 处理后的文件路径列表。
+
+    如果 `paths` 是空的，则打印 "参数为空" 并返回空列表。
+    如果 `paths` 中的某个元素既不是列表也不是合法的路径，则打印错误信息并继续处理其他元素。
+    """
+
+    if not paths:
+        print("参数为空")
+        return []
+    video_paths_list, video_dir = paths
+    all_files = []
+
+    # 处理列表部分
+    for item in video_paths_list:
+        if process_list_func:
+            all_files.extend(process_list_func([item], *list_func_args, **list_func_kwargs))
+        else:
+            all_files.append(item)
+
+    if video_dir:
+        # 处理文件夹部分
+        if os.path.isdir(video_dir):
+            if process_folder_func:
+                all_files.extend(process_folder_func(*folder_func_args, **folder_func_kwargs))
+            else:
+                all_files.append(video_dir)
+        else:
+            print(f"参数有误，不是合法的路径：{video_dir}")
+
+    return all_files
 
 
 def add_quotes_forpath(s):
@@ -289,6 +353,82 @@ def get_listunder_fileandfolder(source_dirs):
     return files, folders
 
 
+def get_file_extension(file_path):
+    """
+       获取文件路径的后缀（包括多个扩展名的情况）
+       :param file_path: 文件路径
+       :return: 转换小写后的文件后缀
+       """
+    # 规范化文件路径
+    file_path = os.path.normpath(file_path)
+
+    # 获取文件名部分
+    file_name = os.path.basename(file_path)
+
+    # 初始化扩展名列表
+    extensions = []
+
+    # 迭代处理多个扩展名
+    while True:
+        base, ext = os.path.splitext(file_name)
+        if ext:
+            # 将扩展名添加到列表中
+            extensions.append(ext)
+            # 更新文件名为当前基本文件名
+            file_name = base
+        else:
+            break
+
+    # 反转扩展名列表并连接成字符串
+    file_ext = ''.join(reversed(extensions)).lower()
+
+    return file_ext
+
+
+def check_in_suffix(file_path, suffixes):
+    """
+    检查文件路径的后缀是否在给定的后缀元组中
+    :param file_path: 文件路径
+    :param suffixes: 后缀元组
+    :return: 如果文件路径的后缀在给定的后缀元组中，则返回True，否则返回False
+    """
+    try:
+        file_ext = get_file_extension(file_path)
+        result = file_ext in suffixes
+        return result
+    except Exception as e:
+        print(f"Error: {e}")
+        global_exception_handler(Exception, f"文件：{file_path}无法获取文件后缀", None)
+        return False
+
+
+def check_not_in_suffix(file_path, *suffixes):
+    """
+    检查文件路径的后缀是否在给定的后缀元组中
+    :param file_path: 文件路径
+    :param suffixes: 后缀元组
+    :return: 如果文件路径的后缀不在给定的后缀元组中，则返回True，否则返回False
+    """
+    try:
+        # 获取文件名并转为小写
+        file_name = os.path.basename(file_path).lower()
+        # 找到第一个 . 的位置
+        dot_index = file_name.find('.')
+        if dot_index != -1:
+            # 获取后缀名
+            file_ext = '.' + file_name[dot_index + 1:]
+        else:
+            file_ext = ''
+
+        # 检查后缀是否在给定的后缀元组中
+        result = file_ext not in suffixes
+        return result
+
+    except Exception as e:
+        global_exception_handler(Exception, f"文件：{file_path}无法获取文件后缀", None)
+        return False  # 如果发生异常，返回 False 表示无法判断
+
+
 def get_file_paths_limit(folder, *extensions):
     """获取文件夹下指定后缀的所有文件的路径"""
     paths = []
@@ -376,9 +516,22 @@ def get_file_paths_e(folder, exclude_dirs, exclude_exts):
             paths.append(path)
     return paths
 
+def get_file_matching_pattern(file_path, reg):
+    """通用指定后缀模糊匹配工具
+    :param folder_path: 文件路径
+    :param reg: 正则表达式
+    :return: 如果文件路径匹配给定的正则，则返回匹配到的路径
+    """
+    matches=re.match(reg,file_path)
+    if matches:
+        return file_path
 
 def get_files_matching_pattern(folder_path, reg):
-    """通用指定后缀模糊匹配工具"""
+    """通用指定后缀模糊匹配工具
+    :param folder_path: 文件夹路径
+    :param reg: 正则表达式
+    :return: 如果文件路径匹配给定的正则，则返回匹配到的路径列表
+    """
     files = []
     for root, dirs, filenames in os.walk(folder_path):
         for filename in filenames:
@@ -769,17 +922,23 @@ def read_rules_from_file():
 def get_video_details(path):
     """获取视频文件的详细信息"""
     if os.path.exists(path):
-        probe = ffmpeg.probe(path)
-        video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-        # duration = float(video_stream['duration']) * 60
-        duration = float(probe["format"]["duration"]) * 60
-        bitrate = int(probe["format"]['bit_rate'])
-        width = int(video_stream['width'])
-        height = int(video_stream['height'])
-        # bitrate = int(video_stream['bit_rate'])
-        # width = int(video_stream['width'])
-        # height = int(video_stream['height'])
-        return duration, bitrate, width, height
+        try:
+            probe = ffmpeg.probe(path)
+            video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+
+            duration = float(probe["format"].get("duration", 0)) * 60
+            bitrate = int(probe["format"].get('bit_rate', 0))
+            width = int(video_stream['width']) if video_stream and 'width' in video_stream else 0
+            height = int(video_stream['height']) if video_stream and 'height' in video_stream else 0
+
+            return duration, bitrate, width, height
+        except Exception as e:
+            print(f"处理文件 {path} 时出错：{e}")
+            global_exception_handler(type(e), e, e.__traceback__)
+            return 0, 0, 0, 0
+    else:
+        print(f"文件路径 {path} 不存在")
+        return 0, 0, 0, 0
 
 
 def get_audio_details(path):
@@ -799,30 +958,32 @@ def get_audio_details(path):
 def get_video_info_list(paths):
     video_info_list = []
     max_path_len = 0
-    # 属性编码字典
     attribute_map = {
         1: 'size',
         2: 'duration',
         3: 'bitrate',
     }
-    # 手动录入排序属性的数字
     print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
     sort_index = int(process_input_str_limit() or 3)
-    # print("Debug: Paths before processing:", paths)
+
     for path in paths:
         try:
             duration, bitrate, width, height = get_video_details(path)
+            if duration == 0 or bitrate == 0 or width == 0 or height == 0:
+                continue  # 跳过值为0的文件
+
             size = os.path.getsize(path) / (1024 * 1024)
             video_info_list.append((path, size, duration, bitrate, width, height))
             max_path_len = max(max_path_len, len(path))
-            video_info_list.sort(key=lambda x: x[sort_index])  # 按比特率排序
         except Exception as e:
             print(f"处理文件 {path} 时出错：{e}")
             global_exception_handler(type(e), e, e.__traceback__)
             continue
-    sort_attribute = attribute_map.get(sort_index)
-    print(sort_attribute)
 
+    sort_attribute = attribute_map.get(sort_index, 'bitrate')
+    video_info_list.sort(key=lambda x: x[sort_index])
+
+    print(sort_attribute)
     return video_info_list, max_path_len
 
     # print(f'{len(rule)}: {rule}')
@@ -836,7 +997,7 @@ def get_video_duration(video_path):
         duration = float(result)
         return duration
     except:
-        print(f"Error: Failed to get duration of video {video_path}.")
+        print(f"Error: Failed to get duration of video {video_path}")
         return 0
 
 
@@ -1087,29 +1248,162 @@ def check_subtitle_stream(video_path):
         try:
             output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
             if output:
-                print("True:", f"true=文件{video_path}：存在字幕流")
+                return True
             else:
-                print("False:", f"文件{video_path}：不存在字幕流")
+                return False
         except subprocess.CalledProcessError as e:
             print("Error:", f"文件{video_path}：无法获取视频信息")
             print(e.output)
             return False
 
 
+def check_mp4(filePath):
+    """
+    :param filePath:
+    :return: total_MB 理论值
+    realSize_MB实际值
+    """
+    total = 0
+    try:
+        with open(filePath, "rb") as f:
+            realSize_bytes = os.path.getsize(filePath)  # 获取文件大小（字节）
+            readLarge = False
+            while True:
+                size = 0
+                buff = f.read(8)
+                if not buff:
+                    break
+                if len(buff) < 8:
+                    break
+                if readLarge:
+                    size = int.from_bytes(buff, byteorder='big', signed=False)
+                else:
+                    size = int.from_bytes(buff[:4], byteorder='big', signed=False)
+                if size == 0:
+                    break
+                if size == 1:
+                    # 读取 Large size
+                    readLarge = True
+                else:
+                    total += size
+                    skip = size - 8 if not readLarge else size - 16
+                    if skip > 0:
+                        f.seek(skip, 1)
+                        readLarge = False
+
+        # 将理论值、实际值转换成 MB 并输出
+        total_MB = total / (1024 * 1024)
+        realSize_MB = realSize_bytes / (1024 * 1024)
+
+        return total_MB, realSize_MB
+    except FileNotFoundError:
+        print("File not found.")
+        return None, None
+    except IOError:
+        print("IO error occurred.")
+    return None, None
+
+
+def extract_start_5_minutes(video_path):
+    duration = get_video_duration(video_path)
+    if duration is not None:
+        try:
+            command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 300 -f null - -xerror'
+            print(command)
+            completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               encoding='utf-8')
+            if completed_process.returncode == 0:
+                # print(completed_process.stdout)
+                # 现在可以在这里处理提取的视频部分，而不必将其写入文件
+                return True
+            else:
+                print("Failed to extract start 5 minutes.")
+                # print(completed_process.stderr)
+                return False
+        except Exception as e:
+            # 如果有全局异常处理函数，调用它
+            global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+            return False
+    else:
+        print("Failed to extract last 5 minutes. Video duration not available.")
+        return False
+
+
+def extract_last_5_minutes(video_path):
+    duration = get_video_duration(video_path)
+    if duration is not None:
+        try:
+            start_time = max(duration - 300, 0)
+            formatted_start_time = f"{start_time:.6f}"
+            command = f'ffmpeg -v error -err_detect explode -ss {formatted_start_time} -i "{video_path}" -t 300 -f null - -xerror'
+            print(command)
+            completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                               encoding='utf-8')
+            if completed_process.returncode == 0 \
+                    and 'Context scratch buffers could not be allocated due to unknown size' not in completed_process.stderr \
+                    and 'warning: first frame is no keyframe' not in completed_process.stderr \
+                    and 'ff asf bad header' not in completed_process.stderr \
+                    and 'Header missing' not in completed_process.stderr \
+                    and 'co located POCs unavailable' not in completed_process.stderr \
+                    and 'Packet mismatch' not in completed_process.stderr:
+
+                # print(completed_process.stdout)
+                # 现在可以在这里处理提取的视频部分，而不必将其写入文件
+                return True
+            else:
+                print("Failed to extract last 5 minutes.")
+                # print(completed_process.stderr)
+                return False
+        except Exception as e:
+            # 如果有全局异常处理函数，调用它
+            global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+            return False
+    else:
+        print("Failed to extract last 5 minutes. Video duration not available.")
+        return False
+
+
 def get_video_integrity(video_path):
+    if os.path.isfile(video_path):
+        # 定义 FFmpeg 命令
+        command = f'ffprobe -i "{video_path}" '
+        print(command)
+    try:
+        # 执行命令，并捕获异常
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                encoding='utf-8', universal_newlines=True)
+        # 说明命令执行出错 有错误的box
+        if 'Unsupported codec with id' in result.stderr or 'Header missing' in result.stderr \
+                or 'Packet mismatch' in result.stderr or 'Extra data:' in result.stderr \
+                or 'co located POCs unavailable' in result.stderr:
+            raise False
+        # 如果没有输出
+        else:
+            return True
+    except Exception as e:
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        return False
+
+
+# 已废弃,该命令执行效率低资源占用高
+def get_video_integrity_old(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
         command = f'ffmpeg -v  error -err_detect explode -i "{video_path}" -f null - -xerror'
         print(command)
     try:
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
-        if output == '':
-            print("True:", f"文件{video_path}：文件完整")
+        # 执行命令，并捕获异常
+        result = subprocess.run(command, stderr=subprocess.PIPE, universal_newlines=True)
+        # 如果返回码不为0，说明命令执行出错
+        if result.returncode != 0:
+            raise False
+        # 如果输出为空，则文件完整
         else:
-            print("False:", f"文件{video_path}：文件不完整")
+            return True
     except Exception as e:
-        print("Error:", f"文件{video_path}：无法获取视频信息")
-        global_exception_handler(type(e), e, e.__traceback__)
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
         return False
 
 

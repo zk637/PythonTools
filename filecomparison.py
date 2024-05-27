@@ -390,9 +390,12 @@ def excel_compare():
         folder_path = tools.process_input_str_limit()
         print("请输入比较文件大小限制（def:200): ")
         size_threshold = int(tools.process_input_str_limit() or 200)
+
         # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
         # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
+
         size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
+
         # flag=input("纠错模式：将会打印读取的关键字的行数 Y/N（无法读取开启 def:N): ") or 'N'
         # if flag.upper()=='Y':
         #     encode = detect_encoding(excel_path)
@@ -400,6 +403,7 @@ def excel_compare():
         #         for _ in range(5):  # 读取前5行
         #             print(file.readline())
         # 获取需要比较的列名列表
+
         print("请输入需要比较的列名，以逗号分隔: ")
         compare_columns = tools.process_input_str_limit().split(',')
         print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
@@ -712,5 +716,5 @@ def get_exclude_suffix_folder_list():
     # 使用集合运算来计算不包含指定后缀文件的文件夹路径
     folders_without_extension = all_folders - set(excluded_folders)
     if folders_without_extension:
-        print("不含指定后缀的文件夹")
+        print("不含指定后缀的文件夹：")
         tools.for_in_for_print(folders_without_extension)
