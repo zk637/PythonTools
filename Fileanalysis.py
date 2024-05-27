@@ -372,8 +372,9 @@ def check_video_integrity():
     # print("Filtered video files:")
     # for video_path in video_files:
     #     print(video_path)
-    # 检查视频完整性
 
+    
+    # 检查视频完整性
     for video_path in video_files[:]:
         # 检查MP4文件的完整性
         total_MB, realSize_MB = tools.check_mp4(video_path)
@@ -391,7 +392,7 @@ def check_video_integrity():
                 video_unintegrity.append(video_path)
                 continue  # 处理成功，文件不完整跳过后续检查
 
-        if not tools.check_str_is_None(video_path) and flag is not True:
+        if not tools.check_str_is_None(video_path) and flag is True:
             flag = tools.extract_start_5_minutes(video_path)
             if not flag:
                 video_unintegrity.append(video_path)
