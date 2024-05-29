@@ -4,8 +4,12 @@ import os
 import constants
 import tools
 
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
+
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
+
 global_exception_handler = global_exception_handler
 
 
@@ -37,7 +41,7 @@ def filter_files_by_sizeordate():
     exclude_dirs = [".ts", "WarmSnow"]
     # exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
     #                         ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
-    paths,folder=tools.process_paths_list_or_folder()
+    paths, folder = tools.process_paths_list_or_folder()
     suffix_map = {
         1: constants.ZIP_SUFFIX,
         2: constants.OFFICE_SUFFIX,
@@ -45,23 +49,24 @@ def filter_files_by_sizeordate():
         4: constants.AUDIO_SUFFIX,
         5: constants.EXTENSIONS,
     }
-    print("请输入要不包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
+    tips_m.print_message(message="请输入要不包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
     index = int(tools.process_input_str_limit())
     exclude_extensions = suffix_map.get(index)
     if not tools.check_is_None(paths):
         paths = tools.find_matching_files_or_folder_exclude(paths, *exclude_extensions, flag='Y')
     elif not tools.check_is_None(folder):
-        paths = tools.get_file_paths_e(folder,exclude_dirs, exclude_extensions)
+        paths = tools.get_file_paths_e(folder, exclude_dirs, exclude_extensions)
     if paths:
         paths = set(paths)
-        print("要执行的操作：Y按照大小输出 N按照修改时间输出")
-        flag=tools.process_input_str_limit()
-        if flag.upper()=='Y':
-            print("请输入最小值（MB）")
-            min_size = float(tools.process_input_str_limit()) * 1024*1024
-            print("请输入最大值（MB）")
-            max_size = float(tools.process_input_str_limit()) * 1024*1024
-            print(f"-------------------------------------end-------------------------------------")
+        tips_m.print_message(message="要执行的操作：Y按照大小输出 N按照修改时间输出")
+        flag = tools.process_input_str_limit()
+        if flag.upper() == 'Y':
+            tips_m.print_message(message="请输入最小值（MB）")
+            min_size = float(tools.process_input_str_limit()) * 1024 * 1024
+            tips_m.print_message(message="请输入最大值（MB）")
+            max_size = float(tools.process_input_str_limit()) * 1024 * 1024
+            log_info_m.print_message(
+                message=f"-------------------------------------end-------------------------------------")
             # input_logger.stop_logging()
             # input_logger.close()
             filtered_paths = []
@@ -75,16 +80,16 @@ def filter_files_by_sizeordate():
                 filename = os.path.basename(path)
                 size = "{:.2f}MB".format(os.path.getsize(path) / 1024 / 1024)
                 # print(f"{path} {size}")
-            print('\n'.join(filtered_paths))
+            log_info_m.print_message(message='\n'.join(filtered_paths))
         else:
-            print("纯净输出Y/N?")
-            cflag=tools.process_input_str_limit()
-            print("打印父路径？Y/N?")
-            pflag=tools.process_input_str_limit()
-            print("输入开始时间段 示例格式20180302")
-            start_date=str(tools.process_input_str_limit())
-            print("输入结束时间段 示例格式20180519")
-            end_date=str(tools.process_input_str_limit())
+            tips_m.print_message(message="纯净输出Y/N?")
+            cflag = tools.process_input_str_limit()
+            tips_m.print_message(message="打印父路径？Y/N?")
+            pflag = tools.process_input_str_limit()
+            tips_m.print_message(message="输入开始时间段 示例格式20180302")
+            start_date = str(tools.process_input_str_limit())
+            tips_m.print_message(message="输入结束时间段 示例格式20180519")
+            end_date = str(tools.process_input_str_limit())
             """按文件修改日期倒序排列打印文件路径"""
             file_dates = {}
 
@@ -102,17 +107,12 @@ def filter_files_by_sizeordate():
                     file_dates[parent_path].append((path, date))
 
             for parent_path, files in file_dates.items():
-                if pflag.upper() =="Y":
-                    print(parent_path + "--------")
+                if pflag.upper() == "Y":
+                    log_info_m.print_message(message=parent_path + "--------")
                     files.sort(key=lambda x: x[1], reverse=True)
-                if cflag.upper()!='Y':
+                if cflag.upper() != 'Y':
                     for file in files:
-                        print(f"{file[0]}: {file[1]}")
+                        result_m.print_message(message=f"{file[0]}: {file[1]}")
                 else:
                     for file in files:
-                        print('"'+f"{file[0]}"+'"')
-
-
-
-
-
+                        result_m.print_message(message='"' + f"{file[0]}" + '"')

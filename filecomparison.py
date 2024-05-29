@@ -6,6 +6,9 @@ from flashtext import KeywordProcessor
 import constants
 import tools
 
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
+
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -15,9 +18,9 @@ global_exception_handler = global_exception_handler
 def compare_and_move_files():
     """取传入目录下所有与文件名一致的jpg创建.ts文件夹并移入"""
     excluded_extensions = ['.dll', '.exe', 'png', '.xml', '.html', '.mp3']
-    print("请输入需要对比的文件夹")
+    tips_m.print_message(message="请输入需要对比的文件夹")
     folder_path = tools.process_input_str_limit()
-    print("是否保留多个后缀比较【默认保留】")
+    tips_m.print_message(message="是否保留多个后缀比较【默认保留】")
     model = str(tools.process_input_str_limit() or 'y')
     jpg_files = []
     non_jpg_files = []
@@ -40,7 +43,7 @@ def compare_and_move_files():
             jpg_file_base = os.path.splitext(os.path.basename(jpg_file))[0]
             if jpg_file_base not in excluded_extensions and jpg_file != non_jpg_file and jpg_file_base == file_name:
                 same_name_files.append(jpg_file)
-        print(same_name_files)
+        result_m.print_message(message=same_name_files)
         if len(same_name_files) > 0:
             for jpg_file in same_name_files:
                 jpg_dir = os.path.dirname(jpg_file)
@@ -63,7 +66,7 @@ def compare_and_move_files():
                         # non_jpg_files.remove(non_jpg_file)
                         os.remove(file)
                     except Exception as e:
-                        print(f'处理发生错误：{file}')
+                        log_info_m.print_message(message=f'处理发生错误：{file}')
                         global_exception_handler(type(e), e, e.__traceback__)
                     # finally:
                     #     print(f'{f_path}')
@@ -74,9 +77,9 @@ def compare_and_move_files():
 def check_files_in_folder(file_list):
     """获取给定文件夹下在检索路径列表中以相同文件名匹配的列表或获取不匹配相同文件名的列表"""
     # 提示用户输入目录路径
-    print("请输入要检索的目录：")
+    tips_m.print_message(message="请输入要检索的目录：")
     folder_path = tools.process_input_str_limit()
-    print("只输出不匹配的文件？ Y/N def:N")
+    tips_m.print_message(message="只输出不匹配的文件？ Y/N def:N")
     flag = tools.process_input_str_limit() or "N"
     # 将 file_list 中的双引号去除
     file_list = [file.strip('"') for file in file_list]
@@ -106,24 +109,22 @@ def check_files_in_folder(file_list):
                     else:
                         non_matching_paths.append(path)
     else:
-        print("输入参数有误！")
+        log_info_m.print_message(message="输入参数有误！")
     if not matching_paths:
         # 如果没有找到匹配的文件，则输出提示信息并返回 None
-        print("没有找到匹配的文件。")
+        log_info_m.print_message(message="没有找到匹配的文件。")
         return None
 
     # 输出不匹配的文件路径
     if non_matching_paths and "Y" == flag.upper():
         non_matching_paths = set(non_matching_paths)
-        print("找到不匹配的文件：")
-        for file_path in non_matching_paths:
-            print('"' + f"{file_path}" + '"')
+        result_m.print_message(message="True：找到不匹配的文件：")
+        tools.for_in_for_print(non_matching_paths,flag=True)
     else:
         # 如果找到了匹配的文件，则输出每个匹配的文件的路径
-        print("找到匹配的文件：")
+        result_m.print_message(message="False：找到匹配的文件：")
         matching_paths = set(matching_paths)
-        for file_path in matching_paths:
-            print('"' + f"{file_path}" + '"')
+        tools.for_in_for_print(matching_paths,flag=True)
 
     return matching_paths, non_matching_paths
 
@@ -134,7 +135,7 @@ def get_file_paths_with_rules():
     :param folder: 文件夹路径
     :return: 符合规则的文件路径列表
     """
-    print("请输入需要对比的文件夹")
+    tips_m.print_message(message="请输入需要对比的文件夹")
     folder_path = tools.process_input_str_limit()
     file_name_rules = tools.read_rules_from_file()
     # 创建 KeywordProcessor 对象
@@ -162,16 +163,16 @@ def get_file_paths_with_rules():
                     paths.append(file_full_path)
 
         # 打印匹配的路径
-        for path in paths:
-            print(path)
+        log_info_m.print_message(message="匹配到路径有：")
+        tools.for_in_for_print(paths)
 
 
 def create_symbolic_links():
     tools.admin_process()
     excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
-    print("请输入源文件夹路径:")
+    tips_m.print_message(message="请输入源文件夹路径:")
     source_folder_path = input("").strip()
-    print("请输入目标文件夹路径:")
+    tips_m.print_message(message="请输入目标文件夹路径:")
     target_folder_path = input("").strip()
     source_files_list = []
     same_list = []
@@ -193,32 +194,32 @@ def create_symbolic_links():
             if same_name_files:
                 same_list.append((same_name_files, target_folder_path))
 
-    print("为以下目标文件建立符号链接:")
+    log_info_m.print_message(message="为以下目标文件建立符号链接:")
     for item in same_list:
         for source_file in item[0]:
             target_dir = item[1]
             cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)), source_file]
-            print('\n' + '-' * 50)
-            print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+            log_info_m.print_message(message='\n' + '-' * 50)
+            log_info_m.print_message(message="\n" + "执行命令: " + ' '.join(cmd) + "\n")
             # os.system(" ".join(cmd))
             subprocess.check_call(cmd, shell=True)
             # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
             # print("result: " + output+"\n")
-            print("源文件路径: " + source_file)
-            print("目标文件夹路径: " + target_dir)
-    print("输入空格结束程序")
+            result_m.print_message(message="源文件路径: " + source_file)
+            result_m.print_message(message="目标文件夹路径: " + target_dir)
+    tips_m.print_message(message="输入空格结束程序")
     input_str = input("")
     if input_str.isspace():
         sys.exit()
     else:
-        print("非空格，程序继续.....")
+        log_info_m.print_message(message="非空格，程序继续.....")
 
 
 def same_file_createsymbolic_links():
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
-    print("请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
         input_str = tools.process_input_str().strip('"')
         if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
@@ -229,7 +230,7 @@ def same_file_createsymbolic_links():
                 path = path[1:-1]  # 去除引号
             source_dirs.append(path)
     # 指定目标目录
-    print("请输入要创建的目标目录：")
+    tips_m.print_message(message="请输入要创建的目标目录：")
     target_dir = tools.process_input_str()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
@@ -245,28 +246,28 @@ def same_file_createsymbolic_links():
     folders = [folder for folder in files if os.path.isdir(folder)]
 
     for source_file in files:
-        print("文件符号链接")
+        log_info_m.print_message(message="文件符号链接")
         tools.create_symbolic_link(source_file, target_dir)
 
     for source_folder in folders:
-        print("文件夹符号链接")
+        log_info_m.print_message(message="文件夹符号链接")
         tools.create_symbolic_link(source_folder, target_dir, is_folder=True)
 
-    print("输入空格结束程序")
+    tips_m.print_message(message="输入空格结束程序")
     input_str = input("")
     if input_str.isspace():
         sys.exit()
     else:
-        print("非空格，程序继续.....")
+        log_info_m.print_message(message="非空格，程序继续.....")
 
 
 def get_file_paths_with_name():
     """获取检索文件夹下和检索文件名相同的路径列表"""
     # 获取用户输入的文件名列表和路径
-    print(r"请输入需要检索的文件夹路径：")
+    tips_m.print_message(message=r"请输入需要检索的文件夹路径：")
     folderpath = tools.process_input_str_limit()
     found_files = []
-    print(r"请输入需要检索的文件列表：")
+    tips_m.print_message(message=r"请输入需要检索的文件列表：")
     filenames_list = tools.process_input_list()
     # 获取指定路径下及其子目录下的所有文件路径
     if filenames_list and os.path.isdir(folderpath):
@@ -286,21 +287,21 @@ def get_file_paths_with_name():
 
         # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
         if len(found_files) > 0:
-            print("找到的文件有:")
+            log_info_m.print_message(message="找到的文件有:")
             for file in found_files:
                 file = tools.add_quotes_forpath(file)
-                print(file)
+                result_m.print_message(message=file)
         else:
-            print("这些文件都不存在！")
+            log_info_m.print_message(message="这些文件都不存在！")
     else:
-        print("文件为空，需检查条件或参数！")
+        log_info_m.print_message(message="文件为空，需检查条件或参数！")
         return
 
 
 def get_exclude_suffix_list():
     """获取不在指定后缀的文件路径（输入为路径列表或文件夹）"""
     path_list, dir = tools.process_paths_list_or_folder()
-    print("是否检索子文件夹Y/N（默认不检索）")
+    tips_m.print_message(message="是否检索子文件夹Y/N（默认不检索）")
     sub_folder_flag = tools.process_input_str_limit() or "N"
     file_list = []
     if path_list:
@@ -308,18 +309,17 @@ def get_exclude_suffix_list():
     elif dir:
         file_list = tools.get_file_paths(dir)
     else:
-        print("参数有误，不是合法的路径？")
+        log_info_m.print_message(message="参数有误，不是合法的路径？")
         return
-    print("输入需要排除的后缀 多个参数用空格隔开")
+    tips_m.print_message(message="输入需要排除的后缀 多个参数用空格隔开")
     excluded_extensions = input()
     matching_files = tools.find_matching_files_or_folder_exclude(file_list,
                                                                  flag=sub_folder_flag, *excluded_extensions)
     if matching_files:
-        print("Matching files:")
-        for file_path in matching_files:
-            print(file_path)
+        result_m.print_message(message="Matching files:")
+        tools.for_in_for_print(matching_files)
     else:
-        print("No matching files found")
+        result_m.print_message(message="No matching files found")
 
 
 def get_file_rule_sort():
@@ -331,13 +331,13 @@ def get_file_rule_sort():
     elif rules:
         tools.get_sort_list(rules)
     else:
-        print("参数有误！")
+        log_info_m.print_message(message="参数有误！")
         return None
 
 
 def check_symbolic_link():
     """检查录入文件夹下的符号链接是否可用"""
-    print("请输入要检查的符号链接所在文件夹")
+    tips_m.print_message(message="请输入要检查的符号链接所在文件夹")
     destination_folder = tools.process_input_str()
     link_paths = tools.get_file_paths(destination_folder)
     relative_links = []
@@ -363,22 +363,22 @@ def check_symbolic_link():
         except OSError as e:
             print(f"Error: {e}")
     # 打印分类结果
-    print("\nRelative Symbolic Links:")
-    print("-" * 70)
+    result_m.print_message(message="\nRelative Symbolic Links:")
+    log_info_m.print_message(message="-" * 70)
     tools.for_in_for_print(relative_links)
 
-    print("\nAbsolute Symbolic Links:")
-    print("-" * 70)
+    result_m.print_message(message="\nAbsolute Symbolic Links:")
+    log_info_m.print_message(message="-" * 70)
     tools.for_in_for_print(absolute_links)
 
-    print("\nInvalid Symbolic Links:")
-    print("-" * 70)
+    result_m.print_message(message="\nInvalid Symbolic Links:")
+    log_info_m.print_message(message="-" * 70)
     tools.for_in_for_print(invalid_links)
 
 
 def excel_compare():
     """文件夹内容与csv对比"""
-    print("请输入需要比较的CSV文件: ")
+    tips_m.print_message(message="请输入需要比较的CSV文件: ")
     excel_path = tools.process_input_str_limit().replace('"', '')
     if not tools.check_is_None(excel_path):
         encode = tools.detect_encoding(excel_path)
@@ -386,9 +386,9 @@ def excel_compare():
         with open(excel_path, 'r', encoding=encode) as file:
             for _ in range(5):  # 读取前5行
                 print(file.readline().strip())
-        print("请输入需要比较的文件夹路径: ")
+        tips_m.print_message(message="请输入需要比较的文件夹路径: ")
         folder_path = tools.process_input_str_limit()
-        print("请输入比较文件大小限制（def:200): ")
+        tips_m.print_message(message="请输入比较文件大小限制（def:200): ")
         size_threshold = int(tools.process_input_str_limit() or 200)
 
         # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
@@ -404,9 +404,9 @@ def excel_compare():
         #             print(file.readline())
         # 获取需要比较的列名列表
 
-        print("请输入需要比较的列名，以逗号分隔: ")
+        tips_m.print_message(message="请输入需要比较的列名，以逗号分隔: ")
         compare_columns = tools.process_input_str_limit().split(',')
-        print("是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
+        tips_m.print_message(message="是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
         flag = tools.process_input_str_limit() or 'N'
         find_missing_files(excel_path, folder_path, size_threshold, compare_columns, flag)
 
@@ -432,14 +432,14 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
             try:
                 df_csv = pd.read_csv(csv_path, usecols=compare_columns, encoding=encode, header=header_row)
                 # 如果成功读取，跳出循环
-                print(f"成功以第 {header_row} 行作为列名。")
+                log_info_m.print_message(message=f"成功以第 {header_row} 行作为列名。")
                 break
             except ValueError as e:
-                print(f"尝试以第 {header_row} 行作为列名时出错：{e}")
+                log_info_m.print_message(message=f"尝试以第 {header_row} 行作为列名时出错：{e}")
 
         # 如果 df_excel 未成功读取，给出错误信息并退出
         if df_csv is None:
-            print("无法读取 Excel 文件。")
+            log_info_m.print_message(message="无法读取 Excel 文件。")
             return
         # 获取文件夹下所有文件
         # all_files = [f for f in os.listdir(folder_path) ifG:\Videos\3d
@@ -475,23 +475,23 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
 
         # 输出匹配结果
         if matche_lists:
-            print("以下内容文件夹中有但CSV文件中没有：")
+            result_m.print_message(message="以下内容文件夹中有但CSV文件中没有：")
             tools.for_in_for_print(matche_lists)
         else:
-            print("没有任何匹配的结果")
+            log_info_m.print_message(message="没有任何匹配的结果")
 
         if flag.upper() == 'Y':
             if no_matche_lists:
-                print('\n' + '-' * 100)
-                print("以下内容文件夹中和CSV中都存在：")
+                log_info_m.print_message(message='\n' + '-' * 100)
+                result_m.print_message(message="以下内容文件夹中和CSV中都存在：")
                 tools.for_in_for_print(no_matche_lists)
         else:
-            print("没有任何匹配的结果")
+            result_m.print_message(message="没有任何匹配的结果")
 
 
 def rename_with_dir():
     """文件夹下视频命名规范化"""
-    print("请输入要重命名的文件夹： ")
+    tips_m.print_message(message="请输入要重命名的文件夹： ")
     path = tools.process_input_str_limit()
     if not tools.check_is_None(path):
         files = tools.get_file_paths_limit(path, *constants.VIDEO_SUFFIX)
@@ -515,11 +515,11 @@ def rename_file(filepath):
             new_name = f"{rest_part} ({year_part}){file_extension}"
             new_path = os.path.join(os.path.dirname(filepath), new_name)
             os.rename(filepath, new_path)
-            print(f"已将文件 {filename} 重命名为 {new_name}")
+            result_m.print_message(message=f"已将文件 {filename} 重命名为 {new_name}")
         else:
-            print(f"无法获取有效的年份部分于文件 {filename}")
+            result_m.print_message(message=f"无法获取有效的年份部分于文件 {filename}")
     else:
-        print(f"{filepath} 不是一个有效的文件路径")
+        log_info_m.print_message(message=f"{filepath} 不是一个有效的文件路径")
 
 
 # ---------------------------------------------------------------
@@ -551,7 +551,7 @@ async def get_file_paths_limit(folder, *extensions):
                 path = os.path.join(root, file)
                 paths.append(path)
     if not paths:
-        print("未找到任何文件")
+        log_info_m.print_message(message="未找到任何文件")
     return paths
 
 
@@ -584,7 +584,7 @@ async def get_video_info_list(paths):
             max_path_len = max(max_path_len, len(path))
             video_info_list.sort(key=lambda x: x[3])  # 按比特率排序
         except Exception as e:
-            print(f"处理文件 {path} 时出错：{e}")
+            log_info_m.print_message(message=f"处理文件 {path} 时出错：{e}")
             global_exception_handler(type(e), e, e.__traceback__)
             continue
 
@@ -599,7 +599,7 @@ async def get_file_paths_list_limit(file_paths_list, *extensions):
         if file_ext in extensions:
             paths.append(file_path)
     if not paths:
-        print("未找到任何文件")
+        log_info_m.print_message(message="未找到任何文件")
     return paths
 
 
@@ -669,9 +669,9 @@ def print_video_info_list_asy():
 
 def get_directories_and_copy_tree():
     """获取指定文件夹下的目录结构"""
-    print("请输入需要复制目录结构的文件夹")
+    tips_m.print_message(message="请输入需要复制目录结构的文件夹")
     folder = tools.process_input_str_limit()
-    print("请输入要复制结构到的文件夹")
+    tips_m.print_message(message="请输入要复制结构到的文件夹")
     point_folder = tools.process_input_str_limit()
     """
     获取给定文件夹中的所有子文件夹，并将其复制到指定文件夹中。
@@ -682,7 +682,7 @@ def get_directories_and_copy_tree():
         target_dir = os.path.join(point_folder, os.path.basename(folder))
         # 创建目标文件夹
         os.makedirs(target_dir, exist_ok=True)
-        print(f"Directory copied from '{folder}' to '{target_dir}'")
+        log_info_m.print_message(message=f"Directory copied from '{folder}' to '{target_dir}'")
 
         # 获取除起始文件夹外的所有子文件夹
         directories = []
@@ -696,16 +696,16 @@ def get_directories_and_copy_tree():
                 target_subdir = os.path.join(target_dir, os.path.relpath(directory, folder))
                 # 创建目标文件夹
                 os.makedirs(target_subdir, exist_ok=True)
-                print(f"Directory copied from '{directory}' to '{target_subdir}'")
+                result_m.print_message(message=f"Directory copied from '{directory}' to '{target_subdir}'")
 
     else:
-        print("目录不存在，或不是目录")
+        log_info_m.print_message(message="目录不存在，或不是目录")
 
 
 def get_exclude_suffix_folder_list():
-    print("请输入要检索的文件夹")
+    tips_m.print_message(message="请输入要检索的文件夹")
     folder_list = tools.process_input_list()
-    print("输入需要排除的后缀，多个参数用空格隔开")
+    tips_m.print_message(message="输入需要排除的后缀，多个参数用空格隔开")
     extensions = input()
     excluded_folders = []  # 存储需要排除的文件夹路径列表
     if folder_list:
@@ -716,5 +716,5 @@ def get_exclude_suffix_folder_list():
     # 使用集合运算来计算不包含指定后缀文件的文件夹路径
     folders_without_extension = all_folders - set(excluded_folders)
     if folders_without_extension:
-        print("不含指定后缀的文件夹：")
+        result_m.print_message(message="不含指定后缀的文件夹：")
         tools.for_in_for_print(folders_without_extension)
