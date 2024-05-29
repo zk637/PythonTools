@@ -11,6 +11,9 @@ import rarfile
 import constants
 import tools
 
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
+
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -19,12 +22,12 @@ global_exception_handler = global_exception_handler
 
 def check_zip_password_old():
     """判断指定文件夹下的压缩文件是否加密（不支持7z分卷）"""
-    print("请输入需要检索的文件夹")
+    tips_m.print_message(message="请输入需要检索的文件夹")
     var = tools.process_input_str_limit()
-    print("是否处理7zip格式？ y/n")
+    tips_m.print_message(message="是否处理7zip格式？ y/n")
     zipflag = tools.process_input_str_limit()
     if zipflag.upper() == 'Y':
-        print("选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
+        tips_m.print_message(message="选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
         flag = tools.process_input_str_limit() or 'R'
         if flag.upper() not in ['R', 'W', 'A']:
             raise ValueError('错误的参数！')
@@ -60,7 +63,7 @@ def check_zip_password_old():
                     final_lists.append(sevenzip_list)
                     pass
                 else:
-                    print(f'{sevenzip_list} 不是有效的7z压缩文件')
+                    log_info_m.print_message(message=f'{sevenzip_list} 不是有效的7z压缩文件')
     if zip_list:
         for zip in zip_list:
             try:
@@ -89,16 +92,18 @@ def check_zip_password_old():
                 if isinstance(e, rarfile.NeedFirstVolume):
                     pass
                 else:
-                    print(rar_list + "发生错误：")
+                    log_info_m.print_message(message=rar_list + "发生错误：")
                     global_exception_handler(type(e), e, e.__traceback__)
                     pass
-    #去重
+    # 去重
     ex_final_lists = set(ex_final_lists)
-    final_lists=set(final_lists)
+    final_lists = set(final_lists)
     """遍历结果"""
-    print("--------------------------------------------------无密码----------------------------------------------------")
+    log_info_m.print_message(
+        message="--------------------------------------------------无密码----------------------------------------------------")
     tools.for_in_for_print(sorted(ex_final_lists))
-    print("--------------------------------------------------有密码----------------------------------------------------")
+    log_info_m.print_message(
+        message="--------------------------------------------------有密码----------------------------------------------------")
     tools.for_in_for_print(sorted(final_lists))
     # print(datetime.datetime.now())
 
@@ -106,7 +111,7 @@ def check_zip_password_old():
 # TODO 更多格式的判断
 def extract_archive():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
-    print("请输入文件夹")
+    tips_m.print_message(message="请输入文件夹")
     folder = tools.process_input_str_limit()
 
     filelists = tools.get_file_paths_limit(folder, *constants.ZIP_SUFFIX)
@@ -136,8 +141,8 @@ def extract_archive():
         shutil.copy2(source_path_dll, target_path_dll)
         flag = False
     if flag == False:
-        print(datetime.datetime.now())
-        print("正在执行：压缩文件的加密判断...")
+        log_info_m.print_message(message=datetime.datetime.now())
+        log_info_m.print_message(message="正在执行：压缩文件的加密判断...")
         zip_path_list = tools.get_file_paths_list_limit(filelists, '.zip')
         rar_path_list = tools.get_file_paths_list_limit(filelists, '.rar')
         seven_z_path_list = tools.get_file_paths_list_limit(filelists, '.7z')
@@ -163,7 +168,7 @@ def extract_archive():
                 else:
                     ex_lists.add(seven)
 
-        print("正在执行：7z分卷压缩文件的加密判断...")
+        log_info_m.print_message(message="正在执行：7z分卷压缩文件的加密判断...")
         file_sevenparts_lists = tools.register_findone(file_list, r"(\.7z\.\d+)")
         # print(file_sevenparts_lists)
         if file_sevenparts_lists:
@@ -175,7 +180,7 @@ def extract_archive():
                 else:
                     ex_lists.update(file_parts_list)
 
-        print("正在执行：zip分卷压缩文件的加密判断...")
+        log_info_m.print_message(message="正在执行：zip分卷压缩文件的加密判断...")
 
         file_zipparts_lists = tools.register_findone(file_parts_lists, "([\*^\.$]+[z$][0$+][0$+\d])+")
         # print(file_zipparts_lists)
@@ -191,7 +196,7 @@ def extract_archive():
                     else:
                         ex_lists.update(file_zipparts)
 
-        print("正在执行：rar分卷压缩文件的加密判断...")
+        log_info_m.print_message(message="正在执行：rar分卷压缩文件的加密判断...")
         # print(file_parts_lists)
         file_rarparts_lists = tools.register_findone(filelists, "([\*^\.$])part\d+\.rar")
         if file_rarparts_lists:
@@ -206,12 +211,12 @@ def extract_archive():
 
         if ex_lists:
             ex_lists = ex_lists - final_lists
-            print(
-                "--------------------------------------------------无密码----------------------------------------------------")
+            result_m.print_message(message=
+                                   "--------------------------------------------------无密码----------------------------------------------------")
             tools.for_in_for_print(sorted(ex_lists))
         if final_lists:
-            print(
-                "--------------------------------------------------有密码----------------------------------------------------")
+            result_m.print_message(message=
+                                   "--------------------------------------------------有密码----------------------------------------------------")
             tools.for_in_for_print(sorted(final_lists))
         print(datetime.datetime.now())
 

@@ -7,6 +7,9 @@ import tools
 from fuzzywuzzy import fuzz
 from flashtext import KeywordProcessor
 
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
+
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -19,9 +22,9 @@ def find_subtitle():
     # video_path = input("请输入视频路径: ").replace('"', '')
     # subtitles_foldern=input("请输入字幕文件夹路径:")
     # shlex.split(subtitles_foldern)
-    print("请输入视频路径")
-    video_path = tools.process_intput_strr("请输入视频路径:")
-    print("请输入字幕文件夹路径")
+    tips_m.print_message(message="请输入视频路径")
+    video_path = tools.process_input_str()
+    tips_m.print_message(message="请输入字幕文件夹路径")
     subtitles_folder = tools.process_input_str()
     # 提取视频文件名中的关键字
     video_filename = os.path.basename(video_path)
@@ -49,9 +52,9 @@ def find_subtitle():
             # 复制字幕文件到视频文件所在路径的前一级目录
             shutil.copy(subtitle_path, new_subtitle_path)
             if subtitle_path:
-                print(f"找到匹配的字幕文件：{subtitle_path}")
+                result_m.print_message(message=f"找到匹配的字幕文件：{subtitle_path}")
             else:
-                print("没有找到匹配的字幕文件。")
+                result_m.print_message(message="没有找到匹配的字幕文件。")
             return new_subtitle_path
 
     # 没有找到匹配的字幕文件
@@ -60,9 +63,9 @@ def find_subtitle():
 
 def find_matching_subtitles():
     """通过视频路径查找字幕文件列表（支持模糊匹配）   """
-    print("请输入视频路径")
+    tips_m.print_message(message="请输入视频路径:")
     video_path = tools.process_input_str_limit().strip()
-    print("请输入字幕文件夹路径")
+    tips_m.print_message(message="请输入字幕文件夹路径:")
     subtitles_folder = tools.process_input_str_limit().strip()
     if os.path.isfile(video_path) and os.path.isdir(subtitles_folder):
         # 遍历字幕文件夹获取所有的字幕文件路径
@@ -85,24 +88,21 @@ def find_matching_subtitles():
 
         if not slur_matching_subtitles:
             # 没有找到匹配的字幕文件
-            print("没有找到匹配的字幕文件。")
+            result_m.print_message(message='False：没有找到匹配的字幕文件。')
         else:
             # 打印匹配的字幕文件路径列表，并在每个路径后添加换行符
             if slur_matching_subtitles:
-                print("模糊匹配的字幕文件：")
-                for subtitle_path in slur_matching_subtitles:
-                    # print(subtitle_path)
-                    print(tools.add_quotes_forpath(subtitle_path))
-                print()  # 打印空行以实现换行效果
+                result_m.print_message(message='True：模糊匹配的字幕文件：')
+                tools.for_in_for_print(slur_matching_subtitles, flag=True)
     else:
-        print("参数有误，路径为空？")
+        log_info_m.print_message(message='"参数有误，路径为空？"')
 
 
 def find_matching_subtitles_create():
     """通过视频路径查找字幕文件并创建目录"""
-    print("请输入视频路径")
+    tips_m.print_message(message="请输入视频路径")
     video_path = tools.process_input_str_limit().strip()
-    print("请输入字幕文件夹路径")
+    tips_m.print_message(message="请输入字幕文件夹路径")
     subtitles_folder = tools.process_input_str_limit().strip()
     if not tools.check_is_None(video_path, subtitles_folder):
         # 遍历字幕文件夹获取所有的字幕文件路径
@@ -127,13 +127,13 @@ def find_matching_subtitles_create():
 
             if subtitle_path is None:
                 # 没有找到匹配的字幕文件
-                print("没有找到匹配的字幕文件。")
+                result_m.print_message(message="没有找到匹配的字幕文件。")
                 return None
             else:
                 # 尝试打开字幕文件，如果文件已被占用，则设置 subtitle_path 为 None 并重试
                 try:
                     encode = tools.detect_encoding(subtitle_path)
-                    subtitle_path = tools.convert_to_utf8(subtitle_path,encode)
+                    subtitle_path = tools.convert_to_utf8(subtitle_path, encode)
                     with open(subtitle_path, "r", encoding=encode) as f:
                         pass
                 except IOError:
@@ -150,7 +150,7 @@ def find_matching_subtitles_create():
         # # 将字幕文件复制到目标文件夹中
         target_subtitle_path = os.path.join(target_folder, os.path.basename(subtitle_path))
         tools.copy_file(subtitle_path, target_subtitle_path)
-        print(f"找到匹配的字幕文件：{subtitle_path}")
+        result_m.print_message(message=f"找到匹配的字幕文件：{subtitle_path}")
         # return target_subtitle_path
 
 
@@ -158,11 +158,11 @@ def getSrt():
     """使用关键词来查找字幕文件和匹配的媒体文件"""
     # 匹配的关键字，这里假设匹配文件名中包含"abc"的视频文件和字幕文件
     # keywords = "Romeo and Juliet"
-    print("请输入keyword：")
+    tips_m.print_message(message="请输入keyword：")
     keywords = tools.process_input_str_limit()
-    print("请输入视频文件夹路径")
+    tips_m.print_message(message="请输入视频文件夹路径")
     video_folder = tools.process_input_str_limit()
-    print("请输入字幕文件夹路径")
+    tips_m.print_message(message="请输入字幕文件夹路径")
     subtitle_folder = tools.process_input_str_limit()
     if keywords and os.path.isdir(video_folder) and os.path.isdir(subtitle_folder):
         # 遍历视频文件夹中的所有文件
@@ -195,12 +195,12 @@ def getSrt():
         if match_list:
             match_list = set(match_list)
             tools.for_in_for_print(match_list)
-        print('-' * 150)
+        log_info_m.print_message(message='-' * 150)
         if path_list:
             path_list = set(path_list)
             tools.for_in_for_print(path_list)
     else:
-        print("参数有误，路径为空？")
+        log_info_m.print_message(message="参数有误，路径为空？")
 
 
 # 匹配文件夹下视频与字幕对应 并输出列表
@@ -208,15 +208,15 @@ def getSrtNew():
     """匹配视频目录下对应的字幕文件并返回列表"""
     # video_dir = "/path/to/video/directory"
     # subtitles_dir = "/path/to/subtitles/directory"
-    print("请输入视频文件夹路径")
+    tips_m.print_message(message="请输入视频文件夹路径")
     video_folder = tools.process_input_str_limit()
-    print("请输入字幕文件夹路径")
+    tips_m.print_message(message="请输入字幕文件夹路径")
     subtitle_folder = tools.process_input_str_limit()
     # match_files(video_folder, subtitle_folder)
     if os.path.isdir(video_folder) and os.path.isdir(subtitle_folder):
-        process_files(video_folder, subtitle_folder)
+        getSrtNew_process(video_folder, subtitle_folder)
     else:
-        print("参数有误，路径为空？")
+        log_info_m.print_message(message="参数有误，路径为空？")
 
 
 def get_file_paths(folder):
@@ -231,7 +231,7 @@ def get_file_paths(folder):
 
 
 # TODO
-def process_files(video_folder, subtitle_folder):
+def getSrtNew_process(video_folder, subtitle_folder):
     # 获取视频文件名列表
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     video_files = tools.get_file_paths_limit(video_folder, *VIDEO_SUFFIX)
@@ -264,7 +264,7 @@ def process_files(video_folder, subtitle_folder):
         match_list = set(match_list)
         # 打印匹配列表
         tools.for_in_for_print(match_list)
-    print('-' * 150)
+    log_info_m.print_message(message='-' * 150)
     if path_list:
         path_list = set(path_list)
         # 打印路径列表

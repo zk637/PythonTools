@@ -4,6 +4,10 @@ import cv2
 import tools
 import constants
 
+
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
+
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 from tools import profile_all_functions
@@ -13,11 +17,12 @@ global_exception_handler = global_exception_handler
 
 def get_low_resolution_media_files():
     """通过视频目录查找符合区间条件分辨率的媒体文件"""
-    print("-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
+
+    tips_m.print_message(message="-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
     size_limit1 = str(tools.process_input_str_limit())
     width_limit1, height_limit1 = map(int, size_limit1.split("*"))
 
-    print("-----------------------请输入第二个分辨率阈值（格式为 宽*高）:--------------------------")
+    tips_m.print_message(message="-----------------------请输入第二个分辨率阈值（格式为 宽*高）:--------------------------")
     size_limit2 = str(tools.process_input_str_limit())
     width_limit2, height_limit2 = map(int, size_limit2.split("*"))
 
@@ -26,11 +31,12 @@ def get_low_resolution_media_files():
     if height_limit1 > height_limit2:
         height_limit1, height_limit2 = height_limit2, height_limit1
 
-    print(f"分辨率区间阈值：{width_limit1}*{height_limit1}~{width_limit2}*{height_limit2}")
+    log_info_m.print_message(message=f"分辨率区间阈值：{width_limit1}*{height_limit1}~{width_limit2}*{height_limit2}")
 
-    print("请输入视频文件夹：")
+    tips_m.print_message(message="请输入视频文件夹：")
     path = tools.process_input_str_limit()
-    print("比特率排序Y/N")
+    tips_m.print_message(message="比特率排序Y/N")
+
     flag = tools.process_input_str_limit()
     files = []
     for file_path in tools.get_file_paths(path):
@@ -49,22 +55,26 @@ def get_low_resolution_media_files():
                     if width >= width_limit1 and height >= height_limit1 and width <= width_limit2 and height <= height_limit2:
                         files.append(file_path)
             except Exception as e:
-                print(f"Error occurred while processing file {file_path}: {str(e)}")
+
+                log_info_m.print_message(message=f"Error occurred while processing file {file_path}: {str(e)}")
+
                 global_exception_handler(type(e), e, e.__traceback__)
 
     if ('Y' == flag.upper()):
         try:
             files = tools.getbitratesort(files)
             files = tools.add_quotes_forpath_list(files)
-            print("分辨率符合要求的媒体文件列表（按比特率由大到小排序）：")
-            print("\n".join(files))
+
+            result_m.print_message(message="分辨率符合要求的媒体文件列表（按比特率由大到小排序）：")
+            log_info_m.print_message(message="\n".join(files))
         except Exception as e:
-            print(f"Error occurred while sorting files by bitrate: {str(e)}")
+            log_info_m.print_message(message=f"Error occurred while sorting files by bitrate: {str(e)}")
             global_exception_handler(type(e), e, e.__traceback__)
     else:
-        print("分辨率符合要求的媒体文件列表：")
+        result_m.print_message(message="分辨率符合要求的媒体文件列表：")
         files = tools.add_quotes_forpath_list(files)
-        print("\n".join(files))
+        log_info_m.print_message(message="\n".join(files))
+
 
 
 def get_video_duration_sorted():
@@ -78,9 +88,10 @@ def get_video_duration_sorted():
     if not folder_flag:
         paths = path_list
 
-    print("是否输出文件时长大小一致的列表？Y/N de:N")
+    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N de:N")
     same_flag = tools.process_input_str_limit().upper()
-    print("是否纯净输出y/n")
+    tips_m.print_message(message="是否纯净输出y/n")
+
     flag = tools.process_input_str_limit().upper()
 
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
@@ -100,9 +111,11 @@ def get_video_duration_sorted():
             for path, duration in sorted_durations:
                 if flag == 'y':
                     path = tools.add_quotes_forpath(path)
-                    print(path)
+
+                    result_m.print_message(message=path)
                 else:
-                    print(f"{path}: {duration / 60:.2f} min")
+                    log_info_m.print_message(message=f"{path}: {duration / 60:.2f} min")
+
     # 如果选择输出时长相同的列表
     if same_flag == 'Y':
         if folder_flag:
@@ -139,7 +152,9 @@ def get_video_duration_sorted():
                             path = tools.add_quotes_forpath(path)
                             print(path)
                     else:
-                        print(f"{duration / 60:.2f} min")
+
+                        log_info_m.print_message(message=f"{duration / 60:.2f} min")
+
                         for path in paths[1:]:
                             path = tools.add_quotes_forpath(path)
                             print(path)
@@ -149,18 +164,22 @@ def print_video_info_list():
     """输出视频文件的大小、时长、比特率和分辨率（支持文件列表和文件夹）"""
 
     file_paths_list, video_dir = tools.process_paths_list_or_folder()
-    print("是否纯净输出y/n")
+
+    tips_m.print_message(message="是否纯净输出y/n")
+
     flag = tools.process_input_str_limit()
     if file_paths_list:
         folder = tools.get_file_paths_list_limit(file_paths_list, *constants.VIDEO_SUFFIX)
     elif os.path.isdir(video_dir):
         folder = tools.get_file_paths_limit(video_dir, *constants.VIDEO_SUFFIX)
     else:
-        print("文件为空，需检查条件或参数！")
+
+        log_info_m.print_message(message="文件为空，需检查条件或参数！")
         return
 
     if not folder:
-        print("文件为空，需检查条件或参数！")
+        log_info_m.print_message(message="文件为空，需检查条件或参数！")
+
         return
 
     # pool=ThreadPoolExecutor(1)
@@ -176,12 +195,16 @@ def print_video_info_list():
         width = video_info[4]
         height = video_info[5]
         if (flag == 'y'.lower()):
-            print(path)
+
+            result_m.print_message(message=path)
+
         else:
             print("{:<{}}{:<15}{:<15}{:<15}{:<15}".format(path, max_path_len, size, duration, bitrate,
                                                           f"{width}x{height}"),
                   end="")
-            print(" " * (max_path_len - len(path) + 1))
+
+            result_m.print_message(message=" " * (max_path_len - len(path) + 1))
+
 
 
 def get_video_audio():
@@ -194,16 +217,20 @@ def get_video_audio():
     elif os.path.isdir(folder):
         folder = tools.get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
     if not folder:
-        print("文件为空，需检查条件或参数！")
+
+        log_info_m.print_message(message="文件为空，需检查条件或参数！")
         return
     for path in folder:
         tools.convert_video_to_mp3(path)
-    print("队列执行完成")
+    log_info_m.print_message(message="队列执行完成")
+
 
 
 def getfiletypeislegal():
     """校验文件是否合法"""
-    print("请输入文件夹路径:")
+
+    tips_m.print_message(message="请输入文件夹路径:")
+
     source_folder_path = tools.process_input_str_limit()
     if not tools.check_is_None(source_folder_path):
         path = tools.get_file_paths(source_folder_path)
@@ -217,7 +244,9 @@ def split_video():
      """
     input_video_list, input_video_dir = tools.process_paths_list_or_folder()
     if input_video_list:
-        print("拆分后每段文件的大小限制 单位：MB")
+
+        tips_m.print_message(message="拆分后每段文件的大小限制 单位：MB")
+
         max_size_mb = int(tools.process_input_str_limit()) * 1024 * 1024
 
         output_dir = r'H:\spilt_parts_dir'
@@ -229,14 +258,18 @@ def split_video():
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
                     tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
-                    print(f"文件无法拆分：{input_video}")
+
+                    log_info_m.print_message(message=f"文件无法拆分：{input_video}")
+
     elif os.path.isdir(input_video_dir):
         filename, file_extension = os.path.splitext(input_video_dir)
 
         output_dir = os.path.join(filename, 'spilt_parts_dir')
         tools.make_dir(output_dir)
 
-        print("拆分后每段文件的大小限制 单位：MB")
+
+        tips_m.print_message(message="拆分后每段文件的大小限制 单位：MB")
+
         max_size_mb = int(tools.process_input_str()) * 1024 * 1024
         input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
@@ -248,9 +281,11 @@ def split_video():
                         part_max_size = os.path.getsize(input_video) / part_num
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
-                        print(f"文件无法拆分：{input_video}")
+
+                        log_info_m.print_message(message=f"文件无法拆分：{input_video}")
     else:
-        print("参数有误，不是合法的路径？")
+        log_info_m.print_message(message="参数有误，不是合法的路径？")
+
 
 
 def split_audio():
@@ -275,18 +310,22 @@ def split_audio():
 
 def add_srt():
     """为视频文件添加字幕"""
-    print("输入视频文件路径")
+
+    tips_m.print_message(message="输入视频文件路径")
     video_path = tools.process_input_str_limit().replace('"', '')
-    print("输入字幕文件路径")
+    tips_m.print_message(message="输入字幕文件路径")
     srt_path = tools.process_input_str_limit().replace('"', '')
-    print("硬字幕还是软字幕 Y/N def:N")
+    tips_m.print_message(message="硬字幕还是软字幕 Y/N def:N")
+
     flag = tools.process_input_str_limit() or 'N'
     if not tools.check_is_None(video_path, srt_path):
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)
             # base_name = os.path.basename(video_path).split('.')[0]
             base_name, extension = os.path.splitext(video_path.split('\\')[-1])
-            print(base_name)
+
+            log_info_m.print_message(message=base_name)
+
             # 构建输出文件名
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
@@ -301,7 +340,9 @@ def add_srt():
             srt_path = "'" + srt_path + "'"
             # print(srt_path)
             command = f'ffmpeg  -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
-            print(command)
+
+            log_info_m.print_message(message=command)
+
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
             tools.subprocess_common_bat(bat_file, command)
         else:
@@ -309,7 +350,9 @@ def add_srt():
             command = f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
             result = tools.subprocess_common_bat(bat_file, command)
-            print(result)
+
+            result_m.print_message(message=result)
+
 
 
 def check_files_subtitle_stream():
@@ -323,7 +366,9 @@ def check_files_subtitle_stream():
     elif os.path.isdir(video_dir):
         video_files = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
     else:
-        print("参数有误，不是合法的路径？")
+
+        log_info_m.print_message(message="参数有误，不是合法的路径？")
+
         return
     videos_with_subtitle_stream = []
     videos_without_subtitle_stream = []
@@ -335,9 +380,11 @@ def check_files_subtitle_stream():
         else:
             videos_without_subtitle_stream.append(video_path)
 
-    print("True：存在字幕流的文件：" + '_' * 80)
+
+    result_m.print_message(message="True：存在字幕流的文件：" + '_' * 80)
     tools.for_in_for_print(videos_with_subtitle_stream)
-    print("False：不存在字幕流的文件：" + '_' * 80)
+    result_m.print_message(message="False：不存在字幕流的文件：" + '_' * 80)
+
     tools.for_in_for_print(videos_without_subtitle_stream)
 
 
@@ -373,14 +420,17 @@ def check_video_integrity():
     # for video_path in video_files:
     #     print(video_path)
 
-    
+
+
     # 检查视频完整性
     for video_path in video_files[:]:
         # 检查MP4文件的完整性
         total_MB, realSize_MB = tools.check_mp4(video_path)
         if total_MB == realSize_MB and not tools.check_str_is_None(total_MB) and not tools.check_str_is_None(
                 realSize_MB) and not tools.check_not_in_suffix(video_path, *constants.VIDEO_SUFFIX):
-            print("check_mp4：" + video_path)
+
+            log_info_m.print_message(message="check_mp4：" + video_path)
+
             video_integrity.append(video_path)
             continue  # 视频完整，跳过后续检查
 
@@ -406,8 +456,10 @@ def check_video_integrity():
             else:
                 video_unintegrity.append(video_path)
 
-    #输出
-    print("True：视频文件完整的有：" + '_' * 80)
+
+    # 输出
+    result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
     tools.for_in_for_print(video_integrity)
-    print("False：视频文件不完整的有：" + '_' * 80)
+    result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
+
     tools.for_in_for_print(video_unintegrity)
