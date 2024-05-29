@@ -15,6 +15,9 @@ import subprocess
 import contextlib
 import sys
 import my_exception
+
+# 注册模块对象
+from model import tips_m, log_info_m, result_m
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -24,6 +27,7 @@ global_exception_handler = global_exception_handler
 program_start_time = None
 last_input_time = None
 input_durations = []
+
 
 
 def get_program_start_time():
@@ -93,7 +97,7 @@ def process_input_str_limit(s=None):
 def process_input_list():
     """输入参数为列表"""
     list = []
-    print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+    tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
     while True:
         path = input().strip('"')
         if not path:
@@ -128,7 +132,7 @@ def check_is_None(*args, **kwargs):
     elif kwargs and all(
             v is not None and v != '' and v != [] and v != {} and args != () and set() != () for v in kwargs.values()):
         return False
-    print("参数有误，为空？")
+    log_info_m.print_message(message="参数有误，为空？")
     return True  # 如果存在参数为空，则返回True
 
 
@@ -149,7 +153,7 @@ def check_file_or_folder(str_list):
                 folder_files = set(get_file_paths(str_item))  # 获取文件夹中的文件路径
                 file_list.update(folder_files)  # 将文件夹中的文件路径添加到文件集合中
     else:
-        print("参数列表为空！")
+        log_info_m.print_message(message="参数列表为空！")
 
     # 将集合转换为列表并返回
     return list(file_list), list(folder_list)
@@ -165,11 +169,11 @@ def process_paths_list_or_folder():
     """
     video_paths_list = []
 
-    print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+    tips_m.print_message(message="选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
     flag = process_input_str_limit().lower() or 'n'
 
     if flag == 'y':
-        print("请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
         while True:
             path = process_input_str().strip('"')
             if not path:
@@ -177,7 +181,7 @@ def process_paths_list_or_folder():
             video_paths_list.append(path.strip('"'))
             folder_path = None
     elif flag == 'n':
-        print("请输入文件夹路径：")
+        tips_m.print_message(message="请输入文件夹路径：")
         folder_path = process_input_str()
 
     return video_paths_list, folder_path
@@ -210,7 +214,7 @@ def process_paths_list_and_folder(paths: list,
     """
 
     if not paths:
-        print("参数为空")
+        log_info_m.print_message(message="参数为空")
         return []
     video_paths_list, video_dir = paths
     all_files = []
@@ -230,7 +234,7 @@ def process_paths_list_and_folder(paths: list,
             else:
                 all_files.append(video_dir)
         else:
-            print(f"参数有误，不是合法的路径：{video_dir}")
+            log_info_m.print_message(message=f"参数有误，不是合法的路径：{video_dir}")
 
     return all_files
 
@@ -243,20 +247,21 @@ def add_quotes_forpath(s):
 
 def add_quotes_forpath_list(paths):
     """
-    为路径列表中的每个路径添加双引号
+    为路径列表中的每个路径添加双引号并返回
     Args:
         paths (list): 路径列表
 
     Returns:
         list: 添加了双引号的路径列表
     """
-    return ['"' + path + '"' for path in paths]
+    if paths:
+        return ['"' + path + '"' for path in paths]
 
 
 def make_dir(s):
     os.makedirs(s, exist_ok=True)
     if os.path.exists(s):
-        print(f"Folder '{s}' created successfully.")
+        result_m.print_message(message=f"Folder '{s}' created successfully.")
 
 
 def get_file_count(folder):
@@ -301,32 +306,36 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-def for_in_for_print(list):
+def for_in_for_print(list,flag=False):
     """
     通用的单纯for循环输出结果
+        Args:
+        list: 包含文件路径的列表。
+        flag: 是否使用“”包裹路径
     example：
     ---------------符合条件的内容---------------
     print()
     ---------------不符合条件的内容---------------
     print()
     """
-    if list:
+    if list and flag is not True:
         for str in list:
-            print(str)
+            result_m.print_message(message=str)
+    elif list and flag:
+        for str in list:
+            result_m.print_message(message=add_quotes_forpath(str))
     else:
-        print("参数有误,为空？")
-
+        log_info_m.print_message(message="参数有误,列表为空？")
 
 def cont_files_processor(path_list, index):
     if path_list:
         count = count_files(path_list)
-        print("index: {}".format(index))
-        print(count)
-        print("是否输出符合条件的文件路径 Y/N")
+        log_info_m.print_message(message="index: {}".format(index))
+        result_m.print_message(message=count)
+        log_info_m.print_message(message="是否输出符合条件的文件路径 Y/N")
         flag = process_input_str_limit()
         if flag.upper() == 'Y':
-            for path in path_list:
-                print(path)
+            for_in_for_print(path_list)
 
 
 def get_file_paths(folder):
@@ -397,7 +406,7 @@ def check_in_suffix(file_path, suffixes):
         result = file_ext in suffixes
         return result
     except Exception as e:
-        print(f"Error: {e}")
+        log_info_m.print_message(message=f"Error: {e}")
         global_exception_handler(Exception, f"文件：{file_path}无法获取文件后缀", None)
         return False
 
@@ -438,7 +447,7 @@ def get_file_paths_limit(folder, *extensions):
                 path = os.path.join(root, file)
                 paths.append(path)
     if not paths:
-        print("未找到任何文件")
+        log_info_m.print_message(message="未找到任何文件")
     return paths
 
 
@@ -451,7 +460,7 @@ def get_file_paths_list_limit(file_paths_list, *extensions):
                 paths.append(file_path)
                 break  # 如果当前文件路径匹配了任一后缀，则立即跳出内层循环
     if not paths:
-        print("未找到任何文件")
+        log_info_m.print_message(message="未找到任何文件")
     return paths
 
 
@@ -575,7 +584,7 @@ def get_list_dirs(path):
 def get_sort_list(rules):
     sorted_rules = sorted(rules, key=len)
     for rule in sorted_rules:
-        print(f'{rule}')
+        result_m.print_message(message=f'{rule}')
 
 
 def get_same_namefile(folder_path):
@@ -671,7 +680,7 @@ def convert_to_utf8(input_file_path, encoding):
         output_file_path = os.path.join(input_dir, os.path.splitext(input_filename)[0] + "_utf8.txt")
     else:
         # 如果输入文件路径不存在或者编码为 UTF-8，则直接返回
-        print("输入文件路径不存在或者编码为 UTF-8，无需转换")
+        log_info_m.print_message(message="输入文件路径不存在或者编码为 UTF-8，无需转换")
         return input_file_path
 
     # 打开输入文件，并以指定的编码方式读取内容
@@ -682,7 +691,7 @@ def convert_to_utf8(input_file_path, encoding):
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         output_file.write(content)
 
-    print(f"文件已成功转换为 UTF-8 编码，并保存为：{output_file_path}")
+    log_info_m.print_message(message=f"文件已成功转换为 UTF-8 编码，并保存为：{output_file_path}")
     return output_file_path
 
 
@@ -707,31 +716,31 @@ def check_file_access(file_paths):
 
     # Output files with "Cannot determine file type" error
     if results['cannot_determine_type']:
-        print("Errors with 'Cannot determine file type':")
+        log_info_m.print_message(message="Errors with 'Cannot determine file type':")
         for file_path in results['cannot_determine_type']:
-            print(file_path)
-        print("_" * 30)  # Print a line to separate categories
+            result_m.print_message(message=file_path)
+        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files with successful "File type" determined
     if results['has_file_type']:
-        print("Files with 'File type':")
+        log_info_m.print_message(message="Files with 'File type':")
         for file_data in results['has_file_type']:
-            print(f"{file_data['file_path']} (File type: {file_data['file_type']})")
-        print("_" * 30)  # Print a line to separate categories
+            log_info_m.print_message(message=f"{file_data['file_path']} (File type: {file_data['file_type']})")
+        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files where no type determined
     if results['no_type_determined']:
-        print("Files with no type determined:")
+        log_info_m.print_message(message="Files with no type determined:")
         for file_path in results['no_type_determined']:
-            print(file_path)
-        print("_" * 30)  # Print a line to separate categories
+            log_info_m.print_message(message=file_path)
+        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files with errors
     if results['error_files']:
-        print("Files with errors:")
+        log_info_m.print_message(message="Files with errors:")
         for file_data in results['error_files']:
-            print(f"{file_data['file_path']}\nError: {file_data['error_message']}")
-        print("_" * 30)  # Print a line to separate categories
+            log_info_m.print_message(message=f"{file_data['file_path']}\nError: {file_data['error_message']}")
+        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
 
 
 def remove_duplicate_files(file_list):
@@ -787,10 +796,10 @@ def subprocess_common(command, shell=True, capture_output=True, text=True):
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True)
         # 输出命令的详细信息
-        print(result.stdout)
-        print(result.stderr)
+        log_info_m.print_message(message=result.stdout)
+        log_info_m.print_message(message=result.stderr)
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        log_info_m.print_message(message=f"Error: {e}")
 
 
 def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, text=True):
@@ -800,7 +809,7 @@ def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, t
     try:
         # 将命令和批处理文件名组合成一个字符串
         command_with_bat = f'{bat_file} {command}'
-        print(command_with_bat)
+        log_info_m.print_message(message=command_with_bat)
         # 调用批处理文件并传递命令作为参数
         process = subprocess.Popen(command_with_bat, shell=shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, text=text)
@@ -809,10 +818,10 @@ def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, t
         stdout, stderr = process.communicate()
 
         # 输出命令的详细信息
-        print(stdout)
-        print(stderr)
+        log_info_m.print_message(message=stdout)
+        log_info_m.print_message(message=stderr)
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        log_info_m.print_message(message=f"Error: {e}")
 
 
 def subprocess_with_progress(command, shell=True):
@@ -820,11 +829,11 @@ def subprocess_with_progress(command, shell=True):
        输入参数为command
     """
     # 启动子进程
-    print(command)
+    log_info_m.print_message(message=command)
     process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                universal_newlines=True)
 
-    print(process)
+    log_info_m.print_message(message=process)
     process.communicate()
 
 
@@ -856,9 +865,9 @@ def rm_folder(folder_path):
     """
     try:
         subprocess.run(['rmdir', '/s', '/q', folder_path], check=False)
-        print(f"Folder {folder_path} deleted successfully.")
+        result_m.print_message(message=f"Folder {folder_path} deleted successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        log_info_m.print_message(message=f"Error: {e}")
 
 
 def copy_folder(source_folder, destination_folder):
@@ -873,9 +882,9 @@ def copy_folder(source_folder, destination_folder):
 
         # print(result.stdout)
         # print(result.stderr)
-        print(f"Folder copied from '{source_folder}' to '{destination_folder}'")
+        result_m.print_message(message=f"Folder copied from '{source_folder}' to '{destination_folder}'")
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e}")
+        log_info_m.print_message(message=f"Error: {e}")
 
 
 def copy_file(source_file, destination_file):
@@ -883,7 +892,7 @@ def copy_file(source_file, destination_file):
        输入参数为源文件地址和目标文件地址。
     """
     result = shutil.copy(source_file, destination_file)
-    print(f"File copied from '{source_file}' to '{destination_file}'")
+    result_m.print_message(message=f"File copied from '{source_file}' to '{destination_file}'")
 
 
 def create_symbolic_link(source, target_dir, is_folder=False):
@@ -892,14 +901,14 @@ def create_symbolic_link(source, target_dir, is_folder=False):
     """
     link_type = '/d' if is_folder else ''
     cmd = ['mklink', link_type, os.path.join(target_dir, os.path.basename(source)), source]
-    print('\n' + '-' * 50)
-    print("\n" + "执行命令: " + ' '.join(cmd) + "\n")
+    log_info_m.print_message(message='\n' + '-' * 50)
+    log_info_m.print_message(message="\n" + "执行命令: " + ' '.join(cmd) + "\n")
     try:
         subprocess.check_call(cmd, shell=True)
-        print("源文件路径: " + source)
-        print("目标文件夹路径: " + target_dir)
+        result_m.print_message(message="源文件路径: " + source)
+        result_m.print_message(message="目标文件夹路径: " + target_dir)
     except Exception as e:
-        print("符号链接创建失败: " + str(e))
+        log_info_m.print_message(message="符号链接创建失败: " + str(e))
         global_exception_handler(type(e), e, e.__traceback__)
 
 
@@ -907,14 +916,14 @@ def read_rules_from_file():
     filename = "file_name_rules.txt"
     if not os.path.exists(filename):
         with open(filename, "w", encoding='UTF-8') as f:
-            print("规则文件不存在，已创建空文件 file_name_rules.txt")
+            result_m.print_message(message="规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
     encode = detect_encoding(filename)
     with open(filename, encoding=encode) as f:
         content = f.read().strip()
 
     if not content:
-        print("file_name_rules规则文件为空")
+        log_info_m.print_message(message="file_name_rules规则文件为空")
         return []
 
     rules = [rule.strip() for rule in content.split(",")]
@@ -935,11 +944,11 @@ def get_video_details(path):
 
             return duration, bitrate, width, height
         except Exception as e:
-            print(f"处理文件 {path} 时出错：{e}")
+            log_info_m.print_message(message=f"处理文件 {path} 时出错：{e}")
             global_exception_handler(type(e), e, e.__traceback__)
             return 0, 0, 0, 0
     else:
-        print(f"文件路径 {path} 不存在")
+        log_info_m.print_message(message=f"文件路径 {path} 不存在")
         return 0, 0, 0, 0
 
 
@@ -965,7 +974,7 @@ def get_video_info_list(paths):
         2: 'duration',
         3: 'bitrate',
     }
-    print("请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
+    tips_m.print_message(message="请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
     sort_index = int(process_input_str_limit() or 3)
 
     for path in paths:
@@ -978,14 +987,14 @@ def get_video_info_list(paths):
             video_info_list.append((path, size, duration, bitrate, width, height))
             max_path_len = max(max_path_len, len(path))
         except Exception as e:
-            print(f"处理文件 {path} 时出错：{e}")
+            log_info_m.print_message(message=f"处理文件 {path} 时出错：{e}")
             global_exception_handler(type(e), e, e.__traceback__)
             continue
 
     sort_attribute = attribute_map.get(sort_index, 'bitrate')
     video_info_list.sort(key=lambda x: x[sort_index])
 
-    print(sort_attribute)
+    result_m.print_message(message=sort_attribute)
     return video_info_list, max_path_len
 
     # print(f'{len(rule)}: {rule}')
@@ -999,7 +1008,7 @@ def get_video_duration(video_path):
         duration = float(result)
         return duration
     except:
-        print(f"Error: Failed to get duration of video {video_path}")
+        log_info_m.print_message(message=f"Error: Failed to get duration of video {video_path}")
         return 0
 
 
@@ -1015,7 +1024,7 @@ def check_audio_stream(video_path):
         else:
             return False
     except Exception as e:
-        print(f"检查音频流时发生错误：{e}")
+        log_info_m.print_message(message=f"检查音频流时发生错误：{e}")
         return False
 
 
@@ -1024,7 +1033,7 @@ def convert_video_to_mp3(video_path):
     video_final_path = os.path.join(os.path.dirname(video_path), video_name)
     # 检查文件是否包含音频流
     if not check_audio_stream(video_path):
-        print(f"警告：文件 '{video_path}' 不包含音频流，无法转换为 MP3。")
+        log_info_m.print_message(message=f"警告：文件 '{video_path}' 不包含音频流，无法转换为 MP3。")
         return
     try:
         subprocess.run(
@@ -1033,10 +1042,10 @@ def convert_video_to_mp3(video_path):
             stderr=subprocess.PIPE,
             check=True
         )
-        print(f"转换成功：{video_name}")
+        result_m.print_message(message=f"转换成功：{video_name}")
     except subprocess.CalledProcessError as e:
-        print(f"转换失败：{video_path}")
-        print(f"错误输出：{e.stderr.decode()}")
+        result_m.print_message(message=f"转换失败：{video_path}")
+        log_info_m.print_message(message=f"错误输出：{e.stderr.decode()}")
 
 
 def getbitratesort(files):
@@ -1045,7 +1054,7 @@ def getbitratesort(files):
     for file_path in files:
         # 检查文件是否存在
         if not os.path.isfile(file_path):
-            print(f"File {file_path} not found, skipping")
+            log_info_m.print_message(message=f"File {file_path} not found, skipping")
             continue
         try:
             command = ['ffprobe', '-show_format', '-show_streams', '-of', 'json', file_path]
@@ -1053,7 +1062,7 @@ def getbitratesort(files):
             result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = result.communicate()
             if result.returncode != 0:
-                print(f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
+                log_info_m.print_message(message=f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
             # fi=os.path.normpath(file_path)
             # print(fi)
             # quoted_file_path = '"' + file_path + '"'
@@ -1063,9 +1072,9 @@ def getbitratesort(files):
                 bitrate = int(video_stream['bit_rate'])
                 files_bitrate.append((file_path, bitrate))
             else:
-                print(f"No video stream or bit rate information found in file {file_path}")
+                log_info_m.print_message(message=f"No video stream or bit rate information found in file {file_path}")
         except Exception as e:
-            print(f"Error occurred while processing file {file_path}: {str(e)}")
+            log_info_m.print_message(message=f"Error occurred while processing file {file_path}: {str(e)}")
             global_exception_handler(type(e), e, e.__traceback__)
 
     files_bitrate.sort(key=lambda x: x[1], reverse=True)
@@ -1145,10 +1154,10 @@ def get_video_info(path):
 
             return duration, video_bitrate, audio_bitrate, width, height
         else:
-            print("File does not exist.")
+            log_info_m.print_message(message="File does not exist.")
             return None
     except ffmpeg.Error as e:
-        print(f"Error probing file: {e}")
+        log_info_m.print_message(message=f"Error probing file: {e}")
         return None
 
 
@@ -1159,7 +1168,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
         part_max_duration = part_max_size * 8 / (video_bitrate + audio_bitrate)
         # 格式化分段最大时长为 HH:MM:SS 格式
         part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
-        print(f"格式化后的最大时长: {part_max_duration_formatted}")
+        log_info_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
         # 添加标志以指示是否存在已存在的文件
         existing_file_found = False
 
@@ -1176,12 +1185,12 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             output_prefix_tmp = output_prefix_tmp.replace('.mp4', '')
             # print("Original Name:", output_prefix_tmp)
         else:
-            print("File name doesn't contain '_part'.")
+            result_m.print_message(message="File name doesn't contain '_part'.")
         part_index = 0
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
             if os.path.isfile(output_prefix_tmp):
-                print(f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
+                log_info_m.print_message(message=f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
                 existing_file_found = True
                 output_prefix_tmp = ''
                 break  # 找到一个已存在的文件就跳出循环
@@ -1210,7 +1219,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
 def split_audio_for_duration(path, duration):
     filename, file_extension = os.path.splitext(path)
     video_duration = duration / 2 / 60
-    print(video_duration)
+    log_info_m.print_message(message=video_duration)
     split_command = ['ffmpeg', '-i', path, '-f', 'segment', '-segment_time', str(video_duration), '-c', 'copy',
                      filename + '_part%d.mp3']
     subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
@@ -1254,8 +1263,8 @@ def check_subtitle_stream(video_path):
             else:
                 return False
         except subprocess.CalledProcessError as e:
-            print("Error:", f"文件{video_path}：无法获取视频信息")
-            print(e.output)
+            log_info_m.print_message("Error:", f"文件{video_path}：无法获取视频信息")
+            log_info_m.print_message(message=e.output)
             return False
 
 
@@ -1299,10 +1308,10 @@ def check_mp4(filePath):
 
         return total_MB, realSize_MB
     except FileNotFoundError:
-        print("File not found.")
+        log_info_m.print_message(message="File not found.")
         return None, None
     except IOError:
-        print("IO error occurred.")
+        log_info_m.print_message(message="IO error occurred.")
     return None, None
 
 
@@ -1311,7 +1320,7 @@ def extract_start_5_minutes(video_path):
     if duration is not None:
         try:
             command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 25 -f null - -xerror'
-            print(command)
+            log_info_m.print_message(message=command)
             completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                                encoding='utf-8')
             if completed_process.returncode == 0 \
@@ -1329,7 +1338,7 @@ def extract_start_5_minutes(video_path):
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
                 return True
             else:
-                print("Failed to extract start 5 minutes.")
+                log_info_m.print_message(message="Failed to extract start 5 minutes.")
                 # print(completed_process.stderr)
                 return False
         except Exception as e:
@@ -1337,7 +1346,7 @@ def extract_start_5_minutes(video_path):
             global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
             return False
     else:
-        print("Failed to extract last 5 minutes. Video duration not available.")
+        log_info_m.print_message(message="Failed to extract last 5 minutes. Video duration not available.")
         return False
 
 
@@ -1348,7 +1357,7 @@ def extract_last_5_minutes(video_path):
             start_time = max(duration - 300, 0)
             formatted_start_time = f"{start_time:.6f}"
             command = f'ffmpeg -v error -err_detect explode -ss {formatted_start_time} -i "{video_path}" -t 50 -f null - -xerror'
-            print(command)
+            log_info_m.print_message(message=command)
             completed_process = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                                encoding='utf-8')
             if completed_process.returncode == 0 \
@@ -1367,7 +1376,7 @@ def extract_last_5_minutes(video_path):
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
                 return True
             else:
-                print("Failed to extract last 5 minutes.")
+                log_info_m.print_message(message="Failed to extract last 5 minutes.")
                 # print(completed_process.stderr)
                 return False
         except Exception as e:
@@ -1375,7 +1384,7 @@ def extract_last_5_minutes(video_path):
             global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
             return False
     else:
-        print("Failed to extract last 5 minutes. Video duration not available.")
+        log_info_m.print_message(message="Failed to extract last 5 minutes. Video duration not available.")
         return False
 
 
@@ -1383,7 +1392,7 @@ def get_video_integrity(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
         command = f'ffprobe -i "{video_path}" '
-        print(command)
+        log_info_m.print_message(message=command)
     try:
         # 执行命令，并捕获异常
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1407,7 +1416,7 @@ def get_video_integrity_old(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
         command = f'ffmpeg -v  error -err_detect explode -i "{video_path}" -f null - -xerror'
-        print(command)
+        log_info_m.print_message(message=command)
     try:
         # 执行命令，并捕获异常
         result = subprocess.run(command, stderr=subprocess.PIPE, universal_newlines=True)
@@ -1548,7 +1557,7 @@ class Profiler:
     def stop(self):
         self.profiler.disable()
         end_time = time.time()
-        print("Elapsed time:", end_time - self.start_time, "seconds")
+        log_info_m.print_message("Elapsed time:", end_time - self.start_time, "seconds")
         return self.profiler
 
 
@@ -1598,12 +1607,12 @@ def admin_process():
         #     sys.exit()
 
     if not is_admin():
-        print("当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
+        log_info_m.print_message(message="当前没有管理员权限，将尝试申请管理员权限并重新启动程序...")
         # 构建运行命令列表
         set_cmd_title("Tool_User")
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
         # 在新的进程中运行命令，等待命令执行完毕
-        print("程序将重新启动...")
+        result_m.print_message(message="程序将重新启动...")
         # 重定向
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
@@ -1634,7 +1643,7 @@ def get_free_space_cmd(folder_path):
             # print("剩余空间:", free_space)
             return int(free_space.replace(',', ''))
         else:
-            print("未找到剩余空间信息")
+            log_info_m.print_message(message="未找到剩余空间信息")
             return 1 / 0
 
 
