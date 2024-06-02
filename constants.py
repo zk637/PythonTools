@@ -5,6 +5,8 @@ VIDEO_SUFFIX = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', 
                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv',
                 '.divx', '.webm', '.wtv', '.f4v', '.mxf')
 
+MP4_NOT_CONTAINER = ('.wmv')
+
 ZIP_SUFFIX = (".zip", ".gz", "xz", ".bz2", ".tar", ".tar.gz",
               ".tar.xz",
               ".tar.bz2", ".gz", ".bz2", ".lzma", ".cab", ".zipx", '.rar', '.7z')

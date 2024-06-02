@@ -11,20 +11,43 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
-def getfoldercount():
-    "获取文件夹列表下的文件数量"
+def ui_param_decorator(func):
+    def wrapper(*args, **kwargs):
+        if 'ui_enable' in kwargs and kwargs['ui_enable']:
+            # 检查ui_enable是否为True
+            # 获取函数的参数列表
+            parameters = func.__code__.co_varnames
+            # 计算关键字参数的数量
+            num_keywords = len(parameters) - len(args)
+            # 根据参数数量为UI赋值
+            if num_keywords > 0:
+                for i in range(num_keywords):
+                    kwargs[parameters[i]] = args[0].ui.file_input
+        return func(*args, **kwargs)
+    return wrapper
+
+def getfoldercount(paths=None):
+    """
+    获取文件夹列表下的文件数量
+    Args:
+        paths (list of str, optional): 文件夹路径列表。如果未提供，则会提示用户输入。
+    """
+    if paths is None:
+        print("输入文件列表")
+        paths = tools.process_input_list()
+
     count = 0
-    tips_m.print_message(message="输入文件列表")
-    paths = tools.process_input_list()
     for path in paths:
-        for root, dirs, files in os.walk(path):
+        for root, dirs, files in os.walk(path.strip()):
             count += len(files)
-    result_m.print_message(message=count)
 
+    print(f"Total files count: {count}")
+    return count
 
-def getfoldercount_by_include():
+@ui_param_decorator
+def getfoldercount_by_include(paths=None, index=None, ui_enable=False, **kwargs):
     """获取指定文件类型的文件数量和路径"""
-    list, dir = tools.process_paths_list_or_folder()
+    file_list, dir = tools.process_paths_list_or_folder(paths)
     suffix_map = {
         1: constants.ZIP_SUFFIX,
         2: constants.OFFICE_SUFFIX,
@@ -33,16 +56,17 @@ def getfoldercount_by_include():
         5: constants.EXTENSIONS,
     }
     tips_m.print_message(message="请输入要包含的文件类型（1-压缩格式, 2-办公软件格式, 3-视频格式，4-音频格式，5-其它格式）")
-    index = int(tools.process_input_str_limit())
+    index = int(tools.process_input_str_limit(index))
     extensions = suffix_map.get(index)
-    if list and index <= 5:
-        path_list = tools.get_file_paths_list_limit(list, *extensions)
+    if file_list and index <= 5:
+        path_list = tools.get_file_paths_list_limit(file_list, *extensions)
     elif os.path.isdir(dir) and index <= 5:
         path_list = tools.get_file_paths_limit(dir, *extensions)
     else:
         path_list = None
         log_info_m.print_message("参数有误，不是合法的路径？")
-    tools.cont_files_processor(path_list, index)
+    result = tools.cont_files_processor(path_list, index)
+    return result
 
 
 def getfoldercount_by_exclude():

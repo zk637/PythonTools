@@ -254,11 +254,10 @@ def split_video():
         for input_video in input_video_list:
             if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                if part_num > 1:
+                if part_num > 1 and not tools.check_in_suffix(input_video, constants.MP4_NOT_CONTAINER):
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
                     tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
-
                     log_info_m.print_message(message=f"文件无法拆分：{input_video}")
 
     elif os.path.isdir(input_video_dir):
@@ -277,7 +276,7 @@ def split_video():
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                    if part_num > 1:
+                    if part_num > 1 and not tools.check_in_suffix(input_video, constants.MP4_NOT_CONTAINER):
                         part_max_size = os.path.getsize(input_video) / part_num
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:

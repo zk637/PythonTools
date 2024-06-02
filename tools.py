@@ -81,29 +81,58 @@ temp_input = []
 
 
 @profile(enable=False)
-def process_input_str_limit(s=None):
+def process_input_str_limit(ui_param=None):
     """输入参数为字符串，限制总长度不超过195个字符"""
     global temp_input
+    temp_input = []
+
     while True:
-        line = input().strip()
-        temp_input += line  # 将每行输入连接成一个字符串，并添加换行符
-        if len(temp_input) > 195:
+        if ui_param is None:
+            # 从命令行获取输入
+            line = input().strip()
+        else:
+            # 从UI组件获取输入
+            line = ui_param.toPlainText().strip()
+
+        temp_input.append(line)
+
+        if len(' '.join(temp_input)) > 195:
             raise my_exception.InputLengthExceededException()
-        temp_input = []
+
         return line
 
 
 @profile(enable=False)
-def process_input_list():
+def process_input_list(ui_param=None):
     """输入参数为列表"""
-    list = []
-    tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-    while True:
-        path = input().strip('"')
-        if not path:
-            break
-        list.append(path.strip('"'))
-    return list
+    file_paths = []
+
+    # 处理控制台输入
+    if ui_param is None:
+        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        while True:
+            path = input().strip('"')
+            if not path:
+                break
+            file_paths.append(path.strip('"'))
+    # 处理界面输入
+    else:
+        text = ui_param.toPlainText()
+        file_paths = [path.strip('"') for path in text.split('\n') if path.strip('"')]
+
+    return file_paths
+
+# @profile(enable=False)
+# def process_input_list(ui_param=None):
+#     """输入参数为列表"""
+#     list = []
+#     tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+#     while True:
+#         path = input().strip('"')
+#         if not path:
+#             break
+#         list.append(path.strip('"'))
+#     return list
 
 
 def check_str_is_None(args):
@@ -160,7 +189,7 @@ def check_file_or_folder(str_list):
 
 
 @profile(enable=False)
-def process_paths_list_or_folder():
+def process_paths_list_or_folder(ui_param=None):
     """
     获取用户输入的文件路径列表或文件夹路径。
     输入参数为路径列表和文件夹路径的通用方法
@@ -169,22 +198,37 @@ def process_paths_list_or_folder():
     """
     video_paths_list = []
 
-    tips_m.print_message(message="选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = process_input_str_limit().lower() or 'n'
+    if ui_param is None:
+        # 从命令行获取输入
+        tips_m.print_message(message="选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+        flag = process_input_str_limit().lower() or 'n'
 
-    if flag == 'y':
-        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        while True:
-            path = process_input_str().strip('"')
-            if not path:
-                break
-            video_paths_list.append(path.strip('"'))
+        if flag == 'y':
+            tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            while True:
+                path = process_input_str().strip('"')
+                if not path:
+                    break
+                video_paths_list.append(path.strip('"'))
             folder_path = None
-    elif flag == 'n':
-        tips_m.print_message(message="请输入文件夹路径：")
-        folder_path = process_input_str()
+        elif flag == 'n':
+            tips_m.print_message(message="请输入文件夹路径：")
+            folder_path = process_input_str()
+    else:
+        # 从界面组件获取输入
+        flag = ui_param.toPlainText().lower().strip()
+
+        if flag == 'y':
+            # 从界面获取文件路径列表
+            text = ui_param.toPlainText()
+            video_paths_list = text.replace('\n', ' ').split()
+            folder_path = None
+        elif flag == 'n':
+            # 从界面获取文件夹路径
+            folder_path = ui_param.toPlainText()
 
     return video_paths_list, folder_path
+
 
 
 def process_paths_list_and_folder(paths: list,
@@ -336,6 +380,7 @@ def cont_files_processor(path_list, index):
         flag = process_input_str_limit()
         if flag.upper() == 'Y':
             for_in_for_print(path_list)
+        return path_list
 
 
 def get_file_paths(folder):
@@ -1210,10 +1255,13 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                 # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
                 processed_output_prefix + '_part%d.mp4'
             ]
-
+            print(split_command)
             # 使用 subprocess.run 运行拆分命令
-            subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
-                           encoding='utf-8')
+            try:
+                subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
+                               encoding='utf-8')
+            except Exception as e:
+                global_exception_handler(e)
 
 
 def split_audio_for_duration(path, duration):
