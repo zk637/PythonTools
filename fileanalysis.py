@@ -3,7 +3,7 @@ from PIL import Image
 import cv2
 import tools
 import constants
-
+from tqdm import tqdm
 
 # 注册模块对象
 from model import tips_m, log_info_m, result_m
@@ -254,7 +254,7 @@ def split_video():
         for input_video in input_video_list:
             if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                if part_num > 1 and not tools.check_in_suffix(input_video, constants.MP4_NOT_CONTAINER):
+                if part_num > 1:
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
                     tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
@@ -276,7 +276,7 @@ def split_video():
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                    if part_num > 1 and not tools.check_in_suffix(input_video, constants.MP4_NOT_CONTAINER):
+                    if part_num > 1:
                         part_max_size = os.path.getsize(input_video) / part_num
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
@@ -371,14 +371,21 @@ def check_files_subtitle_stream():
         return
     videos_with_subtitle_stream = []
     videos_without_subtitle_stream = []
+    # 初始化进度条
+    progress_bar = tqdm(total=len(video_files), desc="Processing videos")
+
     # 检查视频完整性
     for video_path in video_files:
+        # 更新进度条
+        progress_bar.update(1)
         result = tools.check_subtitle_stream(video_path)
         if result:
             videos_with_subtitle_stream.append(video_path)
         else:
             videos_without_subtitle_stream.append(video_path)
 
+    # 关闭进度条
+    progress_bar.close()
 
     result_m.print_message(message="True：存在字幕流的文件：" + '_' * 80)
     tools.for_in_for_print(videos_with_subtitle_stream)
@@ -405,31 +412,24 @@ def check_video_integrity():
     video_integrity = []
     video_unintegrity = []
 
-    # for video_path in video_files:
-    #     print(f"Original file: {video_path}, extension: {tools.get_file_extension(video_path)}")
-
     pattern = r"(.*)_thumbs_\[(\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}\.\d{2})\]\.jpg\.!qB"
     # 去除不支持的文件格式和缓存
     video_files = [video_path for video_path in video_files if
                    not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX) and
                    not tools.get_file_matching_pattern(video_path, pattern)]
 
-    # # 打印过滤后的文件列表
-    # print("Filtered video files:")
-    # for video_path in video_files:
-    #     print(video_path)
+    # 初始化进度条
+    progress_bar = tqdm(total=len(video_files), desc="Processing videos")
 
+    for video_path in video_files:
+        # 更新进度条
+        progress_bar.update(1)
 
-
-    # 检查视频完整性
-    for video_path in video_files[:]:
         # 检查MP4文件的完整性
         total_MB, realSize_MB = tools.check_mp4(video_path)
         if total_MB == realSize_MB and not tools.check_str_is_None(total_MB) and not tools.check_str_is_None(
                 realSize_MB) and not tools.check_not_in_suffix(video_path, *constants.VIDEO_SUFFIX):
-
             log_info_m.print_message(message="check_mp4：" + video_path)
-
             video_integrity.append(video_path)
             continue  # 视频完整，跳过后续检查
 
@@ -455,10 +455,11 @@ def check_video_integrity():
             else:
                 video_unintegrity.append(video_path)
 
+    # 关闭进度条
+    progress_bar.close()
 
     # 输出
     result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
     tools.for_in_for_print(video_integrity)
     result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
-
     tools.for_in_for_print(video_unintegrity)

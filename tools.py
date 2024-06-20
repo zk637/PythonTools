@@ -14,6 +14,9 @@ import filetype
 import subprocess
 import contextlib
 import sys
+
+from tqdm import tqdm
+
 import my_exception
 
 # 注册模块对象
@@ -1022,7 +1025,13 @@ def get_video_info_list(paths):
     tips_m.print_message(message="请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
     sort_index = int(process_input_str_limit() or 3)
 
+    # 初始化进度条
+    progress_bar = tqdm(total=len(paths), desc="Processing videos")
+
+    # 检查视频完整性
     for path in paths:
+        # 更新进度条
+        progress_bar.update(1)
         try:
             duration, bitrate, width, height = get_video_details(path)
             if duration == 0 or bitrate == 0 or width == 0 or height == 0:
@@ -1036,6 +1045,8 @@ def get_video_info_list(paths):
             global_exception_handler(type(e), e, e.__traceback__)
             continue
 
+    # 关闭进度条
+    progress_bar.close()
     sort_attribute = attribute_map.get(sort_index, 'bitrate')
     video_info_list.sort(key=lambda x: x[sort_index])
 
@@ -1229,8 +1240,11 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             output_prefix_tmp = output_prefix[:part_index]
             output_prefix_tmp = output_prefix_tmp.replace('.mp4', '')
             # print("Original Name:", output_prefix_tmp)
+            result_m.print_message(message="File name contain '_part'.")
         else:
-            result_m.print_message(message="File name doesn't contain '_part'.")
+            # 如果未找到 '_part'，执行其他操作
+            output_prefix_tmp = output_prefix.replace('.mp4', '')
+            result_m.print_message(message="File name does not contain '_part'.")
         part_index = 0
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
@@ -1441,18 +1455,28 @@ def get_video_integrity(video_path):
         # 定义 FFmpeg 命令
         command = f'ffprobe -i "{video_path}" '
         log_info_m.print_message(message=command)
+
     try:
         # 执行命令，并捕获异常
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                encoding='utf-8', universal_newlines=True)
-        # 说明命令执行出错 有错误的box
-        if 'Unsupported codec with id' in result.stderr or 'Header missing' in result.stderr \
-                or 'Packet mismatch' in result.stderr or 'Extra data:' in result.stderr \
-                or 'co located POCs unavailable' in result.stderr:
-            raise False
-        # 如果没有输出
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8',
+                                universal_newlines=True)
+
+        stderr_lines = result.stderr.splitlines()
+        error_detected = False
+
+        for line in stderr_lines:
+            # 检查错误消息是否来自 input stream 2
+            if 'Unsupported codec with id' in line and 'input stream 2' in line:
+                continue  # 忽略 input stream 2 的错误
+            elif 'Header missing' in line or 'Packet mismatch' in line or 'Extra data:' in line or 'co located POCs unavailable' in line:
+                error_detected = True
+                break
+
+        if error_detected:
+            raise Exception("Video integrity check failed due to stream errors.")
         else:
             return True
+
     except Exception as e:
         # 如果有全局异常处理函数，调用它
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
