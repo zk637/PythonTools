@@ -2,19 +2,23 @@ import ctypes
 import os
 import re
 import shutil
+from collections import deque
 
 import chardet
 import cProfile
 import builtins
 import time
+import pygetwindow as gw
 from difflib import SequenceMatcher
 
+import cv2
 import ffmpeg
 import filetype
 import subprocess
 import contextlib
 import sys
 
+import numpy as np
 from tqdm import tqdm
 
 import my_exception
@@ -30,7 +34,6 @@ global_exception_handler = global_exception_handler
 program_start_time = None
 last_input_time = None
 input_durations = []
-
 
 
 def get_program_start_time():
@@ -124,6 +127,7 @@ def process_input_list(ui_param=None):
         file_paths = [path.strip('"') for path in text.split('\n') if path.strip('"')]
 
     return file_paths
+
 
 # @profile(enable=False)
 # def process_input_list(ui_param=None):
@@ -231,7 +235,6 @@ def process_paths_list_or_folder(ui_param=None):
             folder_path = ui_param.toPlainText()
 
     return video_paths_list, folder_path
-
 
 
 def process_paths_list_and_folder(paths: list,
@@ -353,7 +356,7 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-def for_in_for_print(list,flag=False):
+def for_in_for_print(list, flag=False):
     """
     通用的单纯for循环输出结果
         Args:
@@ -442,7 +445,7 @@ def get_file_extension(file_path):
     return file_ext
 
 
-def check_in_suffix(file_path, suffixes):
+def check_in_suffix(file_path, *suffixes):
     """
     检查文件路径的后缀是否在给定的后缀元组中
     :param file_path: 文件路径
@@ -1118,7 +1121,8 @@ def getbitratesort(files):
             result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = result.communicate()
             if result.returncode != 0:
-                log_info_m.print_message(message=f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
+                log_info_m.print_message(
+                    message=f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
             # fi=os.path.normpath(file_path)
             # print(fi)
             # quoted_file_path = '"' + file_path + '"'
@@ -1482,8 +1486,124 @@ def get_video_integrity(video_path):
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
         return False
 
+#TODO
+def check_video_frames(video_path):
+    cap = cv2.VideoCapture(video_path)
 
-#TODO 已废弃,该命令执行效率低资源占用高
+    if not cap.isOpened():
+        print(f"Unable to open video file: {video_path}")
+        return False
+
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    corrupted_frames = 0
+
+    ret, prev_frame = cap.read()  # 读取第一帧
+
+    if not ret or prev_frame is None or prev_frame.size == 0:
+        print(f"Error reading the first frame from {video_path}")
+        return False
+
+    for i in range(1, frame_count):
+        ret, frame = cap.read()
+        if not ret or frame is None or frame.size == 0:
+            print(f"Error reading frame {i} from {video_path}")
+            corrupted_frames += 1
+            continue
+
+        if not check_frame_integrity(prev_frame, frame):
+            print(f"Corrupted frame detected at frame {i} in {video_path} based on pixel values")
+            corrupted_frames += 1
+            cap.release()  # 发现损坏帧后立即释放视频对象
+            return False
+
+        prev_frame = frame
+
+    cap.release()
+
+    if corrupted_frames > 0:
+        print(f"Total corrupted frames in {video_path}: {corrupted_frames}")
+        return False
+    else:
+        print(f"All frames in {video_path} are intact")
+        return True
+
+
+def check_frame_integrity(prev_frame, frame):
+    diff = cv2.absdiff(prev_frame, frame)
+    non_zero_count = np.count_nonzero(diff)
+
+    # 如果两个帧之间的变化非常大，可以认为帧是损坏的
+    if non_zero_count > 0.5 * frame.size:  # 变化超过10%
+        return False
+    return True
+
+
+def play_tocheck_video_minimized(video_path):
+    """
+    使用ffplay播放视频，并将窗口最小化，如果出现错误立即退出
+    """
+    # 构建ffplay命令
+    command = [
+        'ffplay',
+        '-autoexit',
+        # '-nodisp',  # 禁止显示窗口
+        '-an',  # 禁止音频输出
+        '-vf', 'scale=-1:720,setpts=PTS/20',
+        '-af', 'atempo=20',
+        video_path
+    ]
+
+    try:
+        # 启动ffplay进程
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # 等待ffplay窗口出现
+        time.sleep(2)
+
+        # 获取ffplay窗口并最小化
+        windows = gw.getWindowsWithTitle('ffplay')
+        if windows:
+            window = windows[0]
+            window.minimize()
+
+        # 实时监控ffplay的输出 创建队列用于回溯错误信息
+        output_deque = deque(maxlen=5)
+        video_time = None
+        while True:
+            output = process.stderr.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                output_deque.append(output)
+
+                # 过滤和打印重要的错误信息
+                if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower():
+                    error_message = output.strip()
+                    for line in reversed(output_deque):
+                        time_match = re.search(r"M-V:\s+(\d+\.\d+)", line)
+                        if time_match:
+                            video_time = float(time_match.group(1)) * 20
+                            break
+                    if video_time is not None:
+                        print(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+                    else:
+                        print(f"Error detected in {video_path}: {error_message}")
+                    process.terminate()
+                    break
+
+        # 等待进程结束
+        process.wait()
+
+        return video_path
+    except Exception as e:
+        print(f"Exception occurred: {e}")
+        process.kill()
+        return video_path
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+
+
+# TODO 已废弃,该命令执行效率低资源占用高
 def get_video_integrity_old(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令

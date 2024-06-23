@@ -76,7 +76,6 @@ def get_low_resolution_media_files():
         log_info_m.print_message(message="\n".join(files))
 
 
-
 def get_video_duration_sorted():
     """取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件"""
     path_list, folder = tools.process_paths_list_or_folder()
@@ -88,11 +87,21 @@ def get_video_duration_sorted():
     if not folder_flag:
         paths = path_list
 
-    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N de:N")
+    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N def:N")
     same_flag = tools.process_input_str_limit().upper()
-    tips_m.print_message(message="是否纯净输出y/n")
-
+    tips_m.print_message(message="是否纯净输出Y/N")
     flag = tools.process_input_str_limit().upper()
+    # 处理用户输入
+    tips_m.print_message(message="输出文件创建时间较早的?Y/N def:N")
+    user_input = tools.process_input_str_limit().upper()
+    # 设置布尔值，根据用户输入和默认值进行判断
+    if user_input == "Y":
+        date_flag = True
+    elif user_input == "N":
+        date_flag = False
+    else:
+        # 默认值
+        date_flag = False
 
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
@@ -107,9 +116,9 @@ def get_video_duration_sorted():
                 if duration is not None:
                     durations.append((path, duration))
 
-            sorted_durations = sorted(durations, key=lambda x: x[1], reverse=True)
+            sorted_durations = sorted(durations, key=lambda x: x[1], reverse=date_flag)
             for path, duration in sorted_durations:
-                if flag == 'y':
+                if flag == 'Y':
                     path = tools.add_quotes_forpath(path)
 
                     result_m.print_message(message=path)
@@ -137,7 +146,7 @@ def get_video_duration_sorted():
             file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
 
             for file_size, paths_durations_creation in file_sizes.items():
-                paths_durations_creation.sort(key=lambda x: x[2])
+                paths_durations_creation.sort(key=lambda x: x[2], reverse=True)
                 duration_groups = {}
                 for path, duration, _ in paths_durations_creation:
                     if duration not in duration_groups:
@@ -147,7 +156,7 @@ def get_video_duration_sorted():
                 duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
 
                 for duration, paths in duration_groups.items():
-                    if flag == 'y':
+                    if flag == 'Y':
                         for path in paths[1:]:
                             path = tools.add_quotes_forpath(path)
                             print(path)
@@ -206,7 +215,6 @@ def print_video_info_list():
             result_m.print_message(message=" " * (max_path_len - len(path) + 1))
 
 
-
 def get_video_audio():
     """
      提取视频的音频文件（支持文件列表和文件夹）
@@ -217,13 +225,11 @@ def get_video_audio():
     elif os.path.isdir(folder):
         folder = tools.get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
     if not folder:
-
         log_info_m.print_message(message="文件为空，需检查条件或参数！")
         return
     for path in folder:
         tools.convert_video_to_mp3(path)
     log_info_m.print_message(message="队列执行完成")
-
 
 
 def getfiletypeislegal():
@@ -266,7 +272,6 @@ def split_video():
         output_dir = os.path.join(filename, 'spilt_parts_dir')
         tools.make_dir(output_dir)
 
-
         tips_m.print_message(message="拆分后每段文件的大小限制 单位：MB")
 
         max_size_mb = int(tools.process_input_str()) * 1024 * 1024
@@ -284,7 +289,6 @@ def split_video():
                         log_info_m.print_message(message=f"文件无法拆分：{input_video}")
     else:
         log_info_m.print_message(message="参数有误，不是合法的路径？")
-
 
 
 def split_audio():
@@ -351,7 +355,6 @@ def add_srt():
             result = tools.subprocess_common_bat(bat_file, command)
 
             result_m.print_message(message=result)
-
 
 
 def check_files_subtitle_stream():
@@ -457,9 +460,27 @@ def check_video_integrity():
 
     # 关闭进度条
     progress_bar.close()
-
+    video_unintegrity = [path for path in video_unintegrity if
+                         tools.check_in_suffix(video_unintegrity, *constants.VIDEO_SUFFIX)]
     # 输出
     result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
     tools.for_in_for_print(video_integrity)
     result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
     tools.for_in_for_print(video_unintegrity)
+
+    if video_unintegrity:
+        tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
+        flag = tools.process_input_str().upper() or 'N'
+        check_video_paths = []
+        if flag == 'Y':
+            # 初始化进度条
+            progress_bar = tqdm(total=len(video_unintegrity), desc="Processing videos")
+            for video_path in video_unintegrity:
+                # 更新进度条
+                progress_bar.update(1)
+                check_video_path = tools.play_tocheck_video_minimized(video_path)
+                check_video_paths.append(check_video_path)
+            # 关闭进度条
+            progress_bar.close()
+        result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
+        tools.for_in_for_print(check_video_paths)

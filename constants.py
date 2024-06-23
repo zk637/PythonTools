@@ -3,7 +3,7 @@ VIDEO_SUFFIX = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', 
                 '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv',
                 '.mov',
                 '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr', '.amv',
-                '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+                '.divx', '.webm', '.wtv', '.f4v', '.mxf', '.!qb')
 
 MP4_NOT_CONTAINER = ('.wmv')
 
@@ -32,4 +32,8 @@ EXTENSIONS = (
 CACHE_SUFFIX = (
     ".tmp", '.cache', '.ico', '.nomedia', '.parts', '.ico', '.jpg.!qb', '.jpeg.!qb', '.png.!qb', '.ini', '.avi.jpg.!qb',
     '.flv.jpg.!qb', '.mp4.jpg.!qb', 'wmv.jpg.!qb', '.mov.jpg.!qb', '.mpg.jpg.!qb'
+)
+
+MP4_SUFFIX = (
+    '.mp4'
 )
