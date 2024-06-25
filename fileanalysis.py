@@ -427,7 +427,8 @@ def check_video_integrity():
     for video_path in video_files:
         # 更新进度条
         progress_bar.update(1)
-
+        # 初始化权重
+        weight = 0
         # 检查MP4文件的完整性
         total_MB, realSize_MB = tools.check_mp4(video_path)
         if total_MB == realSize_MB and not tools.check_str_is_None(total_MB) and not tools.check_str_is_None(
@@ -435,33 +436,44 @@ def check_video_integrity():
             log_info_m.print_message(message="check_mp4：" + video_path)
             video_integrity.append(video_path)
             continue  # 视频完整，跳过后续检查
+        else:
+            weight += 50
 
-        # 视频不完整，继续检查其他完整性条件
-        flag = None
-        if not tools.check_str_is_None(video_path) and flag is not True:
-            flag = tools.extract_last_5_minutes(video_path)
-            if not flag:
-                video_unintegrity.append(video_path)
-                continue  # 处理成功，文件不完整跳过后续检查
+        # 检查最后5分钟后
+        if not tools.extract_last_5_minutes(video_path):
+            weight += 100
+            video_unintegrity.append(video_path)
+            continue
 
-        if not tools.check_str_is_None(video_path) and flag is True:
-            flag = tools.extract_start_5_minutes(video_path)
-            if not flag:
+        if weight < 100:
+            # 检查最初5分钟
+            if not tools.extract_start_5_minutes(video_path):
+                weight += 100
                 video_unintegrity.append(video_path)
-                continue  # 处理成功，文件不完整跳过后续检查
+                continue
 
-        # 最后上诉条件都不满足完整检查视频完整性
-        if not tools.check_str_is_None(video_path) and flag is True:
-            result = tools.get_video_integrity(video_path)
-            if result:
-                video_integrity.append(video_path)
-            else:
+        if weight < 100:
+            # 检查视频完整性
+            if not tools.get_video_integrity(video_path):
                 video_unintegrity.append(video_path)
+                continue
+
+        if weight < 100:
+            # 检查是否存在绿屏
+            if tools.check_video_for_green_screen(video_path):
+                weight += 50
+
+        if weight < 100:
+            video_integrity.append(video_path)
+        else:
+            video_unintegrity.append(video_path)
 
     # 关闭进度条
     progress_bar.close()
-    video_unintegrity = [path for path in video_unintegrity if
-                         tools.check_in_suffix(video_unintegrity, *constants.VIDEO_SUFFIX)]
+
+    if not tools.check_is_None(video_unintegrity):
+        video_unintegrity = [path for path in video_unintegrity if
+                             tools.check_in_suffix(path, *constants.CHECK_VIDEO_SUFFIX)]
     # 输出
     result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
     tools.for_in_for_print(video_integrity)

@@ -377,6 +377,7 @@ def for_in_for_print(list, flag=False):
     else:
         log_info_m.print_message(message="参数有误,列表为空？")
 
+
 def cont_files_processor(path_list, index):
     if path_list:
         count = count_files(path_list)
@@ -428,14 +429,17 @@ def get_file_extension(file_path):
     # 初始化扩展名列表
     extensions = []
 
-    # 迭代处理多个扩展名
-    while True:
+    iteration_count = 0  # 初始化计数器
+
+    # 迭代多个扩展名最多两次
+    while iteration_count < 2:
         base, ext = os.path.splitext(file_name)
         if ext:
             # 将扩展名添加到列表中
             extensions.append(ext)
             # 更新文件名为当前基本文件名
             file_name = base
+            iteration_count += 1  # 增加计数器
         else:
             break
 
@@ -453,7 +457,8 @@ def check_in_suffix(file_path, *suffixes):
     :return: 如果文件路径的后缀在给定的后缀元组中，则返回True，否则返回False
     """
     try:
-        file_ext = get_file_extension(file_path)
+        # 获取文件扩展名并转换为小写
+        file_ext = get_file_extension(file_path).lower()
         result = file_ext in suffixes
         return result
     except Exception as e:
@@ -464,7 +469,7 @@ def check_in_suffix(file_path, *suffixes):
 
 def check_not_in_suffix(file_path, *suffixes):
     """
-    检查文件路径的后缀是否在给定的后缀元组中
+    检查文件路径的后缀是否不在给定的后缀元组中
     :param file_path: 文件路径
     :param suffixes: 后缀元组
     :return: 如果文件路径的后缀不在给定的后缀元组中，则返回True，否则返回False
@@ -472,20 +477,15 @@ def check_not_in_suffix(file_path, *suffixes):
     try:
         # 获取文件名并转为小写
         file_name = os.path.basename(file_path).lower()
-        # 找到第一个 . 的位置
-        dot_index = file_name.find('.')
-        if dot_index != -1:
-            # 获取后缀名
-            file_ext = '.' + file_name[dot_index + 1:]
-        else:
-            file_ext = ''
-
+        # 获取后缀名
+        file_ext = os.path.splitext(file_name)[1].lower()
         # 检查后缀是否在给定的后缀元组中
         result = file_ext not in suffixes
         return result
 
     except Exception as e:
-        global_exception_handler(Exception, f"文件：{file_path}无法获取文件后缀", None)
+        log_info_m.print_message(message=f"文件：{file_path}无法获取文件后缀，错误：{e}")
+        global_exception_handler(Exception)
         return False  # 如果发生异常，返回 False 表示无法判断
 
 
@@ -1383,7 +1383,7 @@ def check_mp4(filePath):
 
 def extract_start_5_minutes(video_path):
     duration = get_video_duration(video_path)
-    if duration is not None:
+    if duration is not None and duration != 0:
         try:
             command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 25 -f null - -xerror'
             log_info_m.print_message(message=command)
@@ -1418,7 +1418,7 @@ def extract_start_5_minutes(video_path):
 
 def extract_last_5_minutes(video_path):
     duration = get_video_duration(video_path)
-    if duration is not None:
+    if duration is not None and duration != 0:
         try:
             start_time = max(duration - 300, 0)
             formatted_start_time = f"{start_time:.6f}"
@@ -1457,7 +1457,7 @@ def extract_last_5_minutes(video_path):
 def get_video_integrity(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
-        command = f'ffprobe -i "{video_path}" '
+        command = f'ffprobe -v error -i "{video_path}"'
         log_info_m.print_message(message=command)
 
     try:
@@ -1486,7 +1486,101 @@ def get_video_integrity(video_path):
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
         return False
 
-#TODO
+
+def check_green_screen(buffer, width, height):
+    """检查视频帧的四个角"""
+    if buffer is None or width <= 0 or height <= 0:
+        return True
+
+    size = 20  # 每个角要检查的像素数
+    threshold = 15  # 绿屏像素阈值
+
+    # 检查左上角
+    zero_count = 0
+    for j in range(size):
+        for i in range(size):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查右上角
+    zero_count = 0
+    for j in range(size):
+        for i in range(width - size, width):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查左下角
+    zero_count = 0
+    for j in range(height - size, height):
+        for i in range(size):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查右下角
+    zero_count = 0
+    for j in range(height - size, height):
+        for i in range(width - size, width):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    return False
+
+
+def check_video_for_green_screen(video_path, check_frames=60):
+    """取视频的前120和后120帧抽样检查是否绿屏 绿屏则返回True"""
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print(f"Unable to open video file: {video_path}")
+            return False
+
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        corrupted_frames = 0
+
+        # 检查前120帧
+        for frame_idx in range(check_frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            height, width, _ = frame.shape
+            if check_green_screen(frame, width, height):
+                print(f"Green screen detected in frame {frame_idx + 1}")
+                corrupted_frames += 1
+
+        # 检查后120帧
+        cap.set(cv2.CAP_PROP_POS_FRAMES, max(total_frames - check_frames, 0))
+        for frame_idx in range(total_frames - check_frames, total_frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            height, width, _ = frame.shape
+            if check_green_screen(frame, width, height):
+                print(f"Green screen detected in frame {frame_idx + 1}")
+                corrupted_frames += 1
+
+        cap.release()
+
+        if corrupted_frames > 0:
+            print(f"Total corrupted (green screen) frames in {video_path}: {corrupted_frames}")
+            return True
+        else:
+            print(f"All frames in {video_path} are intact")
+            return False
+    except Exception as e:
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        return False
+
+
+# TODO
 def check_video_frames(video_path):
     cap = cv2.VideoCapture(video_path)
 
@@ -1552,7 +1646,7 @@ def play_tocheck_video_minimized(video_path):
         '-af', 'atempo=20',
         video_path
     ]
-
+    process = None  # 提前声明process变量
     try:
         # 启动ffplay进程
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -1598,9 +1692,9 @@ def play_tocheck_video_minimized(video_path):
     except Exception as e:
         print(f"Exception occurred: {e}")
         process.kill()
-        return video_path
         # 如果有全局异常处理函数，调用它
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        return video_path
 
 
 # TODO 已废弃,该命令执行效率低资源占用高

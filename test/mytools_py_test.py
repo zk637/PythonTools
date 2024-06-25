@@ -660,9 +660,9 @@ def test_get_directories_and_copy_tree(monkeypatch):
 def test_check_video_integrity_yes(monkeypatch):
     print(34)
     inputs_list = ['Y',
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   r"H:\videos\Newqueue\jp\050618_268\华人美女荷官做爱全程被跟拍.mp4.!qB",
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4",
                    '""'  # 空行，用于结束输入
                    '""'  # 空行，用于结束输入
                    ]
@@ -677,8 +677,8 @@ def test_check_video_integrity_yes(monkeypatch):
 def test_check_video_integrity_no(monkeypatch):
     print(34)
     inputs_list = ['N',
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split",'N'
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split", 'N'
+                                                                                        '""'  # 空行，用于结束输入
                    ]
     inputs = ['Y']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
