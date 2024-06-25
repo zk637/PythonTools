@@ -11,6 +11,37 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
+def ui_param_decorator(input_func):
+    def wrapper(*args, **kwargs):
+        use_ui = kwargs.get('use_ui', False)
+        if use_ui:
+            ui_params = kwargs.get('ui_params', {})
+
+            # 获取文件路径列表
+            paths_input = ui_params.get('paths_input', None)
+            if paths_input:
+                paths = paths_input.toPlainText().split('\n')
+                paths = [path.strip() for path in paths if path.strip()]  # 去除空行和前后空格
+            else:
+                paths = []
+
+            # 获取文件类型索引
+            file_type_input = ui_params.get('file_type_input', None)
+            if file_type_input:
+                file_type_index = int(file_type_input.text().strip())
+            else:
+                file_type_index = 0
+
+            # 调用原始函数并传递解析后的参数
+            kwargs.update({'paths': paths, 'index': file_type_index})
+            return input_func(*args, **kwargs)
+        else:
+            # 调用原始函数并传递原始参数
+            return input_func(*args, **kwargs)
+
+    return wrapper
+
+
 def getfoldercount():
     "获取文件夹列表下的文件数量"
     count = 0

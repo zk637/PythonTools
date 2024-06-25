@@ -2,18 +2,25 @@ import ctypes
 import os
 import re
 import shutil
+from collections import deque
 
 import chardet
 import cProfile
 import builtins
 import time
+import pygetwindow as gw
 from difflib import SequenceMatcher
 
+import cv2
 import ffmpeg
 import filetype
 import subprocess
 import contextlib
 import sys
+
+import numpy as np
+from tqdm import tqdm
+
 import my_exception
 
 # 注册模块对象
@@ -27,7 +34,6 @@ global_exception_handler = global_exception_handler
 program_start_time = None
 last_input_time = None
 input_durations = []
-
 
 
 def get_program_start_time():
@@ -81,29 +87,59 @@ temp_input = []
 
 
 @profile(enable=False)
-def process_input_str_limit(s=None):
+def process_input_str_limit(ui_param=None):
     """输入参数为字符串，限制总长度不超过195个字符"""
     global temp_input
+    temp_input = []
+
     while True:
-        line = input().strip()
-        temp_input += line  # 将每行输入连接成一个字符串，并添加换行符
-        if len(temp_input) > 195:
+        if ui_param is None:
+            # 从命令行获取输入
+            line = input().strip()
+        else:
+            # 从UI组件获取输入
+            line = ui_param.toPlainText().strip()
+
+        temp_input.append(line)
+
+        if len(' '.join(temp_input)) > 195:
             raise my_exception.InputLengthExceededException()
-        temp_input = []
+
         return line
 
 
 @profile(enable=False)
-def process_input_list():
+def process_input_list(ui_param=None):
     """输入参数为列表"""
-    list = []
-    tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-    while True:
-        path = input().strip('"')
-        if not path:
-            break
-        list.append(path.strip('"'))
-    return list
+    file_paths = []
+
+    # 处理控制台输入
+    if ui_param is None:
+        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        while True:
+            path = input().strip('"')
+            if not path:
+                break
+            file_paths.append(path.strip('"'))
+    # 处理界面输入
+    else:
+        text = ui_param.toPlainText()
+        file_paths = [path.strip('"') for path in text.split('\n') if path.strip('"')]
+
+    return file_paths
+
+
+# @profile(enable=False)
+# def process_input_list(ui_param=None):
+#     """输入参数为列表"""
+#     list = []
+#     tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+#     while True:
+#         path = input().strip('"')
+#         if not path:
+#             break
+#         list.append(path.strip('"'))
+#     return list
 
 
 def check_str_is_None(args):
@@ -160,7 +196,7 @@ def check_file_or_folder(str_list):
 
 
 @profile(enable=False)
-def process_paths_list_or_folder():
+def process_paths_list_or_folder(ui_param=None):
     """
     获取用户输入的文件路径列表或文件夹路径。
     输入参数为路径列表和文件夹路径的通用方法
@@ -169,20 +205,34 @@ def process_paths_list_or_folder():
     """
     video_paths_list = []
 
-    tips_m.print_message(message="选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = process_input_str_limit().lower() or 'n'
+    if ui_param is None:
+        # 从命令行获取输入
+        tips_m.print_message(message="选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
+        flag = process_input_str_limit().lower() or 'n'
 
-    if flag == 'y':
-        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-        while True:
-            path = process_input_str().strip('"')
-            if not path:
-                break
-            video_paths_list.append(path.strip('"'))
+        if flag == 'y':
+            tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+            while True:
+                path = process_input_str().strip('"')
+                if not path:
+                    break
+                video_paths_list.append(path.strip('"'))
             folder_path = None
-    elif flag == 'n':
-        tips_m.print_message(message="请输入文件夹路径：")
-        folder_path = process_input_str()
+        elif flag == 'n':
+            tips_m.print_message(message="请输入文件夹路径：")
+            folder_path = process_input_str()
+    else:
+        # 从界面组件获取输入
+        flag = ui_param.toPlainText().lower().strip()
+
+        if flag == 'y':
+            # 从界面获取文件路径列表
+            text = ui_param.toPlainText()
+            video_paths_list = text.replace('\n', ' ').split()
+            folder_path = None
+        elif flag == 'n':
+            # 从界面获取文件夹路径
+            folder_path = ui_param.toPlainText()
 
     return video_paths_list, folder_path
 
@@ -306,7 +356,7 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-def for_in_for_print(list,flag=False):
+def for_in_for_print(list, flag=False):
     """
     通用的单纯for循环输出结果
         Args:
@@ -327,6 +377,7 @@ def for_in_for_print(list,flag=False):
     else:
         log_info_m.print_message(message="参数有误,列表为空？")
 
+
 def cont_files_processor(path_list, index):
     if path_list:
         count = count_files(path_list)
@@ -336,6 +387,7 @@ def cont_files_processor(path_list, index):
         flag = process_input_str_limit()
         if flag.upper() == 'Y':
             for_in_for_print(path_list)
+        return path_list
 
 
 def get_file_paths(folder):
@@ -377,14 +429,17 @@ def get_file_extension(file_path):
     # 初始化扩展名列表
     extensions = []
 
-    # 迭代处理多个扩展名
-    while True:
+    iteration_count = 0  # 初始化计数器
+
+    # 迭代多个扩展名最多两次
+    while iteration_count < 2:
         base, ext = os.path.splitext(file_name)
         if ext:
             # 将扩展名添加到列表中
             extensions.append(ext)
             # 更新文件名为当前基本文件名
             file_name = base
+            iteration_count += 1  # 增加计数器
         else:
             break
 
@@ -394,7 +449,7 @@ def get_file_extension(file_path):
     return file_ext
 
 
-def check_in_suffix(file_path, suffixes):
+def check_in_suffix(file_path, *suffixes):
     """
     检查文件路径的后缀是否在给定的后缀元组中
     :param file_path: 文件路径
@@ -402,7 +457,8 @@ def check_in_suffix(file_path, suffixes):
     :return: 如果文件路径的后缀在给定的后缀元组中，则返回True，否则返回False
     """
     try:
-        file_ext = get_file_extension(file_path)
+        # 获取文件扩展名并转换为小写
+        file_ext = get_file_extension(file_path).lower()
         result = file_ext in suffixes
         return result
     except Exception as e:
@@ -413,7 +469,7 @@ def check_in_suffix(file_path, suffixes):
 
 def check_not_in_suffix(file_path, *suffixes):
     """
-    检查文件路径的后缀是否在给定的后缀元组中
+    检查文件路径的后缀是否不在给定的后缀元组中
     :param file_path: 文件路径
     :param suffixes: 后缀元组
     :return: 如果文件路径的后缀不在给定的后缀元组中，则返回True，否则返回False
@@ -421,20 +477,15 @@ def check_not_in_suffix(file_path, *suffixes):
     try:
         # 获取文件名并转为小写
         file_name = os.path.basename(file_path).lower()
-        # 找到第一个 . 的位置
-        dot_index = file_name.find('.')
-        if dot_index != -1:
-            # 获取后缀名
-            file_ext = '.' + file_name[dot_index + 1:]
-        else:
-            file_ext = ''
-
+        # 获取后缀名
+        file_ext = os.path.splitext(file_name)[1].lower()
         # 检查后缀是否在给定的后缀元组中
         result = file_ext not in suffixes
         return result
 
     except Exception as e:
-        global_exception_handler(Exception, f"文件：{file_path}无法获取文件后缀", None)
+        log_info_m.print_message(message=f"文件：{file_path}无法获取文件后缀，错误：{e}")
+        global_exception_handler(Exception)
         return False  # 如果发生异常，返回 False 表示无法判断
 
 
@@ -977,7 +1028,13 @@ def get_video_info_list(paths):
     tips_m.print_message(message="请输入排序属性的数字（1-size, 2-duration, 3-bitrate），默认为3-bitrate：")
     sort_index = int(process_input_str_limit() or 3)
 
+    # 初始化进度条
+    progress_bar = tqdm(total=len(paths), desc="Processing videos")
+
+    # 检查视频完整性
     for path in paths:
+        # 更新进度条
+        progress_bar.update(1)
         try:
             duration, bitrate, width, height = get_video_details(path)
             if duration == 0 or bitrate == 0 or width == 0 or height == 0:
@@ -991,6 +1048,8 @@ def get_video_info_list(paths):
             global_exception_handler(type(e), e, e.__traceback__)
             continue
 
+    # 关闭进度条
+    progress_bar.close()
     sort_attribute = attribute_map.get(sort_index, 'bitrate')
     video_info_list.sort(key=lambda x: x[sort_index])
 
@@ -1062,7 +1121,8 @@ def getbitratesort(files):
             result = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = result.communicate()
             if result.returncode != 0:
-                log_info_m.print_message(message=f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
+                log_info_m.print_message(
+                    message=f"ffprobe error (see stderr output for detail): {stderr.decode('utf-8')}")
             # fi=os.path.normpath(file_path)
             # print(fi)
             # quoted_file_path = '"' + file_path + '"'
@@ -1184,8 +1244,11 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             output_prefix_tmp = output_prefix[:part_index]
             output_prefix_tmp = output_prefix_tmp.replace('.mp4', '')
             # print("Original Name:", output_prefix_tmp)
+            result_m.print_message(message="File name contain '_part'.")
         else:
-            result_m.print_message(message="File name doesn't contain '_part'.")
+            # 如果未找到 '_part'，执行其他操作
+            output_prefix_tmp = output_prefix.replace('.mp4', '')
+            result_m.print_message(message="File name does not contain '_part'.")
         part_index = 0
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
@@ -1210,10 +1273,13 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                 # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
                 processed_output_prefix + '_part%d.mp4'
             ]
-
+            print(split_command)
             # 使用 subprocess.run 运行拆分命令
-            subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
-                           encoding='utf-8')
+            try:
+                subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
+                               encoding='utf-8')
+            except Exception as e:
+                global_exception_handler(e)
 
 
 def split_audio_for_duration(path, duration):
@@ -1317,7 +1383,7 @@ def check_mp4(filePath):
 
 def extract_start_5_minutes(video_path):
     duration = get_video_duration(video_path)
-    if duration is not None:
+    if duration is not None and duration != 0:
         try:
             command = f'ffmpeg -v error -err_detect explode -ss 300 -i "{video_path}" -t 25 -f null - -xerror'
             log_info_m.print_message(message=command)
@@ -1352,7 +1418,7 @@ def extract_start_5_minutes(video_path):
 
 def extract_last_5_minutes(video_path):
     duration = get_video_duration(video_path)
-    if duration is not None:
+    if duration is not None and duration != 0:
         try:
             start_time = max(duration - 300, 0)
             formatted_start_time = f"{start_time:.6f}"
@@ -1391,27 +1457,247 @@ def extract_last_5_minutes(video_path):
 def get_video_integrity(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
-        command = f'ffprobe -i "{video_path}" '
+        command = f'ffprobe -v error -i "{video_path}"'
         log_info_m.print_message(message=command)
+
     try:
         # 执行命令，并捕获异常
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                encoding='utf-8', universal_newlines=True)
-        # 说明命令执行出错 有错误的box
-        if 'Unsupported codec with id' in result.stderr or 'Header missing' in result.stderr \
-                or 'Packet mismatch' in result.stderr or 'Extra data:' in result.stderr \
-                or 'co located POCs unavailable' in result.stderr:
-            raise False
-        # 如果没有输出
+        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8',
+                                universal_newlines=True)
+
+        stderr_lines = result.stderr.splitlines()
+        error_detected = False
+
+        for line in stderr_lines:
+            # 检查错误消息是否来自 input stream 2
+            if 'Unsupported codec with id' in line and 'input stream 2' in line:
+                continue  # 忽略 input stream 2 的错误
+            elif 'Header missing' in line or 'Packet mismatch' in line or 'Extra data:' in line or 'co located POCs unavailable' in line:
+                error_detected = True
+                break
+
+        if error_detected:
+            raise Exception("Video integrity check failed due to stream errors.")
         else:
             return True
+
     except Exception as e:
         # 如果有全局异常处理函数，调用它
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
         return False
 
 
-#TODO 已废弃,该命令执行效率低资源占用高
+def check_green_screen(buffer, width, height):
+    """检查视频帧的四个角"""
+    if buffer is None or width <= 0 or height <= 0:
+        return True
+
+    size = 20  # 每个角要检查的像素数
+    threshold = 15  # 绿屏像素阈值
+
+    # 检查左上角
+    zero_count = 0
+    for j in range(size):
+        for i in range(size):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查右上角
+    zero_count = 0
+    for j in range(size):
+        for i in range(width - size, width):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查左下角
+    zero_count = 0
+    for j in range(height - size, height):
+        for i in range(size):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    # 检查右下角
+    zero_count = 0
+    for j in range(height - size, height):
+        for i in range(width - size, width):
+            if (buffer[j, i] == [0, 255, 0]).all():
+                zero_count += 1
+                if zero_count > threshold:
+                    return True
+
+    return False
+
+
+def check_video_for_green_screen(video_path, check_frames=60):
+    """取视频的前120和后120帧抽样检查是否绿屏 绿屏则返回True"""
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print(f"Unable to open video file: {video_path}")
+            return False
+
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        corrupted_frames = 0
+
+        # 检查前120帧
+        for frame_idx in range(check_frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            height, width, _ = frame.shape
+            if check_green_screen(frame, width, height):
+                print(f"Green screen detected in frame {frame_idx + 1}")
+                corrupted_frames += 1
+
+        # 检查后120帧
+        cap.set(cv2.CAP_PROP_POS_FRAMES, max(total_frames - check_frames, 0))
+        for frame_idx in range(total_frames - check_frames, total_frames):
+            ret, frame = cap.read()
+            if not ret:
+                break
+            height, width, _ = frame.shape
+            if check_green_screen(frame, width, height):
+                print(f"Green screen detected in frame {frame_idx + 1}")
+                corrupted_frames += 1
+
+        cap.release()
+
+        if corrupted_frames > 0:
+            print(f"Total corrupted (green screen) frames in {video_path}: {corrupted_frames}")
+            return True
+        else:
+            print(f"All frames in {video_path} are intact")
+            return False
+    except Exception as e:
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        return False
+
+
+# TODO
+def check_video_frames(video_path):
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        print(f"Unable to open video file: {video_path}")
+        return False
+
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    corrupted_frames = 0
+
+    ret, prev_frame = cap.read()  # 读取第一帧
+
+    if not ret or prev_frame is None or prev_frame.size == 0:
+        print(f"Error reading the first frame from {video_path}")
+        return False
+
+    for i in range(1, frame_count):
+        ret, frame = cap.read()
+        if not ret or frame is None or frame.size == 0:
+            print(f"Error reading frame {i} from {video_path}")
+            corrupted_frames += 1
+            continue
+
+        if not check_frame_integrity(prev_frame, frame):
+            print(f"Corrupted frame detected at frame {i} in {video_path} based on pixel values")
+            corrupted_frames += 1
+            cap.release()  # 发现损坏帧后立即释放视频对象
+            return False
+
+        prev_frame = frame
+
+    cap.release()
+
+    if corrupted_frames > 0:
+        print(f"Total corrupted frames in {video_path}: {corrupted_frames}")
+        return False
+    else:
+        print(f"All frames in {video_path} are intact")
+        return True
+
+
+def check_frame_integrity(prev_frame, frame):
+    diff = cv2.absdiff(prev_frame, frame)
+    non_zero_count = np.count_nonzero(diff)
+
+    # 如果两个帧之间的变化非常大，可以认为帧是损坏的
+    if non_zero_count > 0.5 * frame.size:  # 变化超过10%
+        return False
+    return True
+
+
+def play_tocheck_video_minimized(video_path):
+    """
+    使用ffplay播放视频，并将窗口最小化，如果出现错误立即退出
+    """
+    # 构建ffplay命令
+    command = [
+        'ffplay',
+        '-autoexit',
+        # '-nodisp',  # 禁止显示窗口
+        '-an',  # 禁止音频输出
+        '-vf', 'scale=-1:720,setpts=PTS/20',
+        '-af', 'atempo=20',
+        video_path
+    ]
+    process = None  # 提前声明process变量
+    try:
+        # 启动ffplay进程
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # 等待ffplay窗口出现
+        time.sleep(2)
+
+        # 获取ffplay窗口并最小化
+        windows = gw.getWindowsWithTitle('ffplay')
+        if windows:
+            window = windows[0]
+            window.minimize()
+
+        # 实时监控ffplay的输出 创建队列用于回溯错误信息
+        output_deque = deque(maxlen=5)
+        video_time = None
+        while True:
+            output = process.stderr.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                output_deque.append(output)
+
+                # 过滤和打印重要的错误信息
+                if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower():
+                    error_message = output.strip()
+                    for line in reversed(output_deque):
+                        time_match = re.search(r"M-V:\s+(\d+\.\d+)", line)
+                        if time_match:
+                            video_time = float(time_match.group(1)) * 20
+                            break
+                    if video_time is not None:
+                        print(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+                    else:
+                        print(f"Error detected in {video_path}: {error_message}")
+                    process.terminate()
+                    break
+
+        # 等待进程结束
+        process.wait()
+
+        return video_path
+    except Exception as e:
+        print(f"Exception occurred: {e}")
+        process.kill()
+        # 如果有全局异常处理函数，调用它
+        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        return video_path
+
+
+# TODO 已废弃,该命令执行效率低资源占用高
 def get_video_integrity_old(video_path):
     if os.path.isfile(video_path):
         # 定义 FFmpeg 命令
