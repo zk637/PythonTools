@@ -1632,24 +1632,90 @@ def check_frame_integrity(prev_frame, frame):
     return True
 
 
+def get_video_resolution(video_path):
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print(f"Cannot open video file: {video_path}")
+        return 0, 0
+
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()  # 释放 VideoCapture 资源
+    return width, height
+
+
+def calculate_scale(width, height):
+    if width == 0 and height == 0:
+        return width, height
+    else:
+        aspect_ratio = width / height
+        if width * height <= 960 * 540:  # 如果是较低的分辨率
+            scale_width = width
+            scale_height = height
+        elif width * height < 3840 * 2160:  # 如果小于4K
+            scale_width = width // 2
+            scale_height = height // 2
+        else:  # 如果大于等于4K
+            scale_width = width // 4
+            scale_height = height // 4
+
+            # 确保在大于4K的情况下，最大像素量不超过960x540
+        max_pixel_area = 960 * 540
+        if scale_width * scale_height > max_pixel_area:
+            scale_factor = (max_pixel_area / (scale_width * scale_height)) ** 0.5
+            scale_width = int(scale_width * scale_factor)
+            scale_height = int(scale_height * scale_factor)
+
+        # 保持宽高比
+        if aspect_ratio > 1:
+            scale_width = int(scale_height * aspect_ratio)
+        else:
+            scale_height = int(scale_width / aspect_ratio)
+
+        return scale_width, scale_height
+
+
 def play_tocheck_video_minimized(video_path):
     """
     使用ffplay播放视频，并将窗口最小化，如果出现错误立即退出
     """
-    # 构建ffplay命令
-    command = [
-        'ffplay',
-        '-autoexit',
-        # '-nodisp',  # 禁止显示窗口
-        '-an',  # 禁止音频输出
-        '-vf', 'scale=-1:720,setpts=PTS/20',
-        '-af', 'atempo=20',
-        video_path
-    ]
+    duration = get_video_duration(video_path)
+    width, height = get_video_resolution(video_path)
+    scale_width, scale_height = calculate_scale(width, height)
+    print(f"Original resolution: {width}x{height}")
+    print(f"Scaled resolution: {scale_width}x{scale_height}")
+    if width == 0 and height == 0:
+        print(f"Error detected in {video_path}: Resolution unavailable")
+        return video_path
+    if duration < 600:
+        # 构建ffplay命令
+        command = [
+            'ffplay',
+            '-autoexit',
+            # '-nodisp',  # 禁止显示窗口
+            '-an',  # 禁止音频输出
+            '-vcodec', 'h264_cuvid',  # 使用硬件加速
+            '-vf', f'scale={scale_width}:{scale_height},setpts=PTS/80',
+            '-framedrop', '-infbuf',
+            video_path
+        ]
+    else:
+        # 构建ffplay命令 视频时长大于一小时使用更高倍速率检测
+        command = [
+            'ffplay',
+            '-autoexit',
+            # '-nodisp',  # 禁止显示窗口
+            '-an',  # 禁止音频输出
+            '-vcodec', 'h264_cuvid',  # 使用硬件加速
+            '-vf', f'scale={scale_width}:{scale_height},setpts=PTS/160',
+            '-framedrop', '-infbuf',
+            video_path
+        ]
     process = None  # 提前声明process变量
     try:
+        print(command)
         # 启动ffplay进程
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
 
         # 等待ffplay窗口出现
         time.sleep(2)
@@ -1671,7 +1737,8 @@ def play_tocheck_video_minimized(video_path):
                 output_deque.append(output)
 
                 # 过滤和打印重要的错误信息
-                if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower():
+                if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower() or 'packet mismatch' \
+                        in output.lower():
                     error_message = output.strip()
                     for line in reversed(output_deque):
                         time_match = re.search(r"M-V:\s+(\d+\.\d+)", line)

@@ -310,11 +310,12 @@ def test_get_video_duration_sorted_yes(monkeypatch):
                    '""'  # 空行，用于结束输入
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-    inputs = ['Y', 'Y']
+    inputs = ['Y', 'Y', 'Y']
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
@@ -327,13 +328,13 @@ def test_get_video_duration_sorted_no(monkeypatch):
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail",
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
-    inputs = ['N', 'N']
+    inputs = ['N', 'N', 'N']
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         fileanalysis.get_video_duration_sorted()
 
 
