@@ -413,7 +413,7 @@ def check_video_integrity():
     )
 
     video_integrity = []
-    video_unintegrity = []
+    video_unintegrity = {}
 
     pattern = r"(.*)_thumbs_\[(\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}\.\d{2})\]\.jpg\.!qB"
     # 去除不支持的文件格式和缓存
@@ -439,24 +439,24 @@ def check_video_integrity():
         else:
             weight += 50
 
-        # 检查最后5分钟后
-        if not tools.extract_last_5_minutes(video_path):
+        # 检查最后5分钟
+        lflag, last_duration = tools.extract_last_5_minutes(video_path)
+        if not lflag:
             weight += 100
-            video_unintegrity.append(video_path)
-            continue
+            video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": 0}
 
         if weight < 100:
             # 检查最初5分钟
-            if not tools.extract_start_5_minutes(video_path):
+            sflag, start_duration = tools.extract_start_5_minutes(video_path)
+            if not sflag:
                 weight += 100
-                video_unintegrity.append(video_path)
-                continue
+                video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
         if weight < 100:
             # 检查视频完整性
             if not tools.get_video_integrity(video_path):
-                video_unintegrity.append(video_path)
-                continue
+                weight += 100
+                video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
         if weight < 100:
             # 检查是否存在绿屏
@@ -466,19 +466,19 @@ def check_video_integrity():
         if weight < 100:
             video_integrity.append(video_path)
         else:
-            video_unintegrity.append(video_path)
+            if video_path not in video_unintegrity:
+                video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
     # 关闭进度条
     progress_bar.close()
 
-    if not tools.check_is_None(video_unintegrity):
-        video_unintegrity = [path for path in video_unintegrity if
-                             tools.check_in_suffix(path, *constants.CHECK_VIDEO_SUFFIX)]
+    video_unintegrity_list = list(video_unintegrity.keys())
+
     # 输出
     result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
     tools.for_in_for_print(video_integrity)
     result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
-    tools.for_in_for_print(video_unintegrity)
+    tools.for_in_for_print(video_unintegrity_list)
 
     if video_unintegrity:
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
@@ -487,12 +487,17 @@ def check_video_integrity():
         if flag == 'Y':
             # 初始化进度条
             progress_bar = tqdm(total=len(video_unintegrity), desc="Processing videos")
-            for video_path in video_unintegrity:
+            for video_path, durations in video_unintegrity.items():
                 # 更新进度条
                 progress_bar.update(1)
-                check_video_path = tools.play_tocheck_video_minimized(video_path)
+                last_duration = durations.get('last_duration', 0)
+                start_duration = durations.get('start_duration', 0)
+                check_video_path = tools.play_tocheck_video_minimized(video_path, last_duration, start_duration)
                 check_video_paths.append(check_video_path)
-            # 关闭进度条
+
+                # 关闭进度条
             progress_bar.close()
         result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
-        tools.for_in_for_print(check_video_paths)
+        # 转换为列表形式以便于后续处理
+        video_unintegrity_list = list(video_unintegrity.keys())
+        tools.for_in_for_print(video_unintegrity_list)

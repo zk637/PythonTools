@@ -459,7 +459,11 @@ def check_in_suffix(file_path, *suffixes):
     try:
         # 获取文件扩展名并转换为小写
         file_ext = get_file_extension(file_path).lower()
-        result = file_ext in suffixes
+        # 将后缀元组中的每个后缀都转换为小写（或大写）
+        suffixes_lower = [suffix.lower() for suffix in suffixes[0]]  # 取第一个元组内的后缀元素
+        # print(f"file_ext: {file_ext}")
+        # print(f"suffixes_lower: {suffixes_lower}")
+        result = file_ext in suffixes_lower
         return result
     except Exception as e:
         log_info_m.print_message(message=f"Error: {e}")
@@ -480,7 +484,8 @@ def check_not_in_suffix(file_path, *suffixes):
         # 获取后缀名
         file_ext = os.path.splitext(file_name)[1].lower()
         # 检查后缀是否在给定的后缀元组中
-        result = file_ext not in suffixes
+        suffixes_lower = [suffix.lower() for suffix in suffixes[0]]  # 取第一个元组内的后缀元素
+        result = file_ext not in suffixes_lower
         return result
 
     except Exception as e:
@@ -1402,18 +1407,18 @@ def extract_start_5_minutes(video_path):
                     and 'Terminating thread with return code:' not in completed_process.stderr:
                 # print(completed_process.stdout)
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
-                return True
+                return True, 300
             else:
                 log_info_m.print_message(message="Failed to extract start 5 minutes.")
                 # print(completed_process.stderr)
-                return False
+                return False, 300
         except Exception as e:
             # 如果有全局异常处理函数，调用它
             global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
-            return False
+            return False, 0
     else:
         log_info_m.print_message(message="Failed to extract last 5 minutes. Video duration not available.")
-        return False
+        return False, 0
 
 
 def extract_last_5_minutes(video_path):
@@ -1440,18 +1445,18 @@ def extract_last_5_minutes(video_path):
 
                 # print(completed_process.stdout)
                 # 现在可以在这里处理提取的视频部分，而不必将其写入文件
-                return True
+                return True, formatted_start_time
             else:
                 log_info_m.print_message(message="Failed to extract last 5 minutes.")
                 # print(completed_process.stderr)
-                return False
+                return False, formatted_start_time
         except Exception as e:
             # 如果有全局异常处理函数，调用它
             global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
-            return False
+            return False, 0
     else:
         log_info_m.print_message(message="Failed to extract last 5 minutes. Video duration not available.")
-        return False
+        return False, 0
 
 
 def get_video_integrity(video_path):
@@ -1472,7 +1477,8 @@ def get_video_integrity(video_path):
             # 检查错误消息是否来自 input stream 2
             if 'Unsupported codec with id' in line and 'input stream 2' in line:
                 continue  # 忽略 input stream 2 的错误
-            elif 'Header missing' in line or 'Packet mismatch' in line or 'Extra data:' in line or 'co located POCs unavailable' in line:
+            elif 'Header missing' in line or 'Packet mismatch' in line or 'Extra data:' in line or \
+                    'co located POCs unavailable' in line or 'partial file' in line:
                 error_detected = True
                 break
 
@@ -1539,45 +1545,57 @@ def check_video_for_green_screen(video_path, check_frames=60):
     try:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            print(f"Unable to open video file: {video_path}")
-            return False
+            print(f"Error Unable to open video file: {video_path}")
+            return True
 
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         corrupted_frames = 0
 
         # 检查前120帧
         for frame_idx in range(check_frames):
-            ret, frame = cap.read()
-            if not ret:
-                break
-            height, width, _ = frame.shape
-            if check_green_screen(frame, width, height):
-                print(f"Green screen detected in frame {frame_idx + 1}")
-                corrupted_frames += 1
+            try:
+                ret, frame = cap.read()
+                if not ret or frame is None:
+                    print(f"Error 无法读取帧 {frame_idx + 1}")
+                    return True
+                else:
+                    height, width, _ = frame.shape
+                    if check_green_screen(frame, width, height):
+                        print(f"Green screen detected in frame {frame_idx + 1}")
+                        corrupted_frames += 1
+            except cv2.error as e:
+                return True
 
         # 检查后120帧
-        cap.set(cv2.CAP_PROP_POS_FRAMES, max(total_frames - check_frames, 0))
-        for frame_idx in range(total_frames - check_frames, total_frames):
-            ret, frame = cap.read()
-            if not ret:
-                break
-            height, width, _ = frame.shape
-            if check_green_screen(frame, width, height):
-                print(f"Green screen detected in frame {frame_idx + 1}")
-                corrupted_frames += 1
 
-        cap.release()
-
-        if corrupted_frames > 0:
-            print(f"Total corrupted (green screen) frames in {video_path}: {corrupted_frames}")
-            return True
+        if not cap.set(cv2.CAP_PROP_POS_FRAMES, max(total_frames - check_frames, 0)):
+            raise my_exception.ReadFrameException()
         else:
-            print(f"All frames in {video_path} are intact")
-            return False
+            for frame_idx in range(total_frames - check_frames, total_frames):
+                try:
+                    ret, frame = cap.read()
+                    if not ret or frame is None:
+                        print(f"Error 无法读取帧 {frame_idx + 1}")
+                        return True
+                    else:
+                        height, width, _ = frame.shape
+                        if check_green_screen(frame, width, height):
+                            print(f"Green screen detected in frame {frame_idx + 1}")
+                            corrupted_frames += 1
+                except cv2.error as e:
+                    return True
+
+            cap.release()
+            if corrupted_frames > 0:
+                print(f"Total corrupted (green screen) frames in {video_path}: {corrupted_frames}")
+                return True
+            else:
+                print(f"All frames in {video_path} are intact")
+                return False
     except Exception as e:
         # 如果有全局异常处理函数，调用它
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
-        return False
+        return True
 
 
 # TODO
@@ -1631,24 +1649,61 @@ def check_frame_integrity(prev_frame, frame):
         return False
     return True
 
-
+import av
 def get_video_resolution(video_path):
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print(f"Cannot open video file: {video_path}")
+    # os.environ['TF_CPP_MIN_LOG_LIVEL'] = '3'
+    try:
+        container = av.open(video_path)
+        for stream in container.streams.video:
+            width = stream.codec_context.width
+            height = stream.codec_context.height
+            return width, height
+    except Exception as e:
+        print(f"{video_path} 读取分辨率错误: {e}")
         return 0, 0
 
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    cap.release()  # 释放 VideoCapture 资源
-    return width, height
+# def get_video_resolution(video_path):
+#     try:
+#         cap = cv2.VideoCapture(video_path)
+#         if not cap.isOpened():
+#             print(f"Cannot open video file: {video_path}")
+#             return 0, 0
+#
+#         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+#         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+#         cap.release()  # 释放 VideoCapture 资源
+#         return width, height
+#     except Exception as e:
+#         print(f"{video_path}读取分辨率错误")
+#         return 0, 0
 
+# def get_video_resolution(video_path):
+#     try:
+#         cmd = ['ffmpeg', '-i', video_path]
+#         result = subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+#         output = result.stderr.decode('utf-8')
+#
+#         # 提取分辨率信息
+#         for line in output.split('\n'):
+#             if 'Stream' in line and 'Video' in line:
+#                 parts = line.split(',')
+#                 for part in parts:
+#                     if 'x' in part:
+#                         resolution = part.strip().split(' ')[0]
+#                         width, height = map(int, resolution.split('x'))
+#                         return width, height
+#
+#         print(f"Cannot get resolution for video file: {video_path}")
+#         return 0, 0
+#     except Exception as e:
+#         print(f"{video_path}读取分辨率错误")
+#         return 0, 0
+       # global_exception_handler(Exception, f"文件：{video_path}读取分辨率错误", None)
 
 def calculate_scale(width, height):
-    if width == 0 and height == 0:
-        return width, height
-    else:
+    if width!=0 and height!=0:
         aspect_ratio = width / height
+
         if width * height <= 960 * 540:  # 如果是较低的分辨率
             scale_width = width
             scale_height = height
@@ -1673,9 +1728,11 @@ def calculate_scale(width, height):
             scale_height = int(scale_width / aspect_ratio)
 
         return scale_width, scale_height
+    else:
+        return 0, 0
 
 
-def play_tocheck_video_minimized(video_path):
+def play_tocheck_video_minimized(video_path, last_duration, start_duration):
     """
     使用ffplay播放视频，并将窗口最小化，如果出现错误立即退出
     """
@@ -1684,36 +1741,44 @@ def play_tocheck_video_minimized(video_path):
     scale_width, scale_height = calculate_scale(width, height)
     print(f"Original resolution: {width}x{height}")
     print(f"Scaled resolution: {scale_width}x{scale_height}")
-    if width == 0 and height == 0:
+
+    if width == 0 or height == 0 or scale_height == 0 or scale_width == 0:
         print(f"Error detected in {video_path}: Resolution unavailable")
         return video_path
     if duration < 600:
-        # 构建ffplay命令
-        command = [
-            'ffplay',
-            '-autoexit',
-            # '-nodisp',  # 禁止显示窗口
-            '-an',  # 禁止音频输出
-            '-vcodec', 'h264_cuvid',  # 使用硬件加速
-            '-vf', f'scale={scale_width}:{scale_height},setpts=PTS/80',
-            '-framedrop', '-infbuf',
-            video_path
-        ]
+        magnification = 80
     else:
-        # 构建ffplay命令 视频时长大于一小时使用更高倍速率检测
-        command = [
-            'ffplay',
-            '-autoexit',
-            # '-nodisp',  # 禁止显示窗口
-            '-an',  # 禁止音频输出
-            '-vcodec', 'h264_cuvid',  # 使用硬件加速
-            '-vf', f'scale={scale_width}:{scale_height},setpts=PTS/160',
-            '-framedrop', '-infbuf',
-            video_path
-        ]
+        magnification = 160
+    # 构建ffplay命令
+    command = [
+        'ffplay',
+        '-autoexit',
+        # '-nodisp',  # 禁止显示窗口
+        '-an',  # 禁止音频输出
+        '-vcodec', 'h264_cuvid',  # 使用硬件加速
+        '-vf', f'scale={scale_width}:{scale_height},setpts=PTS/{magnification}',
+        '-framedrop', '-infbuf',
+        video_path
+    ]
+    if last_duration is not None and float(last_duration) > 0:
+        # 查找 -an 参数的位置
+        input_index = command.index('-an')
+        # 在 -an 参数之前插入 -ss {last_duration} 和 -t 50
+        command.insert(input_index, '-ss')
+        command.insert(input_index + 1, str(last_duration))
+        command.insert(input_index + 2, '-t')
+        command.insert(input_index + 3, '50')
+    # elif start_duration is not None and float(start_duration) > 0:
+    #     # 查找 -an 参数的位置
+    #     input_index = command.index('-an')
+    #     # 在 -an  参数之前插入 -ss {last_duration} 和 -t 50
+    #     command.insert(input_index, '-ss')
+    #     command.insert(input_index + 1, '300')
+    #     command.insert(input_index + 2, '-t')
+    #     command.insert(input_index + 3, '25')
     process = None  # 提前声明process变量
     try:
-        print(command)
+        print(str(command))
         # 启动ffplay进程
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
 
@@ -1738,7 +1803,7 @@ def play_tocheck_video_minimized(video_path):
 
                 # 过滤和打印重要的错误信息
                 if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower() or 'packet mismatch' \
-                        in output.lower():
+                        in output.lower() or 'partial file' in output.lower():
                     error_message = output.strip()
                     for line in reversed(output_deque):
                         time_match = re.search(r"M-V:\s+(\d+\.\d+)", line)
