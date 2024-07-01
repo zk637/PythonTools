@@ -51,7 +51,10 @@ EXTENSIONS = (
 
 CACHE_SUFFIX = (
     ".tmp", '.cache', '.ico', '.nomedia', '.parts', '.ico', '.jpg.!qb', '.jpeg.!qb', '.png.!qb', '.ini', '.avi.jpg.!qb',
-    '.flv.jpg.!qb', '.mp4.jpg.!qb', 'wmv.jpg.!qb', '.mov.jpg.!qb', '.mpg.jpg.!qb' ,'.url','.gif'
+    '.flv.jpg.!qb', '.mp4.jpg.!qb', 'wmv.jpg.!qb', '.mov.jpg.!qb', '.mpg.jpg.!qb', '.url', '.gif', '.ts', '.srt',
+    '.ass', '.ssa', '.vtt', '.sub', '.sub', '.smi', '.mpl', '.rt',
+    '.dfxp', '.lrc', '.pjs',
+    '.usf', '.rtf', '.sup', '.pgs', '.sub', '.sup'
 )
 
 MP4_SUFFIX = (

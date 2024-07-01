@@ -418,8 +418,7 @@ def check_video_integrity():
     pattern = r"(.*)_thumbs_\[(\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}\.\d{2})\]\.jpg\.!qB"
     # 去除不支持的文件格式和缓存
     video_files = [video_path for video_path in video_files if
-                   not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX) and
-                   not tools.get_file_matching_pattern(video_path, pattern)]
+                   not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX)]
 
     # 初始化进度条
     progress_bar = tqdm(total=len(video_files), desc="Processing videos")
@@ -445,25 +444,25 @@ def check_video_integrity():
             weight += 100
             video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": 0}
 
-        if weight < 100:
+        if weight < 100 and weight != 100:
             # 检查最初5分钟
             sflag, start_duration = tools.extract_start_5_minutes(video_path)
             if not sflag:
                 weight += 100
                 video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
-        if weight < 100:
+        if weight < 100 and weight != 100:
             # 检查视频完整性
             if not tools.get_video_integrity(video_path):
                 weight += 100
                 video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
-        if weight < 100:
+        if weight < 100 and weight != 100:
             # 检查是否存在绿屏
-            if tools.check_video_for_green_screen(video_path):
+            if not tools.check_video_for_green_screen(video_path):
                 weight += 50
 
-        if weight < 100:
+        if weight < 100 and weight != 100:
             video_integrity.append(video_path)
         else:
             if video_path not in video_unintegrity:
@@ -484,6 +483,7 @@ def check_video_integrity():
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
         flag = tools.process_input_str().upper() or 'N'
         check_video_paths = []
+        # flag = 'Y'
         if flag == 'Y':
             # 初始化进度条
             progress_bar = tqdm(total=len(video_unintegrity), desc="Processing videos")
