@@ -24,7 +24,7 @@ the following is a list of existing functions
     #  15、获取文件夹下所有文件的路径，并返回文件名符合指定规则的文件路径列表 （支持文件名模糊规则匹配）
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
-    #  18、判断指定文件夹下的压缩文件是否加密
+    #  18、判断指定文件夹下的压缩文件是否加密（不支持7z分卷）
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取检索文件夹下和检索文件名相同的路径列表
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
@@ -44,42 +44,48 @@ the following is a list of existing functions
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
     #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
+    #  38、拆分音频为两段（支持文件列表和文件夹）
+    #  39、获取文件夹列表中文件夹不存在指定后缀的文件
     
-    # 1. Get the size of files in the same subdirectory code==01
-    # 2. Get the size of files in different subdirectories code==02
-    # 3. Use keywords to find subtitle files code==03
-    # 4. Match the corresponding subtitle file in the video directory and return the list code==04
-    # 5. Find subtitle file list by video path (support fuzzy matching) code==05
-    # 6. Find subtitle files by video path and create directory code==06
-    # 7. Find the media files that meet the interval condition resolution by video catalog code==07
-    # 8. Delete files smaller than the specified MB in a folder and output a list of deleted files. code==08
-    # 9. Get the number of files in the file list code==09
-    # 10, get the list of files in the size range or in the modification time range code==10
-    # 11, take the length of all the video files in the folder and sort the output or output the files with the same length and size. code==11
-    # 12. Get the "size", "duration", "bitrate", "resolution" (sorting requires entry of the corresponding attributes) for a given folder
-    # 13, get a given folder in the search path list with the same file name matching list or get a list that does not match the same file name
-    # 14. Take all the jpg files in the incoming directory that are consistent with the file name to create a.ts folder and move them into it
-    # 15, get the path of all files in the folder, and return the file path list of file names that meet the specified rules (support filename fuzzy rule matching)
-    # 16, get all paths in the two directories, the source file name and the target file folder name is the same to establish a symbolic link (administrator permission is required)
-    # 17, for the specified file list in the specified directory to create symbolic links (administrator permissions required) support file and folder mixing
-    # 18, determine whether the compressed file in the specified folder is encrypted
-    # 19, determine whether the compressed file under the specified folder is encrypted - accurate (support 7z volume format)
-    # 20, get the search folder and search file name the same path list
-    # 21, get the file path without the specified suffix (enter as a path list or folder)
-    # 22, filter rule formatting
-    # 23. Check whether the file is legitimate
-    # 24, check whether the symbolic links in the folder are available
-    # 25, automatic file backup (update - need to create a symbolic link in advance)
-    # 26, automatic file backup (create - need to create a symbolic link in advance)
-    # 27. Compare folder contents with csv
-    # 28. Get the audio file for the given folder or file
-    # 29, folder video naming normalization
-    # 30. Split the video into multiple segments according to the limit size
-    # 31. Add subtitles to the video file
-    # 32. Check whether the video has a subtitle stream
-    # 33. Get the directory structure in the specified folder and copy it
-    # 34, get the video under the specified file list or folder is complete
-    # 35. Gets the number and path of files for the specified file type
-    # 36. Get the number and path of files outside the specified file type
-    # 37. Get the folders whose sub-files are larger than 3GB and have more than 3 files in the input file list and output the folders that do not meet the conditions
+    # 1. Get the file size in the same subdirectory code==01
+	# 2. Get the file sizes in different subdirectories code==02
+	# 3. Use keywords to find subtitle files code==03
+	# 4. Match the corresponding subtitle files in the video directory and return the list code==04
+	# 5. Search the subtitle file list through the video path (supports fuzzy matching) code==05
+	# 6. Find the subtitle file through the video path and create a directory code==06
+	# 7. Find media files that meet the interval condition resolution through the video directory code==07
+	# 8. Delete files smaller than the specified MB in the folder and output the deleted file list code==08
+	# 9. Get the number of files under the file list code==09
+	# 10. Get the list of files in the size range or the list in the modification time range code==10
+	# 11. Get the duration of all video files in the folder and sort them for output or output files with the same duration and size code==11
+	# 12. Get the "size", "duration", "bitrate", and "resolution" under the given folder (the corresponding attributes need to be entered for sorting)
+	# 13. Get a list of files matching the same file name in the search path list under a given folder or get a list of files that do not match the same file name.
+	# 14. Get all the jpg files with the same file name in the incoming directory, create a .ts folder and move them in
+	# 15. Get the paths of all files in the folder and return a list of file paths whose file names comply with the specified rules (supports file name fuzzy rule matching)
+	# 16. Obtain all paths in the two directories. If the file name of the source file is consistent with the folder name of the target file, a symbolic link will be established (administrator rights are required)
+	# 17. Create a symbolic link in the specified directory for the specified file list (administrator permissions required). Supports mixing files and folders.
+	# 18. Determine whether the compressed files in the specified folder are encrypted (7z volumes are not supported)
+	# 19. Determine whether the compressed files in the specified folder are encrypted - accurate (supports 7z volume format)
+	# 20. Get a list of paths in the search folder that have the same name as the search file.
+	# 21. Get the file path that is not in the specified suffix (input as a path list or folder)
+	# 22. Format filtering rules
+	# 23. Verify whether the file is legal
+	# 24. Check whether the symbolic link under the input folder is available
+	# 25. Automatic file backup (update - symbolic links need to be created in advance)
+	# 26. Automatic file backup (create - symbolic link needs to be created in advance)
+	# 27. Comparison of folder content and csv
+	# 28. Get the audio file of a given folder or file
+	# 29. Standardize the naming of videos under folders
+	# 30. Split the video into multiple segments according to the size limit
+	# 31. Add subtitles to video files
+	# 32. Check whether there is a subtitle stream in the video
+	# 33. Get the directory structure under the specified folder and copy it
+	# 34. Get the completeness of the video in the specified file list or folder
+	# 35. Get the number and path of files of the specified file type
+	# 36. Get the number and path of files outside the specified file type
+	# 37. Get the folders whose sub-files are larger than 3GB and contain more than 3 files in the input file list and output the folders that do not meet the conditions.
+	# 38. Split the audio into two segments (supports file list and folder)
+	# 39. Get files with the specified suffix that do not exist in the folder list.
+
+
   
