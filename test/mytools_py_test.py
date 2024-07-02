@@ -887,8 +887,9 @@ def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=Non
 
 
 def test_convert_to_utf8(monkeypatch):
-    encode = tools.detect_encoding(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gdk.txt")
-    path = tools.convert_to_utf8(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gdk.txt", encode)
+    encode = tools.detect_encoding(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt")
+    print(f"encode: {encode}")
+    path = tools.convert_to_utf8(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt", encode)
     return path
 
 
