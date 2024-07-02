@@ -1,12 +1,10 @@
 import datetime
 import os
-import re
 import subprocess
 import shutil
 import sys
 import zipfile
 import py7zr
-import patoolib
 import rarfile
 import constants
 import tools
