@@ -10,7 +10,6 @@ from model import tips_m, log_info_m, result_m
 
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
-from tools import profile_all_functions
 
 global_exception_handler = global_exception_handler
 

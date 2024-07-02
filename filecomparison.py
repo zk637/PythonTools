@@ -539,9 +539,6 @@ def poolTool():
     pool.submit()
 
 
-from functools import partial, wraps
-
-
 async def get_file_paths_limit(folder, *extensions):
     """获取文件夹下指定后缀的所有文件的路径"""
     paths = []

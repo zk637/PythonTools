@@ -511,10 +511,10 @@ def test_get_exclude_suffix_list_no(monkeypatch):
         filecomparison.get_exclude_suffix_list()
 
 
-@pytest.mark.skip(reason="Skipping this test function for now")
+# @pytest.mark.skip(reason="Skipping this test function for now")
 def test_get_file_rule_sort_yes(monkeypatch):
     print(22)
-    inputs_list = ['Y', ',Day', '宣传文本', '文宣'
+    inputs_list = ['Y', ',Day', '宣传文本', '文宣',
                                         '""'  # 空行，用于结束输入
                    ]
     # inputs = [

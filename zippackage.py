@@ -17,7 +17,6 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-
 def check_zip_password_old():
     """判断指定文件夹下的压缩文件是否加密（不支持7z分卷）"""
     tips_m.print_message(message="请输入需要检索的文件夹")
