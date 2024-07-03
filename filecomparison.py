@@ -119,12 +119,12 @@ def check_files_in_folder(file_list):
     if non_matching_paths and "Y" == flag.upper():
         non_matching_paths = set(non_matching_paths)
         result_m.print_message(message="True：找到不匹配的文件：")
-        tools.for_in_for_print(non_matching_paths,flag=True)
+        tools.for_in_for_print(non_matching_paths, flag=True)
     else:
         # 如果找到了匹配的文件，则输出每个匹配的文件的路径
         result_m.print_message(message="False：找到匹配的文件：")
         matching_paths = set(matching_paths)
-        tools.for_in_for_print(matching_paths,flag=True)
+        tools.for_in_for_print(matching_paths, flag=True)
 
     return matching_paths, non_matching_paths
 
@@ -324,12 +324,12 @@ def get_exclude_suffix_list():
 
 def get_file_rule_sort():
     """过滤规则格式化"""
-    rules, folder = tools.process_paths_list_or_folder()
-    if folder:
+    rules_list, rules_txt = tools.process_paths_list_or_folder()
+    if rules_txt:
         rules = tools.read_rules_from_file()
         tools.get_sort_list(rules)
-    elif rules:
-        tools.get_sort_list(rules)
+    elif rules_list:
+        tools.get_sort_list(rules_list)
     else:
         log_info_m.print_message(message="参数有误！")
         return None
@@ -537,9 +537,6 @@ from concurrent.futures import ThreadPoolExecutor
 def poolTool():
     pool = ThreadPoolExecutor(5)  #
     pool.submit()
-
-
-from functools import partial, wraps
 
 
 async def get_file_paths_limit(folder, *extensions):

@@ -10,7 +10,6 @@ from model import tips_m, log_info_m, result_m
 
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
-from tools import profile_all_functions
 
 global_exception_handler = global_exception_handler
 
@@ -311,6 +310,7 @@ def split_audio():
         tools.split_audio_for_duration(path, duration)
 
 
+# TODO 10bit视频嵌入硬字幕
 def add_srt():
     """为视频文件添加字幕"""
 
@@ -318,7 +318,7 @@ def add_srt():
     video_path = tools.process_input_str_limit().replace('"', '')
     tips_m.print_message(message="输入字幕文件路径")
     srt_path = tools.process_input_str_limit().replace('"', '')
-    tips_m.print_message(message="硬字幕还是软字幕 Y/N def:N")
+    tips_m.print_message(message="硬字幕还是软字幕 Y/N def:N（硬字幕：Y,软字幕：N")
 
     flag = tools.process_input_str_limit() or 'N'
     if not tools.check_is_None(video_path, srt_path):
@@ -333,24 +333,71 @@ def add_srt():
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
             bat_file = ''
+            encode = tools.detect_encoding(srt_path)
+            srt_path_utf8 = tools.convert_to_utf8(srt_path, encode)
+            if srt_path_utf8 == None:
+                print(f"Error：字幕文件无法转换{srt_path}为UTF-8！任务结束")
+                return 0
         if flag.upper() == 'Y':
-            # 定义 FFmpeg 命令
-            # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
-            # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
-            srt_path = srt_path.replace('\\', r'\\').replace(':', r'\:')
-            # video_path = video_path.replace('\\','\\\\')
-            # print(video_path)
-            srt_path = "'" + srt_path + "'"
-            # print(srt_path)
-            command = f'ffmpeg  -i "{video_path}" -c:v h264_nvenc -vf subtitles="{srt_path}" "{video_out_name}"'
+            preset_map = {
+                1: 'fast',
+                2: 'medium',
+                3: 'slow',
+            }
 
+            # 提示用户是否使用质量控制
+            tips_m.print_message(message="是否使用质量控制？ Y/N def:N")
+            flag = tools.process_input_str_limit().replace('"', '').upper() or 'N'
+
+            if flag == 'Y':
+                media_info = tools.get_media_info(video_path)
+                total_bitrate = media_info.get('General', {}).get('overall_bit_rate', 'Unknown')
+                # 如果无法获取到比特率信息，则终止程序
+                if total_bitrate == 'Unknown':
+                    print(f"Error：无法获取原视频{video_path}的总比特率信息！任务终止")
+                    return 0
+
+                # 提示总比特率大小
+                tips_m.print_message(
+                    message=f"总比特率大小的值 单位：Kbps def:原视频的总比特率大小{total_bitrate / 1000}")
+
+                # 获取用户输入的比特率
+                user_input = tools.process_input_str_limit().strip()  # 去除首尾空格
+
+                # 如果用户没有输入有效值，会使用默认值
+                if user_input:
+                    try:
+                        total_bitrate = float(user_input)
+                    except ValueError:
+                        print("请输入有效的比特率值！如原视频可获取总比特率将默认使用")
+                else:
+                    total_bitrate = total_bitrate / 1000  # 使用默认值
+
+                # 提示用户选择质量效率平衡因子
+                tips_m.print_message(
+                    message="质量效率平衡因子 def:2 （1-fast：在速度和质量之间取得较好的平衡, 2-medium：默认预设，在速度和质量之间取得平衡, 3-slow：编码速度较慢，但质量显著提升）")
+                index = int(tools.process_input_str_limit()) or 2
+                preset = preset_map.get(index)
+
+                # 构建 FFmpeg 命令
+                srt_path_utf8 = srt_path_utf8.replace('\\', r'\\').replace(':', r'\:')
+                srt_path_utf8 = "'" + srt_path_utf8 + "'"
+                # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
+                # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
+                command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+            else:
+                # 构建不使用质量控制的 FFmpeg 命令
+                command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
+
+            # 打印和执行命令
             log_info_m.print_message(message=command)
-
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
-            tools.subprocess_common_bat(bat_file, command)
+            result = tools.subprocess_common_bat(bat_file, command)
+
+            result_m.print_message(message=result)
         else:
             # 定义 FFmpeg 命令
-            command = f'ffmpeg -i "{video_path}" -i "{srt_path}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
+            command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
             result = tools.subprocess_common_bat(bat_file, command)
 

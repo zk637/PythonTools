@@ -2,23 +2,13 @@
 '''
 @File    :   mytools_py_test.py
 @Contact :
-@License :   (C)Copyright 2018-2021
+@License :   (C)Copyright Apache-2.0 license
 My_Tools的Testcase
 '''
-import os
-import pytest
-import tools
-import fileSize
-
-from functools import wraps, partial
-from itertools import cycle
 
 import pytest
-import atexit
 import os
-
 import fileSize
-import loggerconifg
 import tools
 import translate
 import filecount
@@ -27,13 +17,6 @@ import zippackage
 import fileanalysis
 import filecomparison
 import removefolder
-
-import datetime
-
-from loggerconifg import Logger
-from loggerconifg import createog
-from loggerconifg import exit_handler
-import sys
 
 from unittest.mock import patch, MagicMock
 
@@ -61,7 +44,7 @@ methods = {
     15: filecomparison.get_file_paths_with_rules,
     16: filebackup.create_symbolic_links,
     17: filebackup.same_file_createsymbolic_links,
-    18: zippackage.check_zip_password,
+    18: zippackage.check_zip_password_old,
     19: zippackage.extract_archive,
     20: filecomparison.get_file_paths_with_name,
     21: filecomparison.get_exclude_suffix_list,
@@ -82,6 +65,8 @@ methods = {
     35: filecount.getfoldercount_by_include,
     36: filecount.getfoldercount_by_exclude,
     37: filecount.get_file_count_by_underfolder_size,
+    38: fileanalysis.split_audio,
+    39: filecomparison.get_exclude_suffix_folder_list,
     # 35: filecomparison.print_video_info_list_asy,
     # 26:fileduration.create_symbolic_links_recursive
     # 17: fileduration.compare_file_and_folder_names
@@ -131,9 +116,6 @@ def test_get_total_size():
     # 断言结果是否符合预期
     assert isinstance(result, float)
     assert result > 0  # 确保返回的大小大于0
-
-
-import sys
 
 
 def test_getSrt(monkeypatch):
@@ -511,15 +493,12 @@ def test_get_exclude_suffix_list_no(monkeypatch):
         filecomparison.get_exclude_suffix_list()
 
 
-@pytest.mark.skip(reason="Skipping this test function for now")
+# @pytest.mark.skip(reason="Skipping this test function for now")
 def test_get_file_rule_sort_yes(monkeypatch):
     print(22)
-    inputs_list = ['Y', ',Day', '宣传文本', '文宣'
-                                        '""'  # 空行，用于结束输入
+    inputs_list = ['Y', ',Day', '宣传文本', '文宣',
+                   '""'  # 空行，用于结束输入
                    ]
-    # inputs = [
-    #     '""'  # 空行，用于结束输入
-    #     ]
 
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
 
@@ -612,7 +591,22 @@ def test_split_video(monkeypatch):
         fileanalysis.split_video()
 
 
-def test_add_srt(monkeypatch):
+def test_add_srt_yes(monkeypatch):
+    inputs = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt",
+        'Y', 'Y', '200', 1]
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    fileanalysis.add_srt()
+
+
+# 注意：此函数传入的字幕参数不可用用例应返回错误
+def test_add_srt_no(monkeypatch):
     inputs = [r"H:\videos\test\test_srt\4_5956136083451284611.webm",
               r"H:\videos\test\test_srt\4_5956136083451284611.srt",
               'N']
@@ -903,8 +897,9 @@ def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=Non
 
 
 def test_convert_to_utf8(monkeypatch):
-    encode = tools.detect_encoding(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gdk.txt")
-    path = tools.convert_to_utf8(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gdk.txt", encode)
+    encode = tools.detect_encoding(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt")
+    print(f"encode: {encode}")
+    path = tools.convert_to_utf8(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt", encode)
     return path
 
 
