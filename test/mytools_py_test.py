@@ -18,8 +18,6 @@ import fileanalysis
 import filecomparison
 import removefolder
 
-
-
 from unittest.mock import patch, MagicMock
 
 # 注册全局异常处理函数
@@ -118,8 +116,6 @@ def test_get_total_size():
     # 断言结果是否符合预期
     assert isinstance(result, float)
     assert result > 0  # 确保返回的大小大于0
-
-
 
 
 def test_getSrt(monkeypatch):
@@ -501,7 +497,7 @@ def test_get_exclude_suffix_list_no(monkeypatch):
 def test_get_file_rule_sort_yes(monkeypatch):
     print(22)
     inputs_list = ['Y', ',Day', '宣传文本', '文宣',
-                                        '""'  # 空行，用于结束输入
+                   '""'  # 空行，用于结束输入
                    ]
 
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
@@ -595,7 +591,22 @@ def test_split_video(monkeypatch):
         fileanalysis.split_video()
 
 
-def test_add_srt(monkeypatch):
+def test_add_srt_yes(monkeypatch):
+    inputs = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt",
+        'Y', 'Y', '200', 1]
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    fileanalysis.add_srt()
+
+
+# 注意：此函数传入的字幕参数不可用用例应返回错误
+def test_add_srt_no(monkeypatch):
     inputs = [r"H:\videos\test\test_srt\4_5956136083451284611.webm",
               r"H:\videos\test\test_srt\4_5956136083451284611.srt",
               'N']
@@ -833,7 +844,6 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
         # 使用 monkeypatch 将 input 函数替换为 MagicMock 对象
         monkeypatch.setattr('builtins.input', mocked_input)
         filecomparison.get_exclude_suffix_folder_list()
-
 
 
 def test_flag_y(monkeypatch):

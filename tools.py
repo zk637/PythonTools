@@ -727,7 +727,7 @@ def detect_encoding(file_path):
 
 
 def convert_to_utf8(input_file_path, encoding):
-    """将文件转换为 UTF-8 编码"""
+    """将文件转换为 UTF-8 编码 返回转换后的新的文件路径"""
     # 如果未指定输出文件路径，并且编码不是 UTF-8
     if input_file_path and encoding.lower() != 'utf-8':
         # 获取输入文件的目录和文件名
@@ -1064,6 +1064,19 @@ def get_video_info_list(paths):
     # print(f'{len(rule)}: {rule}')
 
 
+def get_media_info(file_path):
+    media_info = MediaInfo.parse(file_path)
+    file_info = {}
+
+    for track in media_info.tracks:
+        track_info = {}
+        for key, value in track.to_data().items():
+            track_info[key] = value
+        file_info[track.track_type] = track_info
+
+    return file_info
+
+
 def get_video_duration(video_path):
     """获取视频时长"""
     try:
@@ -1326,7 +1339,7 @@ def check_subtitle_stream(video_path):
         # ffprobe -v error -select_streams s -show_entries stream=index,codec_name -of default=noprint_wrappers=1:nokey=1 "H:\videos\test.mp4"
         command = ['ffprobe', '-v', 'error', '-select_streams', 's', '-show_entries', 'stream=index,codec_name', '-of',
                    'default=noprint_wrappers=1:nokey=1', video_path]
-        # print(command)
+        print(command)
         try:
             output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
             if output:
