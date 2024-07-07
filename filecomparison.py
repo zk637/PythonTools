@@ -322,17 +322,55 @@ def get_exclude_suffix_list():
         result_m.print_message(message="No matching files found")
 
 
-def get_file_rule_sort():
-    """过滤规则格式化"""
-    rules_list, rules_txt = tools.process_paths_list_or_folder()
-    if rules_txt:
-        rules = tools.read_rules_from_file()
-        tools.get_sort_list(rules)
-    elif rules_list:
-        tools.get_sort_list(rules_list)
+def format_rules_and_tag_sort():
+    """过滤规则格式化，格式化FastCopy日志路径，提取路径中的标签，获取tag排序列表"""
+
+    index_map = {
+        1: 'get_sort_list',
+        2: 'format_paths_from_string',
+        3: 'extract_tags',
+        4: 'sort_rule'
+    }
+
+    print("请选择要调用的方法：\n1. 过滤规则格式化\n2. 格式化FastCopy日志路径\n3. 提取路径中的标签\n4. 获取tag排序列表")
+    print("请输入选项编号：")
+    choice = int(tools.process_input_str_limit())
+
+    if choice in index_map:
+        method_name = index_map[choice]
+
+        if method_name == 'get_sort_list':
+            rules_list, rules_txt = tools.process_paths_list_or_folder()
+            if rules_txt:
+                rules = tools.read_rules_from_file()
+                tools.get_sort_list(rules)
+            elif rules_list:
+                tools.get_sort_list(rules_list)
+            else:
+                log_info_m.print_message(message="参数有误！")
+                return None
+
+        elif method_name == 'format_paths_from_string':
+            raw_paths_string = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            formatted_paths = tools.format_paths_from_string(raw_paths_string)
+            print("格式化后的路径：")
+            for path in formatted_paths:
+                print(path.replace('\\\\','\\'))
+                extract_filename = tools.extract_filename_from_path(path)
+                print(extract_filename)
+
+        elif method_name == 'extract_tags':
+            file_paths = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            tools.extract_tags(file_paths)
+
+        elif method_name == 'sort_rule':
+            rules_str = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            sort_rule_tag = tools.sort_rule_tag(rules_str)
+            print("排序后的tag")
+            print(sort_rule_tag)
+
     else:
-        log_info_m.print_message(message="参数有误！")
-        return None
+        print("无效的选项，请重新选择！")
 
 
 def check_symbolic_link():
