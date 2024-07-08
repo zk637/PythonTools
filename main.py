@@ -1,4 +1,8 @@
-# This is a sample Python script.
+'''
+
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+'''
 import atexit
 import os
 

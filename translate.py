@@ -1,3 +1,8 @@
+'''
+
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+'''
 import os
 import re
 import shutil

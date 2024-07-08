@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 '''
-@File    :   Model.py
-@License :   (C)Copyright 2018-2021
-此模块不进行任何计算
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+ 此模块不进行任何计算
 '''
 
 class Tips:
