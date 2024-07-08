@@ -1,4 +1,8 @@
-# This is a sample Python script.
+'''
+
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+'''
 import atexit
 import os
 
@@ -108,7 +112,7 @@ if __name__ == '__main__':
             19: zippackage.extract_archive,
             20: filecomparison.get_file_paths_with_name,
             21: filecomparison.get_exclude_suffix_list,
-            22: filecomparison.get_file_rule_sort,
+            22: filecomparison.format_rules_and_tag_sort,
             23: fileanalysis.getfiletypeislegal,
             24: filecomparison.check_symbolic_link,
             25: filebackup.update_linked_items,
@@ -157,7 +161,7 @@ if __name__ == '__main__':
     #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
     #  20、获取检索文件夹下和检索文件名相同的路径列表
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
-    #  22、过滤规则格式化
+    #  22、过滤规则格式化，文件路径格式化，标签格式化，提取路径中的标签
     #  23、校验文件是否合法
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）

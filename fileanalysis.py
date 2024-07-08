@@ -1,3 +1,8 @@
+'''
+
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+'''
 import os
 from PIL import Image
 import cv2
@@ -382,9 +387,13 @@ def add_srt():
                 # 构建 FFmpeg 命令
                 srt_path_utf8 = srt_path_utf8.replace('\\', r'\\').replace(':', r'\:')
                 srt_path_utf8 = "'" + srt_path_utf8 + "'"
-                # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
-                # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
-                command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+                if media_info.get('Video', {}).get('bit_depth', 'Unknown') != 10:
+                    # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
+                    # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
+                    command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+                else:
+                    command = f'ffmpeg -i "{video_path}" -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k ' \
+                                f'-preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
             else:
                 # 构建不使用质量控制的 FFmpeg 命令
                 command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'

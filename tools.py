@@ -1,3 +1,8 @@
+'''
+
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
+'''
 import ctypes
 import os
 import re
@@ -19,6 +24,7 @@ import contextlib
 import sys
 
 import numpy as np
+from pypinyin import lazy_pinyin
 from tqdm import tqdm
 
 import my_exception
@@ -128,7 +134,25 @@ def process_input_list(ui_param=None):
 
     return file_paths
 
-
+# 统一输入规则的函数
+def processs_input_until_end(prompt, value_type):
+    print(prompt)
+    if value_type.lower() == 'list':
+        user_input_list = []
+        while True:
+            line = input()
+            if line.upper() == "END":
+                break
+            user_input_list.append(line)
+        return user_input_list
+    else:
+        user_input_str = ''
+        while True:
+            line = input()
+            if line.upper() == "END":
+                break
+            user_input_str += line + "\n"
+        return user_input_str
 # @profile(enable=False)
 # def process_input_list(ui_param=None):
 #     """输入参数为列表"""
@@ -638,9 +662,76 @@ def get_list_dirs(path):
 
 
 def get_sort_list(rules):
+    """过滤规则格式化"""
     sorted_rules = sorted(rules, key=len)
     for rule in sorted_rules:
         result_m.print_message(message=f'{rule}')
+
+# 判断字符串中是否包含中文字符
+def contains_chinese(text):
+    return any('\u4e00' <= char <= '\u9fff' for char in text)
+
+
+# 规则排序函数
+def sort_rule_tag(input_text):
+    """获取tag排序列表"""
+    rule_pattern = re.compile(r'(\[Rule\d+\]\nID=.*?\nConfig=(?:TEXTWHAT|TEXT):(.*?);.*?)(?=\[Rule|\Z)', re.DOTALL)
+    rule_list = rule_pattern.findall(input_text)
+
+    chinese_rules = []
+    non_chinese_rules = []
+
+    for rule, textwhat in rule_list:
+        if contains_chinese(textwhat):
+            textwhat_pinyin = ''.join(lazy_pinyin(textwhat))
+            chinese_rules.append((rule, textwhat_pinyin))
+        else:
+            non_chinese_rules.append((rule, textwhat))
+
+    sorted_chinese_rules = sorted(chinese_rules, key=lambda x: x[1])
+    sorted_non_chinese_rules = sorted(non_chinese_rules, key=lambda x: x[1].lower())  # 字母排序不区分大小写
+
+    sorted_rules_str = ""
+    for rule, _ in sorted_non_chinese_rules + sorted_chinese_rules:
+        sorted_rules_str += rule + "\n"
+
+    return sorted_rules_str.strip()
+
+# 提取文件路径中的标签
+def extract_tags(file_paths):
+    """提取路径中的标签"""
+    paths = file_paths.strip().split('\n')
+    for file_path in paths:
+        tags = re.findall(r'\[(.*?)\]', file_path)
+        tag_string = ' '.join(f"#{tag}" for tag in tags)
+        print(f"{os.path.splitext(os.path.basename(file_path))[0]}:     {tag_string}")
+
+
+def format_paths_from_string(raw_paths_string):
+    """格式化FastCopy日志路径"""
+    # 按换行符分割字符串为列表
+    raw_paths_list = raw_paths_string.strip().split('\n')
+
+    # 使用正则表达式匹配路径部分，支持 - 或 + 开头
+    pattern = re.compile(r"[-+] (.+?) <")
+
+    formatted_paths = []
+    for line in raw_paths_list:
+        match = pattern.search(line)
+        if match:
+            path = match.group(1).strip()
+            # 将路径中的反斜杠替换为双反斜杠，确保路径不会被误解释
+            path = path.replace("\\", "\\\\")
+            formatted_paths.append(path)
+
+    return formatted_paths
+
+def extract_filename_from_path(path):
+    # 提取路径中的最后一个部分作为文件名，支持目录路径
+    path = path.rstrip("\\")  # 去除路径末尾的反斜杠
+    components = path.split("\\")
+    filename = components[-1]
+    return filename
 
 
 def get_same_namefile(folder_path):

@@ -48,7 +48,7 @@ methods = {
     19: zippackage.extract_archive,
     20: filecomparison.get_file_paths_with_name,
     21: filecomparison.get_exclude_suffix_list,
-    22: filecomparison.get_file_rule_sort,
+    22: filecomparison.format_rules_and_tag_sort,
     23: fileanalysis.getfiletypeislegal,
     24: filecomparison.check_symbolic_link,
     25: filebackup.update_linked_items,
@@ -494,32 +494,58 @@ def test_get_exclude_suffix_list_no(monkeypatch):
 
 
 # @pytest.mark.skip(reason="Skipping this test function for now")
-def test_get_file_rule_sort_yes(monkeypatch):
+def test_format_rules_and_tag_sort_one(monkeypatch):
     print(22)
-    inputs_list = ['Y', ',Day', '宣传文本', '文宣',
-                   '""'  # 空行，用于结束输入
+    inputs = [1]
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
                    ]
-
-    path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-
-    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
-        # 模拟用户输入
-        filecomparison.get_file_rule_sort()
-
-
-def test_get_file_rule_sort_no(monkeypatch):
-    print(22)
-    inputs_list = ['N',
-                   '""'  # 空行，用于结束输入
-                   ]
-    inputs_list = ['N', '1111']
-
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
-
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
-        filecomparison.get_file_rule_sort()
+        filecomparison.format_rules_and_tag_sort()
+
+
+# TODO
+@pytest.mark.skip(reason="Skipping this test function for now")
+def test_format_rules_and_tag_sort_two(monkeypatch):
+    print(22)
+    inputs = [2]
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
+                   ]
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
+        # 模拟用户输入
+        filecomparison.format_rules_and_tag_sort()
+
+
+# TODO
+@pytest.mark.skip(reason="Skipping this test function for now")
+def test_format_rules_and_tag_sort_three(monkeypatch):
+    print(22)
+    inputs = [3]
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
+                   ]
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
+        # 模拟用户输入
+        filecomparison.format_rules_and_tag_sort()
+
+
+# TODO
+@pytest.mark.skip(reason="Skipping this test function for now")
+def test_format_rules_and_tag_sort_four(monkeypatch):
+    print(22)
+    inputs = [4]
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
+                   ]
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
+        # 模拟用户输入
+        filecomparison.format_rules_and_tag_sort()
 
 
 def test_getfiletypeislegal(monkeypatch):
