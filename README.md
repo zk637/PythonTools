@@ -1,6 +1,8 @@
 # PythonTools
 个人工具
 =======
+本项目仅在Github.com发布 其它网站下载分发将无法保证项目的安全性！
+This project is only published on Github.com Other sites publish I can not guarantee the security of the project
 
 
 主要包含了多级文件夹和视频文件及字幕相关操作，由python编写。当前仅由命令行控制，以下是现有的功能列表
