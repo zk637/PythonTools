@@ -261,7 +261,10 @@ def split_video():
 
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
+        # 初始化进度条
+        progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
         for input_video in input_video_list:
+            progress_bar.update()
             if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
                 if part_num > 1:
@@ -270,6 +273,7 @@ def split_video():
                 else:
                     log_info_m.print_message(message=f"文件无法拆分：{input_video}")
 
+        progress_bar.close()
     elif os.path.isdir(input_video_dir):
         filename, file_extension = os.path.splitext(input_video_dir)
 
@@ -281,7 +285,10 @@ def split_video():
         max_size_mb = int(tools.process_input_str()) * 1024 * 1024
         input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
+            # 初始化进度条
+            progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
             for input_video in input_video_list:
+                progress_bar.update()
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
@@ -291,6 +298,8 @@ def split_video():
                     else:
 
                         log_info_m.print_message(message=f"文件无法拆分：{input_video}")
+
+            progress_bar.close()
     else:
         log_info_m.print_message(message="参数有误，不是合法的路径？")
 
@@ -553,7 +562,6 @@ def check_video_integrity():
 
                 # 关闭进度条
             progress_bar.close()
-        result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
-        # 转换为列表形式以便于后续处理
-        video_unintegrity_list = list(video_unintegrity.keys())
-        tools.for_in_for_print(video_unintegrity_list)
+        result_m.print_message(message="False：检查播放后视频文件不完整的有：" + '_' * 80)
+
+        tools.for_in_for_print(check_video_paths)
