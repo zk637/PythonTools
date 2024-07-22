@@ -259,10 +259,10 @@ def split_video():
 
         max_size_mb = int(tools.process_input_str_limit()) * 1024 * 1024
 
-        output_dir = r'H:\spilt_parts_dir'
-        tools.make_dir(output_dir)
         # 初始化进度条
         progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
+        output_dir = r'H:\spilt_parts_dir'
+        tools.make_dir(output_dir)
         for input_video in input_video_list:
             progress_bar.update()
             if input_video != '':

@@ -1385,27 +1385,57 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                 break  # 找到一个已存在的文件就跳出循环
 
         if not existing_file_found:
-            # 构建拆分命令
-            processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
-            split_command = [
-                'ffmpeg',
-                '-i', output_prefix,
-                '-c', 'copy',
-                '-map', '0',
-                '-f', 'segment',
-                '-segment_time', str(part_max_duration),
-                '-reset_timestamps', '1',
-                '-y',
-                # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
-                processed_output_prefix + '_part%d.mp4'
-            ]
-            print(split_command)
-            # 使用 subprocess.run 运行拆分命令
-            try:
-                subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
-                               encoding='utf-8')
-            except Exception as e:
-                global_exception_handler(e)
+            iteration_num = 1
+            while True:
+                # 构建拆分命令
+                processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
+                split_command = [
+                    'ffmpeg',
+                    '-i', output_prefix,
+                    '-c', 'copy',
+                    '-map', '0',
+                    '-f', 'segment',
+                    '-segment_time', str(part_max_duration),
+                    '-reset_timestamps', '1',
+                    '-y',
+                    # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
+                    processed_output_prefix + '_part%d.mp4'
+                ]
+                print(split_command)
+                # 使用 subprocess.run 运行拆分命令
+                try:
+                    subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   universal_newlines=True,
+                                   encoding='utf-8')
+                    output_prefix_dir = (os.path.abspath(os.path.join(output_prefix, "..")))
+
+                    # 获取当前目录下生成的分段文件列表
+                    segment_files = [os.path.join(output_prefix_dir, f) for f in os.listdir(output_prefix_dir) if
+                                     os.path.isfile(os.path.join(output_prefix_dir, f))]
+                    final_segment_files = [f for f in segment_files if
+                                           f.startswith(processed_output_prefix + '_part') and f.endswith('.mp4')]
+                    # 获取每个段文件的大小
+                    segment_sizes = [os.path.getsize(f) for f in final_segment_files]
+
+                    if any(float(size) > part_max_size for size in segment_sizes):
+                        max_size = max(segment_sizes)
+                        # 计算频段基准
+                        offset = part_max_size / os.path.getsize(output_prefix) / part_num
+                        # 优化频段区间
+                        adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
+                        # print(adjustment_factor)
+                        part_max_duration *= adjustment_factor
+                        iteration_num += 1
+                        print(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
+                        for f in final_segment_files:
+                            os.remove(f)
+                        print(f"iteration_num：{iteration_num}")
+                    else:
+                        break
+
+                except Exception as e:
+                    global_exception_handler(type(e), e, e.__traceback__)
+                    break
 
 
 def split_audio_for_duration(path, duration):
