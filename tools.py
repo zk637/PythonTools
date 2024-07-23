@@ -134,6 +134,7 @@ def process_input_list(ui_param=None):
 
     return file_paths
 
+
 # 统一输入规则的函数
 def processs_input_until_end(prompt, value_type):
     print(prompt)
@@ -153,6 +154,8 @@ def processs_input_until_end(prompt, value_type):
                 break
             user_input_str += line + "\n"
         return user_input_str
+
+
 # @profile(enable=False)
 # def process_input_list(ui_param=None):
 #     """输入参数为列表"""
@@ -172,7 +175,7 @@ def check_str_is_None(args):
         bool:
         传入参数有一个非空则返回False
     """
-    if args == '' and args == None:
+    if args == '' or args is None:
         return True
     else:
         return False
@@ -392,12 +395,18 @@ def for_in_for_print(list, flag=False):
     ---------------不符合条件的内容---------------
     print()
     """
-    if list and flag is not True:
+    # 清除 list 中为 None 的字符串
+    list = [str for str in list if not check_str_is_None(str)]
+
+    # 如果 list 非空且 flag 不为 True
+    if list and not flag:
         for str in list:
             result_m.print_message(message=str)
+    # 如果 list 非空且 flag 为 True
     elif list and flag:
         for str in list:
             result_m.print_message(message=add_quotes_forpath(str))
+    # 如果 list 为空或其他异常情况
     else:
         log_info_m.print_message(message="参数有误,列表为空？")
 
@@ -667,6 +676,7 @@ def get_sort_list(rules):
     for rule in sorted_rules:
         result_m.print_message(message=f'{rule}')
 
+
 # 判断字符串中是否包含中文字符
 def contains_chinese(text):
     return any('\u4e00' <= char <= '\u9fff' for char in text)
@@ -697,6 +707,7 @@ def sort_rule_tag(input_text):
 
     return sorted_rules_str.strip()
 
+
 # 提取文件路径中的标签
 def extract_tags(file_paths):
     """提取路径中的标签"""
@@ -725,6 +736,7 @@ def format_paths_from_string(raw_paths_string):
             formatted_paths.append(path)
 
     return formatted_paths
+
 
 def extract_filename_from_path(path):
     # 提取路径中的最后一个部分作为文件名，支持目录路径
@@ -1315,11 +1327,11 @@ def get_video_info(path):
             video_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
             audio_stream = next((stream for stream in probe['streams'] if stream['codec_type'] == 'audio'), None)
 
-            duration = float(probe["format"]["duration"]) if "format" in probe else 0
-            video_bitrate = int(video_stream['bit_rate']) if video_stream else 0
-            audio_bitrate = int(audio_stream['bit_rate']) if audio_stream else 0
-            width = int(video_stream['width']) if video_stream else 0
-            height = int(video_stream['height']) if video_stream else 0
+            duration = float(probe.get("format", {}).get("duration", 0))
+            video_bitrate = int(video_stream.get('bit_rate', 0)) if video_stream else 0
+            audio_bitrate = int(audio_stream.get('bit_rate', 0)) if audio_stream else 0
+            width = int(video_stream.get('width', 0)) if video_stream else 0
+            height = int(video_stream.get('height', 0)) if video_stream else 0
 
             return duration, video_bitrate, audio_bitrate, width, height
         else:
@@ -1332,20 +1344,26 @@ def get_video_info(path):
 
 def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
     video_info = get_video_info(output_prefix)
-    if video_info is not None:
+    if video_info is not None and part_max_size != 0:
         duration, video_bitrate, audio_bitrate, width, height = video_info
-        part_max_duration = part_max_size * 8 / (video_bitrate + audio_bitrate)
-        # 格式化分段最大时长为 HH:MM:SS 格式
-        part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
-        log_info_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
-        # 添加标志以指示是否存在已存在的文件
-        existing_file_found = False
+        total_bitrate = video_bitrate + audio_bitrate
+        if duration == 0 or total_bitrate == 0 or width == 0 or height == 0:
+            result_m.print_message(
+                message=f"Error：值不能为0: video_bitrate={video_bitrate}，duration={duration}，width={width}，height={height}")
+            return
+        else:
+            part_max_duration = part_max_size * 8 / total_bitrate
+            # 格式化分段最大时长为 HH:MM:SS 格式
+            part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
+            log_info_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
+            # 添加标志以指示是否存在已存在的文件
+            existing_file_found = False
 
-        output_prefix_tmp = output_prefix
-        output_prefix_tmp = output_prefix_tmp.replace("'", '-')
-        filename, file_extension = os.path.splitext(output_prefix_tmp)
-        output_prefix_tmp = filename
-        output_prefix_tmp.replace('.mp4', '')
+            output_prefix_tmp = output_prefix
+            output_prefix_tmp = output_prefix_tmp.replace("'", '-')
+            filename, file_extension = os.path.splitext(output_prefix_tmp)
+            output_prefix_tmp = filename
+            output_prefix_tmp.replace('.mp4', '')
 
         part_index = output_prefix.rfind('_part')
         if part_index != -1:
@@ -1358,7 +1376,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             # 如果未找到 '_part'，执行其他操作
             output_prefix_tmp = output_prefix.replace('.mp4', '')
             result_m.print_message(message="File name does not contain '_part'.")
-        part_index = 0
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
             if os.path.isfile(output_prefix_tmp):
@@ -1368,27 +1385,57 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                 break  # 找到一个已存在的文件就跳出循环
 
         if not existing_file_found:
-            # 构建拆分命令
-            processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
-            split_command = [
-                'ffmpeg',
-                '-i', output_prefix,
-                '-c', 'copy',
-                '-map', '0',
-                '-f', 'segment',
-                '-segment_time', str(part_max_duration),
-                '-reset_timestamps', '1',
-                '-y',
-                # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
-                processed_output_prefix + '_part%d.mp4'
-            ]
-            print(split_command)
-            # 使用 subprocess.run 运行拆分命令
-            try:
-                subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
-                               encoding='utf-8')
-            except Exception as e:
-                global_exception_handler(e)
+            iteration_num = 1
+            while True:
+                # 构建拆分命令
+                processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
+                split_command = [
+                    'ffmpeg',
+                    '-i', output_prefix,
+                    '-c', 'copy',
+                    '-map', '0',
+                    '-f', 'segment',
+                    '-segment_time', str(part_max_duration),
+                    '-reset_timestamps', '1',
+                    '-y',
+                    # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
+                    processed_output_prefix + '_part%d.mp4'
+                ]
+                print(split_command)
+                # 使用 subprocess.run 运行拆分命令
+                try:
+                    subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   universal_newlines=True,
+                                   encoding='utf-8')
+                    output_prefix_dir = (os.path.abspath(os.path.join(output_prefix, "..")))
+
+                    # 获取当前目录下生成的分段文件列表
+                    segment_files = [os.path.join(output_prefix_dir, f) for f in os.listdir(output_prefix_dir) if
+                                     os.path.isfile(os.path.join(output_prefix_dir, f))]
+                    final_segment_files = [f for f in segment_files if
+                                           f.startswith(processed_output_prefix + '_part') and f.endswith('.mp4')]
+                    # 获取每个段文件的大小
+                    segment_sizes = [os.path.getsize(f) for f in final_segment_files]
+
+                    if any(float(size) > part_max_size for size in segment_sizes):
+                        max_size = max(segment_sizes)
+                        # 计算频段基准
+                        offset = part_max_size / os.path.getsize(output_prefix) / part_num
+                        # 优化频段区间
+                        adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
+                        # print(adjustment_factor)
+                        part_max_duration *= adjustment_factor
+                        iteration_num += 1
+                        print(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
+                        for f in final_segment_files:
+                            os.remove(f)
+                        print(f"iteration_num：{iteration_num}")
+                    else:
+                        break
+
+                except Exception as e:
+                    global_exception_handler(type(e), e, e.__traceback__)
+                    break
 
 
 def split_audio_for_duration(path, duration):
@@ -1799,8 +1846,10 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
     print(f"Original resolution: {width}x{height}")
     print(f"Scaled resolution: {scale_width}x{scale_height}")
 
-    if width == 0 or height == 0 or scale_height == 0 or scale_width == 0:
-        print(f"Error detected in {video_path}: Resolution unavailable")
+    if duration == 0 or width == 0 or height == 0 or scale_height == 0 or scale_width == 0:
+        print(
+            f"Error： detected in {video_path}: Resolution unavailable or Values is 0 duration={duration},width={width},"
+            f"height={height},scale_width={scale_width},scale_height={scale_height}")
         return video_path
     if duration < 600:
         magnification = 80
@@ -1859,7 +1908,6 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                 break
             if output:
                 output_deque.append(output)
-
                 # 过滤和打印重要的错误信息
                 if 'error' in output.lower() or 'invalid' in output.lower() or 'failed' in output.lower() or 'packet mismatch' \
                         in output.lower() or 'partial file' in output.lower():
@@ -1871,20 +1919,21 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                             break
                     if video_time is not None:
                         print(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+                        process.terminate()
+                        return video_path
                     else:
                         print(f"Error detected in {video_path}: {error_message}")
-                    process.terminate()
-                    break
+                        process.terminate()
+                        return video_path
 
         # 等待进程结束
         process.wait()
-
-        return video_path
+        return None
     except Exception as e:
         print(f"Exception occurred: {e}")
         process.kill()
         # 如果有全局异常处理函数，调用它
-        global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
+        global_exception_handler(Exception, f"Error：文件：{video_path}无法获取视频信息", None)
         return video_path
 
 
