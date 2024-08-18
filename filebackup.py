@@ -159,9 +159,9 @@ def create_linked_items():
     # tools.admin_process()
     # source_folder=create_symbolic_links_recursive()
     tips_m.print_message(message="请输入符号链接所在文件夹")
-    source_folder = tools.process_input_str()
+    source_folder = tools.process_input_str_limit()
     tips_m.print_message(message="请输入要复制源文件到的所在文件夹")
-    destination_folder = tools.process_input_str()
+    destination_folder = tools.process_input_str_limit()
     # 获取源文件夹中的所有文件路径
     item_paths = tools.get_file_paths(source_folder)
 

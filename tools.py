@@ -101,10 +101,10 @@ def process_input_str_limit(ui_param=None):
     while True:
         if ui_param is None:
             # 从命令行获取输入
-            line = input().strip()
+            line = input().strip().replace('"','')
         else:
             # 从UI组件获取输入
-            line = ui_param.toPlainText().strip()
+            line = ui_param.toPlainText().strip("")
 
         temp_input.append(line)
 
@@ -247,7 +247,7 @@ def process_paths_list_or_folder(ui_param=None):
             folder_path = None
         elif flag == 'n':
             tips_m.print_message(message="请输入文件夹路径：")
-            folder_path = process_input_str()
+            folder_path = process_input_str_limit()
     else:
         # 从界面组件获取输入
         flag = ui_param.toPlainText().lower().strip()

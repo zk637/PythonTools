@@ -236,7 +236,7 @@ def same_file_createsymbolic_links():
             source_dirs.append(path)
     # 指定目标目录
     tips_m.print_message(message="请输入要创建的目标目录：")
-    target_dir = tools.process_input_str()
+    target_dir = tools.process_input_str_limit()
     # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
     files, folders = tools.get_listunder_fileandfolder(source_dirs)
     # # 输出结果
@@ -381,7 +381,7 @@ def format_rules_and_tag_sort():
 def check_symbolic_link():
     """检查录入文件夹下的符号链接是否可用"""
     tips_m.print_message(message="请输入要检查的符号链接所在文件夹")
-    destination_folder = tools.process_input_str()
+    destination_folder = tools.process_input_str_limit()
     link_paths = tools.get_file_paths(destination_folder)
     relative_links = []
     absolute_links = []
@@ -648,20 +648,20 @@ async def main():
     print(start)
 
     print("选择场景：Y/N 文件路径列表(Y) 文件夹（N）")
-    flag = tools.process_input_str().lower().strip() or 'n'
+    flag = tools.process_input_str_limit().lower().strip() or 'n'
 
     if flag == 'y':
         print("请输入文件夹")
-        folder = tools.process_input_str()
+        folder = tools.process_input_str_limit()
         print("是否纯净输出y/n")
-        flag = tools.process_input_str().lower()
+        flag = tools.process_input_str_limit().lower()
 
         file_paths_list = await get_file_paths_list_limit(folder, *constants.VIDEO_SUFFIX)
     else:
         print("请输入视频文件夹")
-        folder = tools.process_input_str()
+        folder = tools.process_input_str_limit()
         print("是否纯净输出y/n")
-        flag = tools.process_input_str().lower()
+        flag = tools.process_input_str_limit().lower()
 
         file_paths_list = await get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
 

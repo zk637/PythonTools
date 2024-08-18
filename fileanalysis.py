@@ -282,7 +282,7 @@ def split_video():
 
         tips_m.print_message(message="拆分后每段文件的大小限制 单位：MB")
 
-        max_size_mb = int(tools.process_input_str()) * 1024 * 1024
+        max_size_mb = int(tools.process_input_str_limit()) * 1024 * 1024
         input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
             # 初始化进度条
@@ -546,7 +546,7 @@ def check_video_integrity():
 
     if video_unintegrity:
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
-        flag = tools.process_input_str().upper() or 'N'
+        flag = tools.process_input_str_limit().upper() or 'N'
         check_video_paths = []
         # flag = 'Y'
         if flag == 'Y':
