@@ -25,7 +25,7 @@ def get_total_file_size(file_paths):
         for file_path in file_paths:
             if os.path.exists(file_path):
                 total_size += os.path.getsize(file_path)
-        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+        result_m.print_message(f"Total size: {total_size / (1024 ** 3):.2f} GB")
         return total_size / (1024 ** 3)
 
 
@@ -37,7 +37,7 @@ def get_total_size(file_paths):
         for file_path in file_paths:
             if os.path.exists(file_path):
                 total_size += os.path.getsize(file_path)
-        print(f"Total size: {total_size / (1024 ** 3):.2f} GB")
+        result_m.print_message(f"Total size: {total_size / (1024 ** 3):.2f} GB")
     return total_size / (1024 ** 3)
 
 

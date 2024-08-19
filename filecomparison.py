@@ -292,14 +292,14 @@ def get_file_paths_with_name():
 
         # 按找到的文件数量输出文件路径，如果没有找到就输出提示信息
         if len(found_files) > 0:
-            log_info_m.print_message(message="找到的文件有:")
+            result_m.print_message(message="找到的文件有:")
             for file in found_files:
                 file = tools.add_quotes_forpath(file)
                 result_m.print_message(message=file)
         else:
-            log_info_m.print_message(message="这些文件都不存在！")
+            result_m.print_message(message="这些文件都不存在！")
     else:
-        log_info_m.print_message(message="文件为空，需检查条件或参数！")
+        result_m.print_message(message="文件为空，需检查条件或参数！")
         return
 
 
@@ -337,8 +337,8 @@ def format_rules_and_tag_sort():
         4: 'sort_rule'
     }
 
-    print("请选择要调用的方法：\n1. 过滤规则格式化\n2. 格式化FastCopy日志路径\n3. 提取路径中的标签\n4. 获取tag排序列表")
-    print("请输入选项编号：")
+    tips_m.print_message("请选择要调用的方法：\n1. 过滤规则格式化\n2. 格式化FastCopy日志路径\n3. 提取路径中的标签\n4. 获取tag排序列表")
+    tips_m.print_message("请输入选项编号：")
     choice = int(tools.process_input_str_limit())
 
     if choice in index_map:
@@ -358,11 +358,11 @@ def format_rules_and_tag_sort():
         elif method_name == 'format_paths_from_string':
             raw_paths_string = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
             formatted_paths = tools.format_paths_from_string(raw_paths_string)
-            print("格式化后的路径：")
+            result_m.print_message("格式化后的路径：")
             for path in formatted_paths:
-                print(path.replace('\\\\','\\'))
+                result_m.print_message(path.replace('\\\\','\\'))
                 extract_filename = tools.extract_filename_from_path(path)
-                print(extract_filename)
+                result_m.print_message(extract_filename)
 
         elif method_name == 'extract_tags':
             file_paths = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
@@ -371,11 +371,11 @@ def format_rules_and_tag_sort():
         elif method_name == 'sort_rule':
             rules_str = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
             sort_rule_tag = tools.sort_rule_tag(rules_str)
-            print("排序后的tag")
-            print(sort_rule_tag)
+            result_m.print_message("排序后的tag")
+            result_m.print_message(sort_rule_tag)
 
     else:
-        print("无效的选项，请重新选择！")
+        result_m.print_message("无效的选项，请重新选择！")
 
 
 def check_symbolic_link():
@@ -407,15 +407,15 @@ def check_symbolic_link():
             print(f"Error: {e}")
     # 打印分类结果
     result_m.print_message(message="\nRelative Symbolic Links:")
-    log_info_m.print_message(message="-" * 70)
+    tips_m.print_message(message="-" * 70)
     tools.for_in_for_print(relative_links)
 
     result_m.print_message(message="\nAbsolute Symbolic Links:")
-    log_info_m.print_message(message="-" * 70)
+    tips_m.print_message(message="-" * 70)
     tools.for_in_for_print(absolute_links)
 
     result_m.print_message(message="\nInvalid Symbolic Links:")
-    log_info_m.print_message(message="-" * 70)
+    tips_m.print_message(message="-" * 70)
     tools.for_in_for_print(invalid_links)
 
 
@@ -475,14 +475,14 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
             try:
                 df_csv = pd.read_csv(csv_path, usecols=compare_columns, encoding=encode, header=header_row)
                 # 如果成功读取，跳出循环
-                log_info_m.print_message(message=f"成功以第 {header_row} 行作为列名。")
+                tips_m.print_message(message=f"成功以第 {header_row} 行作为列名。")
                 break
             except ValueError as e:
-                log_info_m.print_message(message=f"尝试以第 {header_row} 行作为列名时出错：{e}")
+                tips_m.print_message(message=f"尝试以第 {header_row} 行作为列名时出错：{e}")
 
         # 如果 df_excel 未成功读取，给出错误信息并退出
         if df_csv is None:
-            log_info_m.print_message(message="无法读取 Excel 文件。")
+            result_m.print_message(message="无法读取 Excel 文件。")
             return
         # 获取文件夹下所有文件
         # all_files = [f for f in os.listdir(folder_path) ifG:\Videos\3d
@@ -521,7 +521,7 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
             result_m.print_message(message="以下内容文件夹中有但CSV文件中没有：")
             tools.for_in_for_print(matche_lists)
         else:
-            log_info_m.print_message(message="没有任何匹配的结果")
+            result_m.print_message(message="没有任何匹配的结果")
 
         if flag.upper() == 'Y':
             if no_matche_lists:
@@ -562,7 +562,7 @@ def rename_file(filepath):
         else:
             result_m.print_message(message=f"无法获取有效的年份部分于文件 {filename}")
     else:
-        log_info_m.print_message(message=f"{filepath} 不是一个有效的文件路径")
+        result_m.print_message(message=f"{filepath} 不是一个有效的文件路径")
 
 
 # ---------------------------------------------------------------
@@ -739,7 +739,7 @@ def get_directories_and_copy_tree():
                 result_m.print_message(message=f"Directory copied from '{directory}' to '{target_subdir}'")
 
     else:
-        log_info_m.print_message(message="目录不存在，或不是目录")
+        result_m.print_message(message="目录不存在，或不是目录")
 
 
 def get_exclude_suffix_folder_list():

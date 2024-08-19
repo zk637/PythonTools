@@ -229,11 +229,11 @@ def get_video_audio():
     elif os.path.isdir(folder):
         folder = tools.get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
     if not folder:
-        log_info_m.print_message(message="文件为空，需检查条件或参数！")
+        result_m.print_message(message="文件为空，需检查条件或参数！")
         return
     for path in folder:
         tools.convert_video_to_mp3(path)
-    log_info_m.print_message(message="队列执行完成")
+    result_m.print_message(message="队列执行完成")
 
 
 def getfiletypeislegal():
@@ -301,7 +301,7 @@ def split_video():
 
             progress_bar.close()
     else:
-        log_info_m.print_message(message="参数有误，不是合法的路径？")
+        result_m.print_message(message="参数有误，不是合法的路径？")
 
 
 def split_audio():
@@ -368,7 +368,7 @@ def add_srt():
                 total_bitrate = media_info.get('General', {}).get('overall_bit_rate', 'Unknown')
                 # 如果无法获取到比特率信息，则终止程序
                 if total_bitrate == 'Unknown':
-                    print(f"Error：无法获取原视频{video_path}的总比特率信息！任务终止")
+                    result_m.print_message(f"Error：无法获取原视频{video_path}的总比特率信息！任务终止")
                     return 0
 
                 # 提示总比特率大小
@@ -383,7 +383,7 @@ def add_srt():
                     try:
                         total_bitrate = float(user_input)
                     except ValueError:
-                        print("请输入有效的比特率值！如原视频可获取总比特率将默认使用")
+                        tips_m.print_message("请输入有效的比特率值！如原视频可获取总比特率将默认使用")
                 else:
                     total_bitrate = total_bitrate / 1000  # 使用默认值
 
@@ -497,16 +497,17 @@ def check_video_integrity():
         total_MB, realSize_MB = tools.check_mp4(video_path)
         if total_MB == realSize_MB and not tools.check_str_is_None(total_MB) and not tools.check_str_is_None(
                 realSize_MB) and not tools.check_not_in_suffix(video_path, *constants.VIDEO_SUFFIX):
-            log_info_m.print_message(message="check_mp4：" + video_path)
             video_integrity.append(video_path)
             continue  # 视频完整，跳过后续检查
         else:
+            log_info_m.print_message(message="check_mp4 is not pass：" + video_path)
             weight += 50
 
         # 检查最后5分钟
         lflag, last_duration = tools.extract_last_5_minutes(video_path)
         if not lflag:
             weight += 100
+            log_info_m.print_message(message="extract_last_5_minutes is not pass:" +video_path)
             video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": 0}
 
         if weight < 100 and weight != 100:
@@ -514,12 +515,14 @@ def check_video_integrity():
             sflag, start_duration = tools.extract_start_5_minutes(video_path)
             if not sflag:
                 weight += 100
+                log_info_m.print_message(message="extract_start_5_minutes is not pass:" + video_path)
                 video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
         if weight < 100 and weight != 100:
             # 检查视频完整性
             if not tools.get_video_integrity(video_path):
                 weight += 100
+                log_info_m.print_message(message="get_video_integrity is not pass:" + video_path)
                 video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": start_duration}
 
         if weight < 100 and weight != 100:

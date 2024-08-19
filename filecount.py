@@ -55,6 +55,7 @@ def getfoldercount():
     for path in paths:
         for root, dirs, files in os.walk(path):
             count += len(files)
+    # log_info_m.print_message("test")
     result_m.print_message(message=count)
 
 
@@ -77,7 +78,7 @@ def getfoldercount_by_include():
         path_list = tools.get_file_paths_limit(dir, *extensions)
     else:
         path_list = None
-        log_info_m.print_message("参数有误，不是合法的路径？")
+        result_m.print_message("参数有误，不是合法的路径？")
     tools.cont_files_processor(path_list, index)
 
 
@@ -102,7 +103,7 @@ def getfoldercount_by_exclude():
         path_list = tools.find_matching_files_or_folder_exclude(folder=dir, *extensions)
     else:
         path_list = None
-        log_info_m.print_message("参数有误，不是合法的路径？")
+        result_m.print_message("参数有误，不是合法的路径？")
     tools.cont_files_processor(path_list, index)
 
 

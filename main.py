@@ -8,6 +8,7 @@ import os
 
 import fileSize
 import loggerconifg
+import model
 import tools
 import translate
 import filecount
@@ -89,6 +90,8 @@ if __name__ == '__main__':
         # ...
         def default_method():
             pass
+
+
         methods = {
             0: tools.profile_all_functions,
             1: fileSize.get_total_file_size,
@@ -148,7 +151,7 @@ if __name__ == '__main__':
     #  6、通过视频路径查找字幕文件并创建目录    
     #  7、通过视频目录查找符合区间条件分辨率的媒体文件         
     #  8、删除文件夹下小于指定MB的文件并输出删除的文件列表  
-    #  9、获取文件列表下的文件数量                           
+    #  9、获取文件夹列表下的文件数量                           
     #  10、获取文件在大小区间下的列表或在修改时间区间下的列表     
     #  11、取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件      
     #  12、获取给定文件夹下的 "大小", "时长", "比特率", "分辨率（排序需录入对应的属性）
@@ -187,6 +190,7 @@ if __name__ == '__main__':
             # try:
             print("Enter a number: \n")
             user_input = int(tools.process_input_str_limit())
+            tools.change_log_level(user_input)
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
@@ -195,8 +199,12 @@ if __name__ == '__main__':
                 with open(profile_file, 'w', encoding='UTF-8'):
                     pass
                 continue
+            elif user_input == -0:
+                # 如果用户输入-0，则关闭性能分析
+                if os.path.exists(profile_file):
+                    os.remove(profile_file)
             elif user_input == -1:
-                # 如果用户输入-1，则退出循环
+                # 如果用户输入-1，则结束进程
                 break
             if user_input == 1 or user_input == 2 or user_input == 13:
                 # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
