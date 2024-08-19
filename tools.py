@@ -27,6 +27,7 @@ import numpy as np
 from pypinyin import lazy_pinyin
 from tqdm import tqdm
 
+import model
 import my_exception
 
 # 注册模块对象
@@ -101,10 +102,10 @@ def process_input_str_limit(ui_param=None):
     while True:
         if ui_param is None:
             # 从命令行获取输入
-            line = input().strip()
+            line = input().strip().replace('"','')
         else:
             # 从UI组件获取输入
-            line = ui_param.toPlainText().strip()
+            line = ui_param.toPlainText().strip("")
 
         temp_input.append(line)
 
@@ -247,7 +248,7 @@ def process_paths_list_or_folder(ui_param=None):
             folder_path = None
         elif flag == 'n':
             tips_m.print_message(message="请输入文件夹路径：")
-            folder_path = process_input_str()
+            folder_path = process_input_str_limit()
     else:
         # 从界面组件获取输入
         flag = ui_param.toPlainText().lower().strip()
@@ -416,7 +417,7 @@ def cont_files_processor(path_list, index):
         count = count_files(path_list)
         log_info_m.print_message(message="index: {}".format(index))
         result_m.print_message(message=count)
-        log_info_m.print_message(message="是否输出符合条件的文件路径 Y/N")
+        tips_m.print_message(message="是否输出符合条件的文件路径 Y/N")
         flag = process_input_str_limit()
         if flag.upper() == 'Y':
             for_in_for_print(path_list)
@@ -878,28 +879,28 @@ def check_file_access(file_paths):
         log_info_m.print_message(message="Errors with 'Cannot determine file type':")
         for file_path in results['cannot_determine_type']:
             result_m.print_message(message=file_path)
-        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
+        tips_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files with successful "File type" determined
     if results['has_file_type']:
         log_info_m.print_message(message="Files with 'File type':")
         for file_data in results['has_file_type']:
-            log_info_m.print_message(message=f"{file_data['file_path']} (File type: {file_data['file_type']})")
-        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
+            result_m.print_message(message=f"{file_data['file_path']} (File type: {file_data['file_type']})")
+        tips_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files where no type determined
     if results['no_type_determined']:
         log_info_m.print_message(message="Files with no type determined:")
         for file_path in results['no_type_determined']:
-            log_info_m.print_message(message=file_path)
-        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
+            result_m.print_message(message=file_path)
+        tips_m.print_message(message="_" * 30)  # Print a line to separate categories
 
     # Output files with errors
     if results['error_files']:
         log_info_m.print_message(message="Files with errors:")
         for file_data in results['error_files']:
-            log_info_m.print_message(message=f"{file_data['file_path']}\nError: {file_data['error_message']}")
-        log_info_m.print_message(message="_" * 30)  # Print a line to separate categories
+            result_m.print_message(message=f"{file_data['file_path']}\nError: {file_data['error_message']}")
+        tips_m.print_message(message="_" * 30)  # Print a line to separate categories
 
 
 def remove_duplicate_files(file_list):
@@ -1379,7 +1380,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
         for part_index in range(int(part_num)):
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}.mp4"
             if os.path.isfile(output_prefix_tmp):
-                log_info_m.print_message(message=f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
+                result_m.print_message(message=f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
                 existing_file_found = True
                 output_prefix_tmp = ''
                 break  # 找到一个已存在的文件就跳出循环
@@ -1401,7 +1402,9 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                     # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
                     processed_output_prefix + '_part%d.mp4'
                 ]
-                print(split_command)
+
+                log_info_m.print_message(split_command)
+
                 # 使用 subprocess.run 运行拆分命令
                 try:
                     subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1426,16 +1429,12 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         # print(adjustment_factor)
                         part_max_duration *= adjustment_factor
                         iteration_num += 1
-                        print(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
+
+                        log_info_m.print_message(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
                         for f in final_segment_files:
                             os.remove(f)
-                        print(f"iteration_num：{iteration_num}")
-                    else:
-                        break
+                        log_info_m.print_message(f"iteration_num：{iteration_num}")
 
-                except Exception as e:
-                    global_exception_handler(type(e), e, e.__traceback__)
-                    break
 
 
 def split_audio_for_duration(path, duration):
@@ -1689,12 +1688,12 @@ def check_video_for_green_screen(video_path, check_frames=60):
     try:
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            print(f"Error Unable to open video file: {video_path}")
+            result_m.print_message(f"Error Unable to open video file: {video_path}")
             return False
 
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         if total_frames < check_frames * 2:
-            print(f"Error 视频帧数不足以进行绿屏检查: {video_path}")
+            result_m.print_message(f"Error 视频帧数不足以进行绿屏检查: {video_path}")
             return False
 
         corrupted_frames = check_frames_for_green_screen(cap, 0, check_frames)
@@ -1706,7 +1705,7 @@ def check_video_for_green_screen(video_path, check_frames=60):
             print(f"Total corrupted (green screen) frames in {video_path}: {corrupted_frames}")
             return False
         else:
-            print(f"All frames in {video_path} are intact")
+            # log_info_m.print_message(f"All frames in {video_path} are intact")
             return True
     except Exception as e:
         global_exception_handler(Exception, f"文件：{video_path}无法获取视频信息", None)
@@ -1789,7 +1788,7 @@ def get_video_resolution(video_path):
     try:
         media_info = MediaInfo.parse(video_path)
         if not media_info:
-            print(f"{video_path} 读取分辨率错误: ")
+            log_info_m.print_message(f"{video_path} 读取分辨率错误: ")
             return 0, 0
         else:
             for track in media_info.tracks:
@@ -1800,7 +1799,7 @@ def get_video_resolution(video_path):
         # 如果没有找到视频轨道，返回 0, 0
         return 0, 0
     except Exception as e:
-        print(f"{video_path} 读取分辨率错误: {e}")
+        log_info_m.print_message(f"{video_path} 读取分辨率错误: {e}")
         return 0, 0
 
 
@@ -1843,8 +1842,8 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
     duration = get_video_duration(video_path)
     width, height = get_video_resolution(video_path)
     scale_width, scale_height = calculate_scale(width, height)
-    print(f"Original resolution: {width}x{height}")
-    print(f"Scaled resolution: {scale_width}x{scale_height}")
+    log_info_m.print_message(f"Original resolution: {width}x{height}")
+    log_info_m.print_message(f"Scaled resolution: {scale_width}x{scale_height}")
 
     if duration == 0 or width == 0 or height == 0 or scale_height == 0 or scale_width == 0:
         print(
@@ -1886,7 +1885,7 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
     try:
         # 手动拼接命令字符串
         command_str = ' '.join(f'"{arg}"' if arg == video_path else arg for arg in command)
-        print(command_str)
+        log_info_m.print_message(command_str)
         # 启动ffplay进程
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
 
@@ -1918,14 +1917,13 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                             video_time = float(time_match.group(1)) * 20
                             break
                     if video_time is not None:
-                        print(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+
+                        log_info_m.print_message(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
                         process.terminate()
                         return video_path
                     else:
-                        print(f"Error detected in {video_path}: {error_message}")
-                        process.terminate()
-                        return video_path
-
+                        log_info_m.print_message(f"Error detected in {video_path}: {error_message}")
+           
         # 等待进程结束
         process.wait()
         return None
@@ -2106,6 +2104,14 @@ def profile_all_functions(enable=False):
         return wrapper
 
     return decorator
+
+def change_log_level(num):
+    if num == 919:
+        model.result_m.print_message("L0g Level Up!")
+        model.LOG_LEVEL = 'DEBUG'
+    if num == 106:
+        model.result_m.print_message("L0g Level Down!")
+        model.LOG_LEVEL = 'INFO'
 
 
 def apply_profile_to_methods(enable_profile, methods):

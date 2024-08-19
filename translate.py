@@ -28,9 +28,9 @@ def find_subtitle():
     # subtitles_foldern=input("请输入字幕文件夹路径:")
     # shlex.split(subtitles_foldern)
     tips_m.print_message(message="请输入视频路径")
-    video_path = tools.process_input_str()
+    video_path = tools.process_input_str_limit()
     tips_m.print_message(message="请输入字幕文件夹路径")
-    subtitles_folder = tools.process_input_str()
+    subtitles_folder = tools.process_input_str_limit()
     # 提取视频文件名中的关键字
     video_filename = os.path.basename(video_path)
     match = re.search(r"\b\w+\b|\((.*?)\)", video_filename)
