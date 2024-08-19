@@ -1402,7 +1402,9 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                     # output_prefix.replace('.mp4','').replace("'",'-') + '_part%d.mp4'
                     processed_output_prefix + '_part%d.mp4'
                 ]
+
                 log_info_m.print_message(split_command)
+
                 # 使用 subprocess.run 运行拆分命令
                 try:
                     subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1427,16 +1429,12 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         # print(adjustment_factor)
                         part_max_duration *= adjustment_factor
                         iteration_num += 1
+
                         log_info_m.print_message(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
                         for f in final_segment_files:
                             os.remove(f)
                         log_info_m.print_message(f"iteration_num：{iteration_num}")
-                    else:
-                        break
 
-                except Exception as e:
-                    global_exception_handler(type(e), e, e.__traceback__)
-                    break
 
 
 def split_audio_for_duration(path, duration):
@@ -1919,14 +1917,13 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                             video_time = float(time_match.group(1)) * 20
                             break
                     if video_time is not None:
+
                         log_info_m.print_message(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
                         process.terminate()
                         return video_path
                     else:
                         log_info_m.print_message(f"Error detected in {video_path}: {error_message}")
-                        process.terminate()
-                        return video_path
-
+           
         # 等待进程结束
         process.wait()
         return None
