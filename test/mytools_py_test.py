@@ -25,6 +25,7 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
+# TODO 接口断言
 methods = {
     0: tools.profile_all_functions,
     1: fileSize.get_total_file_size,
@@ -216,8 +217,7 @@ def test_filter_files_by_sizeordate_yes(monkeypatch):
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
                    ]
     inputs = [3, 'Y', 0.01, 3]
 
@@ -237,8 +237,7 @@ def test_filter_files_by_sizeordate_no(monkeypatch):
     print(10)
     # 定义模拟的输入和输出值
     inputs_list = ['N',
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count"
                    ]
     inputs = [3, 'Y', 0.001, 10]
 
@@ -263,8 +262,7 @@ def test_filter_files_by_sizeordate_modifiedate(monkeypatch):
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat"
                    ]
     inputs = [3, 'N', 'Y', 'Y', 20240307, 20240413]
 
@@ -288,8 +286,7 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         , r"H:\videos\test\test_video_detail\5_6080421351686931793.webm"
         , r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
-        , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm",
-                   '""'  # 空行，用于结束输入
+        , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['Y', 'Y', 'Y']
@@ -328,8 +325,7 @@ def test_print_video_info_list_yes(monkeypatch):
         , r"H:\videos\test\test_video_detail\5_6080421351686931793.webm"
         , r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
-        , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm",
-                   '""'  # 空行，用于结束输入
+        , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['Y', 3]
@@ -345,8 +341,7 @@ def test_print_video_info_list_yes(monkeypatch):
 def test_print_video_info_list_no(monkeypatch):
     print(12)
     inputs_list = ['N',
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
     inputs = ['N', 3]
@@ -461,8 +456,7 @@ def test_get_exclude_suffix_list_yes(monkeypatch):
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\test_CN.mp4"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testDemo.py"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testRename.py"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt",
-                   '""'  # 空行，用于结束输入
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt"
                    ]
     inputs = ['N', '.srt .mp4']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
@@ -571,8 +565,7 @@ def test_get_video_audio_yes(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
                    ]
 
     # 使用 patch 来模拟 process_paths_list_or_folder 函数的行为
@@ -584,8 +577,7 @@ def test_get_video_audio_yes(monkeypatch):
 
 def test_get_video_audio_no(monkeypatch):
     inputs = ['N',
-              r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail',
-              '""'  # 空行，用于结束输入
+              r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail'
               ]
 
     # 使用 patch 来模拟 process_paths_list_or_folder 函数的行为
@@ -605,9 +597,7 @@ def test_split_video(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   '""'  # 空行，用于结束输入
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = [1.5]
@@ -647,8 +637,7 @@ def test_check_files_subtitle_stream_yes(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
 
@@ -660,8 +649,7 @@ def test_check_files_subtitle_stream_yes(monkeypatch):
 def test_check_files_subtitle_stream_no(monkeypatch):
     print(32)
     inputs_list = ['N',
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
 
@@ -683,9 +671,7 @@ def test_check_video_integrity_yes(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4",
-                   '""'  # 空行，用于结束输入
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4"
                    ]
     inputs = ['Y']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
@@ -699,7 +685,6 @@ def test_check_video_integrity_no(monkeypatch):
     print(34)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split", 'N'
-                                                                                        '""'  # 空行，用于结束输入
                    ]
     inputs = ['Y']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
@@ -718,8 +703,7 @@ def test_getfoldercount_by_include_yes(monkeypatch):
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
         , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json",
-                   '""'  # 空行，用于结束输入
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = [3, 'Y']
@@ -734,8 +718,7 @@ def test_getfoldercount_by_include_yes(monkeypatch):
 
 def test_getfoldercount_by_include_no(monkeypatch):
     inputs_list = ['N',
-                   r"H:\videos\test\test_video_detail",
-                   '""'  # 空行，用于结束输入
+                   r"H:\videos\test\test_video_detail"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
     inputs = [3, 'Y']
@@ -758,8 +741,7 @@ def test_getfoldercount_by_exclude_yes(monkeypatch):
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
         , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = [3, 'Y', 'Y']
@@ -793,8 +775,7 @@ def test_get_get_file_count_by_underfolder_size_yes(monkeypatch):
     print(37)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['Y']
@@ -809,8 +790,7 @@ def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
     print(37)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['N']
@@ -824,8 +804,7 @@ def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
 def test_split_audio_y(monkeypatch):
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-follow-me-home-350.mp3"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021.mp3",
-                   '""'  # 空行，用于结束输入
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021.mp3"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
@@ -859,8 +838,7 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_rename"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count",
-                   '""'  # 空行，用于结束输入
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['.mp4' '.srt']
@@ -873,60 +851,139 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
 
 
 def test_flag_y(monkeypatch):
-    inputs_list = ['Y',
+    inputs_list = ['Y'
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"
                    r"st_count\4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat",
-                   '""'  # 空行，用于结束输入
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat"
                    ]
-    process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
+
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
+    expected_paths = []
+
+    assert path_list == expected_paths
+    assert folder is None
 
 
 def test_flag_n(monkeypatch):
     inputs = ['N', r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_size_10']
-    process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs)
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs)
+
+    expected_paths = []
+    expected_folder = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_size_10"
+
+    assert path_list == expected_paths
+    assert folder == expected_folder
 
 
 def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=None):
     """
+    模拟不同的输入选项，并调用相应的处理函数。
     :param monkeypatch:
     :param flag:
     :param inputs_list:
     :param inputs:
     :return:
     """
+    folder = None
+    path_list = None
     if flag == 'Y':
-        # 模拟用户选择为 'y' 并输入文件路径列表
+        # 模拟用户选择为 'Y'
 
-        # 创建一个 MagicMock 对象来模拟 input 函数
-        mocked_input = MagicMock(side_effect=inputs_list)
+        monkeypatch.setattr('builtins.input', lambda prompt='': 'Y')
+        # monkeypatch.setattr('builtins.input', lambda prompt='': inputs_list.pop(0))
+        # monkeypatch.setattr(tools,'process_input_str', lambda: inputs_list.pop(0))
+        path_list = handle_input_with_cmd_option(monkeypatch, inputs_list)
+        # # 使用 monkeypatch 替换 get_input_paths_from_cmd
 
-        # 使用 monkeypatch 将 input 函数替换为 MagicMock 对象
-        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
-        monkeypatch.setattr(tools, 'process_input_str', lambda: inputs_list.pop(0))
 
     elif flag == 'N':
-        # 模拟用户选择为 'n' 并输入文件夹路径
-
-        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        monkeypatch.setattr('tools.process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
 
-    # 调用函数
-    path_list, folder = tools.process_paths_list_or_folder()
-    # print(path_list)
-    # print(folder)
+    if path_list is None:
+        path_list, folder = tools.process_paths_list_or_folder()
+    # print(f"path_list: {path_list}")
+    # print(f"folder: {folder}")
+
     return path_list, folder
 
 
-def test_convert_to_utf8(monkeypatch):
-    encode = tools.detect_encoding(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt")
-    print(f"encode: {encode}")
-    path = tools.convert_to_utf8(r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt", encode)
-    return path
+def test_handle_input_with_cmd_option(monkeypatch):
+    inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"]
+
+    expected_paths = ['D:\\Develop\\PythonWorkSpace\\PythonTools\\test\\test_Data\\test_count\\3',
+                      'D:\\Develop\\PythonWorkSpace\\PythonTools\\test\\test_Data\\te']
+    paths = handle_input_with_cmd_option(monkeypatch, inputs_list)
+
+    assert paths == expected_paths
+
+
+def handle_input_with_cmd_option(monkeypatch, inputs_list):
+    # 模拟 get_input_paths_from_cmd 返回一个预定义的文件路径列表
+    def mock_get_input_paths_from_cmd():
+        return inputs_list
+
+    # 模拟用户选择 'Y' 作为命令行输入选项
+    monkeypatch.setattr('builtins.input', lambda prompt='': inputs_list.pop(0))
+
+    monkeypatch.setattr('tools.get_input_paths_from_cmd', mock_get_input_paths_from_cmd)
+    # 执行测试
+    result = tools.handle_input()
+    print(result)
+    return result
+
+
+def test_get_input_paths_from_gui():
+    """
+    弹出 GUI 文件选择对话框以获取文件路径。
+    """
+    file_selector = tools.FileSelector()
+    return file_selector.get_input_paths_from_gui()
+
+
+def test_seconds_to_hhmmss():
+    parse_time = tools.seconds_to_hhmmss(213131)
+    expected_time = '59:12:11'
+    print(parse_time)
+    assert parse_time == expected_time
+
+
+def test_get_video_resolution():
+    video_path = r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4'
+    resolution = tools.get_video_resolution(video_path)
+    expected_resolution = (1280, 720)
+    print(resolution)
+    assert resolution == expected_resolution
+
+
+def test_get_free_space_cmd():
+    folder_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
+    space = tools.get_free_space_cmd(folder_path)
+    print(f"space: {space}")
+
+
+def test_copy_folder_and_copy_file():
+    source_file = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt"
+    destination_file = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small\gbk.txt"
+    tools.copy_file(source_file, destination_file)
+
+    source_folder = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_ts"
+    destination_folder = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_folder_tree"
+    tools.copy_folder(source_folder, destination_folder)
+
+
+def test_detect_encoding_and_convert_to_utf8():
+    input_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt"
+    encoding = tools.detect_encoding(input_file_path)
+    output_file_path = tools.convert_to_utf8(input_file_path, encoding)
+    expected_output_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk_utf8.txt"
+    print(output_file_path)
+    assert output_file_path == expected_output_file_path
 
 
 def test_parse():

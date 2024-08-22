@@ -22,6 +22,10 @@ import filetype
 import subprocess
 import contextlib
 import sys
+import tkinter as tk
+from tkinter import filedialog
+import threading
+
 
 import numpy as np
 from pypinyin import lazy_pinyin
@@ -223,6 +227,646 @@ def check_file_or_folder(str_list):
     return list(file_list), list(folder_list)
 
 
+# def get_input_paths():
+#     # 提示用户输入路径或拖拽文件
+#     print("Enter paths , then press Enter:")
+#     input_paths = sys.stdin.read().strip()  # 读取所有输入内容
+#     return input_paths
+
+# def get_input_paths():
+#     tips_m.print_message("Enter paths  (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+
+# def get_input_paths():
+#     print("Enter paths or drag files (press Enter twice to finish):")
+#
+#     input_lines = []
+#     buffer = []
+#
+#     while True:
+#         line = sys.stdin.readline().strip()  # 读取每一行并去除两端空白
+#         if line == '':  # 检查是否为空行
+#             if buffer:  # 如果缓冲区有内容，加入到输入行
+#                 input_lines.append(' '.join(buffer))
+#                 buffer = []
+#             if len(input_lines) >= 1:  # 如果已经输入了至少一个路径，终止输入
+#                 break
+#         else:
+#             buffer.append(line)  # 将行内容加入缓冲区
+#
+#     return input_lines
+    # return "\n".join(input_lines)
+
+# import keyboard
+# import threading
+# import time
+# import io
+# import signal
+#
+# stop_input_flag = False
+#
+# def stop_input():
+#     global stop_input_flag
+#     stop_input_flag = True
+#     print("\nInput terminated by user.")
+#
+# def keyboard_listener():
+#     # 监听 Alt+Q 键盘快捷键来终止输入
+#     keyboard.add_hotkey('alt+q', stop_input)
+#     keyboard.wait('esc')  # 持续监听
+#
+# def get_input_paths():
+#     global stop_input_flag
+#     stop_input_flag = False
+#
+#     print("Enter paths or drag files (press Alt+Q to finish):")
+#
+#     # 在后台线程中启动键盘监听器
+#     listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
+#     listener_thread.start()
+#
+#     input_buffer = io.StringIO()
+#
+#     while not stop_input_flag:
+#         if stop_input_flag:
+#             break
+#         try:
+#             # 非阻塞读取 stdin
+#             if keyboard.is_pressed('alt+q'):
+#                 stop_input()
+#                 break
+#             # 使用 select 检查是否有输入数据
+#             line = sys.stdin.read()
+#             if not line:
+#                 break
+#             input_buffer.write(line)
+#         except EOFError:
+#             break
+#
+#     input_buffer.seek(0)
+#     input_lines = [line.strip().strip('"') for line in input_buffer.readlines()]
+#
+#     print("Final input lines:", input_lines)
+#     return input_lines
+
+
+
+# def get_input_paths_from_gui():
+#     """
+#     弹出 GUI 文件选择对话框以获取文件路径。
+#     """
+#     root = tk.Tk()
+#     root.withdraw()  # 隐藏主窗口
+#     file_paths = filedialog.askopenfilenames(title="Select Files")
+#     return list(file_paths)
+#
+# def get_input_paths_from_cmd():
+#     """
+#     从命令行读取文件路径，直到输入空行。
+#     """
+#     print("Enter paths (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+#
+# def handle_input():
+#     """
+#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
+#     """
+#     # 检测是否支持拖放操作（在实际应用中可能需要更复杂的检测）
+#     drag_and_drop_supported = os.name == 'nt'
+#
+#     if drag_and_drop_supported:
+#         print("Opening GUI for file selection...")
+#         paths = get_input_paths_from_gui()
+#     else:
+#         print("Using command line input...")
+#         paths = get_input_paths_from_cmd()
+#
+#     return paths
+#
+# def get_input_paths_from_gui():
+#     """
+#     弹出 GUI 文件选择对话框以获取文件路径。
+#     """
+#     root = tk.Tk()
+#     root.withdraw()  # 隐藏主窗口
+#     file_paths = filedialog.askopenfilenames(title="Select Files")
+#     return list(file_paths)
+#
+#
+# def get_input_paths_from_cmd():
+#     """
+#     从命令行读取文件路径，直到输入空行。
+#     """
+#     print("Enter paths (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+#
+#
+# def handle_input():
+#     """
+#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
+#     """
+#     # 检查是否支持拖拽操作（在实际应用中可能需要更复杂的检测）
+#     if os.environ.get('DRAG_DROP_EVENT'):
+#         print("Opening GUI for file selection...")
+#         paths = get_input_paths_from_gui()
+#     else:
+#         print("Using command line input...")
+#         paths = get_input_paths_from_cmd()
+#
+#     return paths
+
+# class FileSelector:
+#     def __init__(self):
+#         self.file_paths = []
+#         self.gui_done = threading.Event()
+#         self.gui_thread = None
+#
+#     def open_file_dialog(self):
+#         root = tk.Tk()
+#         root.withdraw()  # 隐藏主窗口
+#         file_paths = filedialog.askopenfilenames(title="Select Files")
+#         self.file_paths = list(file_paths)
+#         self.gui_done.set()  # 标记 GUI 完成
+#         root.destroy()  # 关闭窗口
+#
+#     def get_input_paths_from_gui(self):
+#         """
+#         弹出 GUI 文件选择对话框以获取文件路径。
+#         """
+#         self.gui_thread = threading.Thread(target=self.open_file_dialog)
+#         self.gui_thread.start()
+#         self.gui_done.wait()  # 等待 GUI 完成
+#         return self.file_paths
+#
+#
+# def get_input_paths_from_cmd():
+#     """
+#     从命令行读取文件路径，直到输入空行。
+#     """
+#     print("Enter paths (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+#
+#
+# def handle_input():
+#     """
+#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
+#     """
+#     file_selector = FileSelector()
+#
+#     # 启动命令行输入的线程
+#     cmd_done = threading.Event()
+#     cmd_result = []
+#
+#     def cmd_input():
+#         nonlocal cmd_result
+#         cmd_result = get_input_paths_from_cmd()
+#         cmd_done.set()
+#
+#     cmd_thread = threading.Thread(target=cmd_input)
+#     cmd_thread.start()
+#
+#     # 等待 10 秒进行文件拖入检测
+#     start_time = time.time()
+#     while time.time() - start_time < 10:
+#         elapsed_time = time.time() - start_time
+#         remaining_time = max(0, 10 - int(elapsed_time))
+#         print(f"Waiting for file drag-and-drop... Time remaining: {remaining_time} seconds", end='\r')
+#         time.sleep(1)  # 等待 1 秒再检测
+#
+#         if cmd_done.is_set():
+#             print("Command line input received. Skipping GUI.")
+#             cmd_thread.join()
+#             return cmd_result
+#
+#         # 模拟文件拖入检测环境变量
+#         if os.environ.get('DRAG_DROP_EVENT'):
+#             print("Opening GUI for file selection...")
+#             paths = file_selector.get_input_paths_from_gui()
+#             if paths:
+#                 cmd_done.set()  # 关闭命令行输入
+#                 cmd_thread.join()
+#                 return paths
+#             break
+#
+#     # 等待命令行输入线程结束
+#     cmd_done.wait()  # 确保命令行线程结束
+#     cmd_thread.join()
+#
+#     if cmd_result:
+#         print("Using command line input.")
+#         return cmd_result
+#     else:
+#         print("No files selected from GUI, using command line input.")
+#         return cmd_result
+
+# class FileSelector:
+#     def __init__(self):
+#         self.file_paths = []
+#         self.gui_done = threading.Event()
+#         self.gui_cancel = threading.Event()  # 添加取消事件
+#         self.gui_thread = None
+#
+#     def open_file_dialog(self):
+#         root = tk.Tk()
+#         root.withdraw()  # 隐藏主窗口
+#
+#         def on_cancel():
+#             self.gui_cancel.set()  # 设置取消事件
+#             root.destroy()  # 关闭窗口
+#
+#         # 添加取消按钮或其他机制来触发取消操作
+#         # 创建取消按钮
+#         cancel_button = tk.Button(root, text="Cancel", command=on_cancel)
+#         cancel_button.pack()
+#
+#         # 弹出文件对话框
+#         file_paths = filedialog.askopenfilenames(title="Select Files")
+#
+#         if not self.gui_cancel.is_set():  # 如果没有取消操作
+#             self.file_paths = list(file_paths)
+#
+#         self.gui_done.set()  # 标记 GUI 完成
+#         root.destroy()  # 关闭窗口
+#
+#     def get_input_paths_from_gui(self):
+#         """
+#         弹出 GUI 文件选择对话框以获取文件路径。
+#         """
+#         self.gui_thread = threading.Thread(target=self.open_file_dialog)
+#         self.gui_thread.start()
+#         self.gui_done.wait()  # 等待 GUI 完成
+#         return self.file_paths
+#
+# def get_input_paths_from_cmd():
+#     """
+#     从命令行读取文件路径，直到输入空行。
+#     """
+#     print("Enter paths (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+#
+# def handle_input():
+#     """
+#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
+#     """
+#     file_selector = FileSelector()  # 创建 FileSelector 实例
+#
+#     # 启动命令行输入的线程
+#     cmd_done = threading.Event()
+#     cmd_result = []
+#
+#     def cmd_input():
+#         nonlocal cmd_result
+#         cmd_result = get_input_paths_from_cmd()
+#         cmd_done.set()
+#
+#     cmd_thread = threading.Thread(target=cmd_input)
+#     cmd_thread.start()
+#
+#     # 等待 10 秒进行文件拖入检测
+#     start_time = time.time()
+#     while time.time() - start_time < 10:
+#         elapsed_time = time.time() - start_time
+#         remaining_time = max(0, 10 - int(elapsed_time))
+#         print(f"Waiting for file drag-and-drop... Time remaining: {remaining_time} seconds", end='\r')
+#         time.sleep(1)  # 等待 1 秒再检测
+#
+#         if cmd_done.is_set():
+#             print("GUI input close. Skipping GUI.")
+#             file_selector.gui_cancel.set()  # 取消 GUI 文件选择
+#             cmd_result = get_input_paths_from_cmd()
+#             return cmd_result
+#
+#         # 模拟文件拖入检测环境变量
+#         if os.environ.get('DRAG_DROP_EVENT'):
+#             print("Opening GUI for file selection...")
+#             paths = file_selector.get_input_paths_from_gui()
+#             if paths:
+#                 cmd_done.set()  # 关闭命令行输入
+#                 cmd_thread.join()
+#                 return paths
+#             break
+#
+#     # 等待命令行输入线程结束
+#     cmd_done.wait()
+#     cmd_thread.join()
+#
+#     if cmd_result:
+#         print("Using command line input.")
+#         return cmd_result
+#     else:
+#         print("No files selected from GUI, using command line input.")
+#         return cmd_result
+
+# import tkinter as tk
+# from tkinter import filedialog
+# import threading
+# import time
+# import sys
+# import os
+# import win32gui
+# import win32con
+# import win32api
+#
+# class FileSelector:
+#     def __init__(self):
+#         self.file_paths = []
+#         self.gui_done = threading.Event()
+#         self.gui_cancel = threading.Event()  # 添加取消事件
+#         self.gui_thread = None
+#
+#     def open_file_dialog(self):
+#         root = tk.Tk()
+#         root.withdraw()  # 隐藏主窗口
+#
+#         def on_cancel():
+#             self.gui_cancel.set()  # 设置取消事件
+#             root.destroy()  # 关闭窗口
+#
+#         # 添加取消按钮或其他机制来触发取消操作
+#         cancel_button = tk.Button(root, text="Cancel", command=on_cancel)
+#         cancel_button.pack()
+#
+#         # 弹出文件对话框
+#         file_paths = filedialog.askopenfilenames(title="Select Files")
+#
+#         if not self.gui_cancel.is_set():  # 如果没有取消操作
+#             self.file_paths = list(file_paths)
+#
+#         self.gui_done.set()  # 标记 GUI 完成
+#         root.destroy()  # 关闭窗口
+#
+#     def get_input_paths_from_gui(self):
+#         """
+#         弹出 GUI 文件选择对话框以获取文件路径。
+#         """
+#         self.gui_thread = threading.Thread(target=self.open_file_dialog)
+#         self.gui_thread.start()
+#         self.gui_done.wait()  # 等待 GUI 完成
+#         return self.file_paths
+#
+# def get_input_paths_from_cmd():
+#     """
+#     从命令行读取文件路径，直到输入空行。
+#     """
+#     print("Enter paths (press Enter twice to finish):")
+#     input_lines = []
+#
+#     while True:
+#         try:
+#             line = sys.stdin.readline().strip().strip('"')
+#             if line == '':
+#                 break
+#             input_lines.append(line)
+#         except EOFError:
+#             break
+#
+#     return input_lines
+#
+# class DragDropListener:
+#     _class_atom = None
+#
+#     def __init__(self):
+#         if not DragDropListener._class_atom:
+#             # 注册窗口类
+#             wc = win32gui.WNDCLASS()
+#             wc.lpfnWndProc = self.handle_message
+#             wc.lpszClassName = 'DragDropListener'
+#             wc.hInstance = win32api.GetModuleHandle(None)
+#             DragDropListener._class_atom = win32gui.RegisterClass(wc)
+#
+#         self.hwnd = win32gui.CreateWindowEx(
+#             0,
+#             DragDropListener._class_atom,
+#             'DragDropListener',
+#             win32con.WS_OVERLAPPEDWINDOW,
+#             0, 0, 0, 0,
+#             0, 0, win32api.GetModuleHandle(None), None
+#         )
+#         self.file_paths = []
+#         self.drag_detected = threading.Event()
+#
+#     def handle_message(self, hwnd, msg, wparam, lparam):
+#         if msg == win32con.WM_DROPFILES:
+#             num_files = win32api.DragQueryFile(wparam)
+#             self.file_paths = [win32api.DragQueryFile(wparam, i) for i in range(num_files)]
+#             self.drag_detected.set()  # 文件拖放事件发生
+#         return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
+#
+#     def start_listening(self):
+#         win32gui.UpdateWindow(self.hwnd)
+#         win32gui.ShowWindow(self.hwnd, win32con.SW_SHOW)
+#         win32gui.PumpMessages()
+#
+# def handle_input():
+#     """
+#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
+#     """
+#     file_selector = FileSelector()  # 创建 FileSelector 实例
+#     drag_listener = DragDropListener()  # 创建 DragDropListener 实例
+#
+#     # 启动命令行输入的线程
+#     cmd_done = threading.Event()
+#     cmd_result = []
+#
+#     def cmd_input():
+#         nonlocal cmd_result
+#         cmd_result = get_input_paths_from_cmd()
+#         cmd_done.set()
+#
+#     cmd_thread = threading.Thread(target=cmd_input)
+#     cmd_thread.start()
+#
+#     # 启动拖放监听
+#     drag_thread = threading.Thread(target=drag_listener.start_listening)
+#     drag_thread.start()
+#
+#     # 等待 10 秒进行文件拖入检测
+#     start_time = time.time()
+#     while time.time() - start_time < 10:
+#         elapsed_time = time.time() - start_time
+#         remaining_time = max(0, 10 - int(elapsed_time))
+#         print(f"Waiting for file drag-and-drop... Time remaining: {remaining_time} seconds", end='\r')
+#         time.sleep(1)  # 等待 1 秒再检测
+#
+#         if cmd_done.is_set():
+#             print("Command line input received. Skipping GUI.")
+#             file_selector.gui_cancel.set()  # 取消 GUI 文件选择
+#             drag_listener.drag_detected.set()  # 关闭拖放监听
+#             cmd_result = get_input_paths_from_cmd()
+#             return cmd_result
+#
+#         if drag_listener.drag_detected.is_set():
+#             print("Files dragged in, opening GUI...")
+#             paths = file_selector.get_input_paths_from_gui()
+#             if paths:
+#                 cmd_done.set()  # 关闭命令行输入
+#                 cmd_thread.join()
+#                 drag_listener.drag_detected.set()  # 关闭拖放监听
+#                 drag_thread.join()
+#                 return paths
+#             break
+#
+#     # 等待命令行输入线程结束
+#     # cmd_done.wait()
+#     # cmd_thread.join()
+#     # drag_listener.drag_detected.set()  # 关闭拖放监听
+#     # drag_thread.join()
+#     # 等待命令行输入线程结束
+#     cmd_done.wait()
+#     cmd_thread.join()
+#
+#     if cmd_result:
+#         print("Using command line input.")
+#         return cmd_result
+#     else:
+#         print("No files selected from GUI, using command line input.")
+#         return cmd_result
+
+class FileSelector:
+    def __init__(self):
+        self.file_paths = []
+        self.gui_done = threading.Event()
+        self.gui_cancel = threading.Event()  # 添加取消事件
+        self.gui_thread = None
+
+    def open_file_dialog(self):
+        root = tk.Tk()
+        root.withdraw()  # 隐藏主窗口
+
+        def on_cancel():
+            self.gui_cancel.set()  # 设置取消事件
+            root.destroy()  # 关闭窗口
+
+        # 添加取消按钮或其他机制来触发取消操作
+        cancel_button = tk.Button(root, text="Cancel", command=on_cancel)
+        cancel_button.pack()
+
+        # 弹出文件对话框
+        file_paths = filedialog.askopenfilenames(title="Select Files")
+
+        if not self.gui_cancel.is_set():  # 如果没有取消操作
+            self.file_paths = list(file_paths)
+
+        self.gui_done.set()  # 标记 GUI 完成
+        root.destroy()  # 关闭窗口
+
+    def get_input_paths_from_gui(self):
+        """
+        弹出 GUI 文件选择对话框以获取文件路径。
+        """
+        self.gui_thread = threading.Thread(target=self.open_file_dialog)
+        self.gui_thread.start()
+        self.gui_done.wait()  # 等待 GUI 完成
+        return self.file_paths
+
+def get_input_paths_from_gui():
+    """
+    弹出 GUI 文件选择对话框以获取文件路径。
+    """
+    file_selector = FileSelector()
+    return file_selector.get_input_paths_from_gui()
+
+def get_input_paths_from_cmd():
+    """
+    从命令行读取文件路径，直到输入空行。
+    """
+    tips_m.print_message("Enter paths (press Enter twice to finish):")
+    video_paths_list = []
+
+
+
+    while True:
+        try:
+            path = process_input_str().strip('"')
+            if path == '':
+                break
+            video_paths_list.append(path)
+        except EOFError:
+            break
+
+    return video_paths_list
+
+    # while True:
+    #     try:
+    #         line = sys.stdin.readline().strip().strip('"')
+    #         if line == '':
+    #             break
+    #         input_lines.append(line)
+    #     except EOFError:
+    #         break
+
+def handle_input():
+    """
+    根据用户的选择调用不同的输入函数。
+    """
+    choice = input("选择输入方式：Y/N cmd文件路径列表(Y) GUI（N） def:Y \n").strip().upper() or 'Y'
+
+    if choice == 'Y':
+        # 使用命令行输入
+        return get_input_paths_from_cmd()
+    elif choice == 'N':
+        # 使用 GUI 文件选择
+        return get_input_paths_from_gui()
+    else:
+        tips_m.print_message("无效的输入，请选择 Y 或 N。")
+        # return handle_input()  # 重新调用以获取有效输入
+
+
 @profile(enable=False)
 def process_paths_list_or_folder(ui_param=None):
     """
@@ -232,6 +876,7 @@ def process_paths_list_or_folder(ui_param=None):
         Tuple[List[str], str]: 一个包含文件路径列表和文件夹路径的元组。
     """
     video_paths_list = []
+    folder_path = None
 
     if ui_param is None:
         # 从命令行获取输入
@@ -240,12 +885,15 @@ def process_paths_list_or_folder(ui_param=None):
 
         if flag == 'y':
             tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-            while True:
-                path = process_input_str().strip('"')
-                if not path:
-                    break
-                video_paths_list.append(path.strip('"'))
-            folder_path = None
+            # handler = FileInputHandler()
+            # video_paths_list = handler.handle_input()
+            video_paths_list = handle_input()
+            # while True:
+            #     path = get_input_paths()
+            #     path = process_input_str().strip('"')
+            #     if not path:
+            #         break
+            #     video_paths_list.append(path.strip('"'))
         elif flag == 'n':
             tips_m.print_message(message="请输入文件夹路径：")
             folder_path = process_input_str_limit()
