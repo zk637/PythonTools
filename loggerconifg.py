@@ -129,6 +129,10 @@ class ConsoleLogger:
             self.log_cache.write(line)
             return line
 
+        def read(self):
+            data = sys.__stdin__.read()
+            self.log_cache.write(data)
+            return data
 
 def exit_handler():
     sys.stderr.write('\n' + '-' * 50 + 'End' + '-' * 52)
