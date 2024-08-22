@@ -1,9 +1,8 @@
 # PythonTools
 个人工具
 =======
-本项目仅在Github.com发布 其它网站下载分发将无法保证项目的安全性！
-This project is only published on Github.com Other sites publish I can not guarantee the security of the project
-
+本项目仅在Github.com发布 其它网站下载分发获取会为您带来未知的风险 
+This project is only published on Github.com Downloading and distributing from other websites may pose unknown risks to you
 
 ![1344061-20220529174718806-488411050](https://github.com/zk637/PythonTools/assets/78423939/c0c8500f-de3d-49cb-9389-ac5cc7c3f867)
 
