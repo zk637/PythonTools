@@ -25,6 +25,7 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
+# TODO 接口断言
 methods = {
     0: tools.profile_all_functions,
     1: fileSize.get_total_file_size,

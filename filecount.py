@@ -80,8 +80,10 @@ def getfoldercount_by_include():
     else:
         path_list = None
         result_m.print_message("参数有误，不是合法的路径？")
+
     f_path_list = tools.cont_files_processor(path_list, index)
     return f_path_list
+
 
 
 def getfoldercount_by_exclude():
@@ -106,9 +108,11 @@ def getfoldercount_by_exclude():
     else:
         path_list = None
         result_m.print_message("参数有误，不是合法的路径？")
+
     f_path_list = tools.cont_files_processor(path_list, index)
 
     return f_path_list
+
 
 
 def get_file_count_by_underfolder_size():

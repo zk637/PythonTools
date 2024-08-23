@@ -238,7 +238,9 @@ def get_video_audio():
     for path in folder:
         tools.convert_video_to_mp3(path)
     result_m.print_message(message="队列执行完成")
+
     return folder
+
 
 
 def getfiletypeislegal():
@@ -514,7 +516,9 @@ def check_video_integrity():
         lflag, last_duration = tools.extract_last_5_minutes(video_path)
         if not lflag:
             weight += 100
+
             log_info_m.print_message(message="extract_last_5_minutes is not pass:" + video_path)
+
             video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": 0}
 
         if weight < 100 and weight != 100:
@@ -558,6 +562,7 @@ def check_video_integrity():
     if video_unintegrity:
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
         flag = tools.process_input_str_limit().upper() or 'N'
+
         # flag = 'Y'
         if flag == 'Y':
             # 初始化进度条

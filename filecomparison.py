@@ -299,7 +299,9 @@ def get_file_paths_with_name():
                 result_m.print_message(message=file)
         else:
             result_m.print_message(message="这些文件都不存在！")
+
         return found_files
+
     else:
         result_m.print_message(message="文件为空，需检查条件或参数！")
         return
@@ -364,7 +366,9 @@ def format_rules_and_tag_sort():
             formatted_paths = tools.format_paths_from_string(raw_paths_string)
             result_m.print_message("格式化后的路径：")
             for path in formatted_paths:
+
                 result_m.print_message(path.replace('\\\\', '\\'))
+
                 extract_filename = tools.extract_filename_from_path(path)
                 result_m.print_message(extract_filename)
 
