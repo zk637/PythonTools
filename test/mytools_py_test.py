@@ -127,7 +127,17 @@ def test_getSrt(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
     # 调用函数
-    translate.getSrt()
+    match_list, path_list = translate.getSrt()
+
+    expected_match_list = {
+        'Match found: SPYxFAMILY_EN.webm <--> SPYxFAMILY.srt'
+    }
+    expected_path_list = {
+        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt'
+    }
+
+    assert match_list == expected_match_list and path_list == expected_path_list
 
 
 def test_getSrtNew(monkeypatch):
@@ -138,7 +148,23 @@ def test_getSrtNew(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: srt_inputs.pop(0))
 
     # 调用函数
-    translate.getSrtNew()
+    match_list, path_list = translate.getSrtNew()
+
+    expected_match_list = {
+        r"Match found: SPYxFAMILY_EN.webm <--> SPYxFAMILY.srt"
+        , r"Match found: SPYxFAMILY_EN.webm <--> Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt"
+        ,
+        r"Match found: Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4 <--> Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt"
+    }
+
+    expected_path_list = {
+        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+        '- Edgerunners - 01 [1080p][ Subtitle].srt',
+        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt'
+    }
+
+    assert match_list == expected_match_list and path_list == expected_path_list
 
 
 def test_find_matching_subtitles(monkeypatch):
@@ -149,7 +175,14 @@ def test_find_matching_subtitles(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
     # 调用函数
-    translate.find_matching_subtitles()
+    slur_matching_subtitles = translate.find_matching_subtitles()
+
+    expected_slur_matching_subtitles = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt"
+    ]
+
+    assert slur_matching_subtitles == expected_slur_matching_subtitles
 
 
 def test_find_matching_subtitles_create(monkeypatch):
@@ -160,7 +193,11 @@ def test_find_matching_subtitles_create(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
     # 调用函数
-    translate.find_matching_subtitles_create()
+    subtitle_path = translate.find_matching_subtitles_create()
+
+    expected_subtitle_path = r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt'
+
+    assert subtitle_path == expected_subtitle_path
 
 
 def test_get_low_resolution_media_files(monkeypatch):
@@ -173,7 +210,12 @@ def test_get_low_resolution_media_files(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
     # 调用函数
-    fileanalysis.get_low_resolution_media_files()
+    files = fileanalysis.get_low_resolution_media_files()
+
+    expected_files = [
+        r'"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"',
+        r'"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"']
+    assert files == expected_files
 
 
 def test_remove_small_folders(monkeypatch):
@@ -185,7 +227,14 @@ def test_remove_small_folders(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
     # 调用函数
-    removefolder.remove_small_folders()
+    remaining_files = removefolder.remove_small_folders()
+
+    expected_remaining_files = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small\logging.html"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small\图B08-28 径向模糊 素材（via破产姐妹）.jpg"
+    ]
+
+    assert remaining_files == expected_remaining_files
 
 
 def test_getfoldercount(monkeypatch):
@@ -204,7 +253,7 @@ def test_getfoldercount(monkeypatch):
 
     result = filecount.getfoldercount()
 
-    # assert isinstance(result, float)
+    assert isinstance(result, int) and result == 5
 
 
 def test_filter_files_by_sizeordate_yes(monkeypatch):
@@ -275,6 +324,7 @@ def test_filter_files_by_sizeordate_modifiedate(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         # 调用函数
+
         fileSize.filter_files_by_sizeordate()
 
 
@@ -298,7 +348,9 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-        fileanalysis.get_video_duration_sorted()
+        paths = fileanalysis.get_video_duration_sorted()
+        expected_paths = None
+        assert paths == expected_paths
 
 
 def test_get_video_duration_sorted_no(monkeypatch):
@@ -314,7 +366,9 @@ def test_get_video_duration_sorted_no(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        fileanalysis.get_video_duration_sorted()
+        paths = fileanalysis.get_video_duration_sorted()
+        expected_paths = None
+        assert paths == expected_paths
 
 
 def test_print_video_info_list_yes(monkeypatch):
@@ -335,7 +389,24 @@ def test_print_video_info_list_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-        fileanalysis.print_video_info_list()
+        video_info_list = fileanalysis.print_video_info_list()
+
+        expected_video_info_list = [
+            (r'H:\videos\test\test_video_detail\2_5228729981135230185.webm', 0.14445877075195312, 174.0, 417864, 512,
+             512),
+            (r'H:\videos\test\test_video_detail\5_6078060425344189964.webm', 0.20723533630371094, 147.66, 706386,
+             512, 436),
+            (r'H:\videos\test\test_video_detail\4_5956136083451284611.webm', 0.14863872528076172, 85.98, 870113, 510,
+             512),
+            (r'H:\videos\test\test_video_detail\5_6061903926607741990.webm', 0.2198772430419922, 120.0, 922232, 512,
+             512),
+            (r'H:\videos\test\test_video_detail\5_6075682606895072339.webm', 0.21430397033691406, 84.0, 1284080, 445,
+             512),
+            (r'H:\videos\test\test_video_detail\5_6080421351686931793.webm', 0.20014476776123047, 47.580000000000005,
+             2117195, 512, 288)
+        ]
+
+        assert video_info_list == expected_video_info_list
 
 
 def test_print_video_info_list_no(monkeypatch):
@@ -351,7 +422,29 @@ def test_print_video_info_list_no(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-        fileanalysis.print_video_info_list()
+        video_info_list = fileanalysis.print_video_info_list()
+
+        expected_video_info_list = [(
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
+            0.14445877075195312, 174.0, 417864, 512, 512), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4',
+            0.14814472198486328, 152.64000000000001, 488493, 180, 100), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Thumb.webm',
+            0.14814472198486328, 152.64000000000001, 488493, 180, 100), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6078060425344189964.webm',
+            0.20723533630371094, 147.66, 706386, 512, 436), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
+            0.2198772430419922, 120.0, 922232, 512, 512), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
+            0.21430397033691406, 84.0, 1284080, 445, 512), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6080421351686931793.webm',
+            0.20014476776123047, 47.580000000000005, 2117195, 512, 288), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
+            1.8309993743896484, 388.00002, 2375185, 1280, 720), (
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            0.9314775466918945, 172.79999999999998, 2713125, 1280, 720)]
+
+        assert video_info_list == expected_video_info_list
 
 
 def test_check_files_in_folder(monkeypatch):
@@ -367,7 +460,21 @@ def test_check_files_in_folder(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-    filecomparison.check_files_in_folder(inputs_list)
+    matching_paths, non_matching_paths = filecomparison.check_files_in_folder(inputs_list)
+
+    # print('-' * 50)
+    # tools.for_in_for_print(non_matching_paths)
+    expected_matching_paths = [
+        r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
+        , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
+        , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
+        , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
+        , r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
+        , r"H:\videos\test\test_video_detail\5_6080421351686931793.webm"
+    ]
+    # expected_non_matching_paths = []
+    #
+    assert set(matching_paths) == set(expected_matching_paths)
 
 
 def test_compare_and_move_files(monkeypatch):
@@ -384,7 +491,15 @@ def test_get_file_paths_with_rules(monkeypatch):
 
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
-    filecomparison.get_file_paths_with_rules()
+    paths = filecomparison.get_file_paths_with_rules()
+
+    expected_paths = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\字幕组宣传文本.txt"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\文宣.txt"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\社团宣传文本.txt"
+    ]
+
+    assert paths == expected_paths
 
 
 @pytest.mark.skip(reason="Skipping this test function for now")
@@ -428,7 +543,32 @@ def test_check_zip_password_old(monkeypatch):
 def test_extract_archive(monkeypatch):
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    zippackage.extract_archive()
+    ex_lists, final_lists = zippackage.extract_archive()
+
+    expected_ex_lists = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.7z"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part2.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.rar"
+    ]
+    expected_final_lists = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.z01"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.z02"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.zip"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.z01"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.z02"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.zip"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z.001"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z.002"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.part1.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.part2.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\tokenizer.rar"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\新建压缩文件.7z"
+    ]
+
+    assert set(ex_lists) == set(expected_ex_lists) and set(final_lists) == set(expected_final_lists)
 
 
 def test_get_file_paths_with_name(monkeypatch):
@@ -446,7 +586,17 @@ def test_get_file_paths_with_name(monkeypatch):
         result = tools.process_input_list()
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         with patch('tools.process_input_list', return_value=result):
-            filecomparison.get_file_paths_with_name()
+            found_files = filecomparison.get_file_paths_with_name()
+
+            expected_found_files = [
+                r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt"
+                , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm"
+                , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm"
+                , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm"
+                , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm"
+            ]
+
+            assert found_files == expected_found_files
 
 
 def test_get_exclude_suffix_list_yes(monkeypatch):
@@ -467,7 +617,15 @@ def test_get_exclude_suffix_list_yes(monkeypatch):
         monkeypatch.setattr('builtins.input', lambda: inputs.pop(0))
 
         # 再次调用测试函数
-        filecomparison.get_exclude_suffix_list()
+        matching_files = filecomparison.get_exclude_suffix_list()
+
+        expected_matching_files = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\pyvenv.cfg"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testDemo.py"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testRename.py"
+        ]
+
+        assert matching_files == expected_matching_files
 
 
 def test_get_exclude_suffix_list_no(monkeypatch):
@@ -484,10 +642,17 @@ def test_get_exclude_suffix_list_no(monkeypatch):
         monkeypatch.setattr('builtins.input', lambda: inputs.pop(0))
 
         # 再次调用测试函数
-        filecomparison.get_exclude_suffix_list()
+        matching_files = filecomparison.get_exclude_suffix_list()
+
+        expected_matching_files = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\pyvenv.cfg"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testDemo.py"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\testRename.py"
+        ]
+
+        assert matching_files == expected_matching_files
 
 
-# @pytest.mark.skip(reason="Skipping this test function for now")
 def test_format_rules_and_tag_sort_one(monkeypatch):
     print(22)
     inputs = [1]
@@ -500,45 +665,70 @@ def test_format_rules_and_tag_sort_one(monkeypatch):
         filecomparison.format_rules_and_tag_sort()
 
 
-# TODO
-@pytest.mark.skip(reason="Skipping this test function for now")
 def test_format_rules_and_tag_sort_two(monkeypatch):
     print(22)
-    inputs = [2]
-    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
-                   ]
+    # 预定义输入
+    inputs = [r"- E:\Videos\Newqueue 2024-01\2024-01[sort][video].mp4   <20240318-093138 250,307,839>", "END"]
+    inputs_iter = iter(inputs)
+
+    # 模拟 input 函数
+    monkeypatch.setattr('builtins.input', lambda: next(inputs_iter))
+
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: 2)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # 模拟用户输入
+        # 执行函数
         filecomparison.format_rules_and_tag_sort()
 
 
-# TODO
-@pytest.mark.skip(reason="Skipping this test function for now")
 def test_format_rules_and_tag_sort_three(monkeypatch):
     print(22)
-    inputs = [3]
-    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
-                   ]
+    # 预定义输入
+    inputs = [r"- E:\Videos\Newqueue 2024-01\2024-01[sort][video].mp4   [sort][video]", "END"]
+    inputs_iter = iter(inputs)
+
+    # 模拟 input 函数
+    monkeypatch.setattr('builtins.input', lambda: next(inputs_iter))
+
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: 3)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # 模拟用户输入
+        # 执行函数
         filecomparison.format_rules_and_tag_sort()
 
 
-# TODO
-@pytest.mark.skip(reason="Skipping this test function for now")
 def test_format_rules_and_tag_sort_four(monkeypatch):
     print(22)
-    inputs = [4]
-    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
-                   ]
+    # 预定义输入
+    inputs = [
+        "[Rule253]",
+        "ID=Replace",
+        "Config=TEXTWHAT:Yuuki;TEXTWITH:Yuuki%5B%E7%BB%93%E5%9F%8E%E6%98%8E%E6%97%A5%E5%A5%88%5D;WHICH:1;SKIPEXTENSION:1;CASESENSITIVE:0;USEWILDCARDS:0;WHOLEWORDSONLY:0",
+        "Marked=1",
+        "Comment=",
+        "",
+        "[Rule254]",
+        "ID=Replace",
+        "Config=TEXTWHAT:Zelda;TEXTWITH:Zelda%5B%E5%A1%9E%E5%B0%94%E8%BE%BE%5D;WHICH:1;SKIPEXTENSION:1;CASESENSITIVE:0;USEWILDCARDS:0;WHOLEWORDSONLY:0",
+        "Marked=1",
+        "Comment=",
+        "END"  # 表示输入结束
+    ]
+    inputs_iter = iter(inputs)
+
+    # 模拟 input 函数
+    monkeypatch.setattr('builtins.input', lambda: next(inputs_iter))
+
+    inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: 4)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # 模拟用户输入
+        # 执行函数
         filecomparison.format_rules_and_tag_sort()
 
 
@@ -558,7 +748,12 @@ def test_excel_compare(monkeypatch):
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    filecomparison.excel_compare()
+
+    matche_lists, no_matche_lists = filecomparison.excel_compare()
+    expected_matche_lists = []
+    expected_no_matche_lists = []
+
+    assert matche_lists == expected_matche_lists and no_matche_lists == expected_no_matche_lists
 
 
 def test_get_video_audio_yes(monkeypatch):
@@ -572,7 +767,12 @@ def test_get_video_audio_yes(monkeypatch):
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 调用测试函数
-        fileanalysis.get_video_audio()
+        folder = fileanalysis.get_video_audio()
+        expected_folder = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4'
+        ]
+        assert folder == expected_folder
 
 
 def test_get_video_audio_no(monkeypatch):
@@ -584,7 +784,19 @@ def test_get_video_audio_no(monkeypatch):
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 调用测试函数
-        fileanalysis.get_video_audio()
+        folder = fileanalysis.get_video_audio()
+        expected_folder = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6078060425344189964.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Thumb.webm'
+        ]
+        assert folder == expected_folder
 
 
 def test_rename_with_dir(monkeypatch):
@@ -600,7 +812,7 @@ def test_split_video(monkeypatch):
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-    inputs = [1.5]
+    inputs = [1]
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -643,7 +855,17 @@ def test_check_files_subtitle_stream_yes(monkeypatch):
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
-        fileanalysis.check_files_subtitle_stream()
+        videos_with_subtitle_stream, videos_without_subtitle_stream = fileanalysis.check_files_subtitle_stream()
+
+        expected_videos_with_subtitle_stream = []
+        expected_videos_without_subtitle_stream = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
+            ,
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
+        ]
+
+        assert videos_with_subtitle_stream == expected_videos_with_subtitle_stream and \
+               videos_without_subtitle_stream == expected_videos_without_subtitle_stream
 
 
 def test_check_files_subtitle_stream_no(monkeypatch):
@@ -655,7 +877,23 @@ def test_check_files_subtitle_stream_no(monkeypatch):
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
-        fileanalysis.check_files_subtitle_stream()
+        videos_with_subtitle_stream, videos_without_subtitle_stream = fileanalysis.check_files_subtitle_stream()
+
+        expected_videos_with_subtitle_stream = []
+        expected_videos_without_subtitle_stream = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm"
+            ,
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4"
+            ,
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4'
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm"
+        ]
+        assert videos_with_subtitle_stream == expected_videos_with_subtitle_stream and \
+               videos_without_subtitle_stream == expected_videos_without_subtitle_stream
 
 
 def test_get_directories_and_copy_tree(monkeypatch):
@@ -678,7 +916,19 @@ def test_check_video_integrity_yes(monkeypatch):
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
-        fileanalysis.check_video_integrity()
+        video_integrity, video_unintegrity_list, check_video_paths = fileanalysis.check_video_integrity()
+
+        expected_video_integrity = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
+        ]
+        expected_video_unintegrity = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4"
+        ]
+        expected_check_video_paths = []
+
+        assert video_integrity == expected_video_integrity and video_unintegrity_list == expected_video_unintegrity \
+               and check_video_paths == expected_check_video_paths
 
 
 def test_check_video_integrity_no(monkeypatch):
@@ -691,7 +941,21 @@ def test_check_video_integrity_no(monkeypatch):
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         monkeypatch.setattr(tools, 'process_input_str', lambda: inputs.pop(0))
-        fileanalysis.check_video_integrity()
+        video_integrity, video_unintegrity_list, check_video_paths = fileanalysis.check_video_integrity()
+
+        expected_video_integrity = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4"
+        ]
+        expected_video_unintegrity = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium_part0.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium_part2.mp4'
+        ]
+        expected_check_video_paths = []
+
+        assert video_integrity == expected_video_integrity and video_unintegrity_list == expected_video_unintegrity \
+               and check_video_paths == expected_check_video_paths
 
 
 def test_getfoldercount_by_include_yes(monkeypatch):
@@ -709,11 +973,19 @@ def test_getfoldercount_by_include_yes(monkeypatch):
     inputs = [3, 'Y']
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # 模拟用户输入
-        # print(inputs)
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.getfoldercount_by_include()
+        f_path_list = filecount.getfoldercount_by_include()
+
+        expected_f_path_list = [
+            r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
+            , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
+            , r"H:\videos\test\test_video_detail\5_6080421351686931793.webm"
+            , r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
+            , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
+            , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
+        ]
+        assert f_path_list == expected_f_path_list
 
 
 def test_getfoldercount_by_include_no(monkeypatch):
@@ -724,11 +996,21 @@ def test_getfoldercount_by_include_no(monkeypatch):
     inputs = [3, 'Y']
 
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
-        # 模拟用户输入
-        # print(inputs)
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.getfoldercount_by_include()
+        f_path_list = filecount.getfoldercount_by_include()
+
+        expected_f_path_list = [
+            r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
+            , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
+            , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
+            , r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
+            , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
+            , r"H:\videos\test\test_video_detail\5_6080421351686931793.webm"
+            , r"H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - 副本 (2).wmv"
+            , r"H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4"
+        ]
+        assert f_path_list == expected_f_path_list
 
 
 def test_getfoldercount_by_exclude_yes(monkeypatch):
@@ -751,7 +1033,13 @@ def test_getfoldercount_by_exclude_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.getfoldercount_by_exclude()
+        f_path_list = filecount.getfoldercount_by_exclude()
+
+        expected_f_path_list = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html",
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"  # 移除多余的空格
+        ]
+        assert f_path_list == expected_f_path_list
 
 
 def test_getfoldercount_by_exclude_no(monkeypatch):
@@ -767,7 +1055,18 @@ def test_getfoldercount_by_exclude_no(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.getfoldercount_by_exclude()
+        f_path_list = filecount.getfoldercount_by_exclude()
+
+        expected_f_path_list = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\alma-snortum-phelps-Lo8pE-e3AiU-unsplash.jpg"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\License.txt"
+            ,
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\manu-schwendener-zFEY4DP4h6c-unsplash.jpg"
+            ,
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\matt-hardy-6ArTTluciuA-unsplash.jpg"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Stock Video Free License.txt"
+        ]
+        assert f_path_list == expected_f_path_list
 
 
 # TODO 合并优化
@@ -783,7 +1082,50 @@ def test_get_get_file_count_by_underfolder_size_yes(monkeypatch):
     with patch('tools.process_input_list', return_value=(path_list)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.get_file_count_by_underfolder_size()
+        file_list, result_wipe_list, result_list = filecount.get_file_count_by_underfolder_size()
+
+        expected_file_list = {
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p][ Subtitle].srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN\SPYxFAMILY.srt',
+            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
+            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
+            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
+            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
+            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
+            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
+            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - '
+            r'副本 (2).wmv',
+            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4'
+        }
+        expected_result_wipe_list = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
+            , r"H:\videos\test\test_video_detail"
+        ]
+        expected_result_list = []
+
+        assert set(file_list) == set(expected_file_list)
+        assert set(result_wipe_list) == set(expected_result_wipe_list)
+        assert set(result_list) == set(expected_result_list)
 
 
 def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
@@ -798,7 +1140,50 @@ def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
     with patch('tools.process_input_list', return_value=(path_list)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-        filecount.get_file_count_by_underfolder_size()
+        file_list, result_wipe_list, result_list = filecount.get_file_count_by_underfolder_size()
+
+        expected_file_list = {
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p][ Subtitle].srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+            r'- Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN\SPYxFAMILY.srt',
+            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
+            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
+            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
+            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
+            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
+            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
+            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - '
+            r'副本 (2).wmv',
+            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4'
+        }
+        expected_result_wipe_list = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
+            , r"H:\videos\test\test_video_detail"
+        ]
+        expected_result_list = []
+
+        assert set(file_list) == set(expected_file_list)
+        assert set(result_wipe_list) == set(expected_result_wipe_list)
+        assert set(result_list) == set(expected_result_list)
 
 
 def test_split_audio_y(monkeypatch):
@@ -809,7 +1194,7 @@ def test_split_audio_y(monkeypatch):
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
-        # monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         fileanalysis.split_audio()
 
 
@@ -819,17 +1204,15 @@ def test_split_audio_n(monkeypatch):
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 模拟用户输入
-        # monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs_list.pop(0))
         fileanalysis.split_audio()
 
 
 def test_get_exclude_suffix_folder_list(monkeypatch):
     inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_folder_tree"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_size_10"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links"
@@ -847,7 +1230,13 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
         mocked_input = MagicMock(side_effect=inputs)
         # 使用 monkeypatch 将 input 函数替换为 MagicMock 对象
         monkeypatch.setattr('builtins.input', mocked_input)
-        filecomparison.get_exclude_suffix_folder_list()
+        folders_without_extension = filecomparison.get_exclude_suffix_folder_list()
+
+        expected_paths = [
+            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv"
+            , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links"
+        ]
+        assert folders_without_extension == set(expected_paths)
 
 
 def test_flag_y(monkeypatch):
@@ -996,6 +1385,9 @@ def test_parse():
     print(float(c))
     d = 1.1
     print(str(d))
+
+    print('-'*50+'All TestCase End'+'-'*50)
+    print("注意！如果未初始化测试数据多次测试会导致三个接口不通过，这是符合预期的结果")
     # e =d*c
     # print(e)
 

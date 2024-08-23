@@ -106,7 +106,9 @@ def process_input_str_limit(ui_param=None):
     while True:
         if ui_param is None:
             # 从命令行获取输入
-            line = input().strip().replace('"','')
+
+            line = input().strip().replace('"', '')
+
         else:
             # 从UI组件获取输入
             line = ui_param.toPlainText().strip("")
@@ -266,7 +268,9 @@ def check_file_or_folder(str_list):
 #             buffer.append(line)  # 将行内容加入缓冲区
 #
 #     return input_lines
-    # return "\n".join(input_lines)
+
+# return "\n".join(input_lines)
+
 
 # import keyboard
 # import threading
@@ -814,6 +818,7 @@ class FileSelector:
         self.gui_done.wait()  # 等待 GUI 完成
         return self.file_paths
 
+
 def get_input_paths_from_gui():
     """
     弹出 GUI 文件选择对话框以获取文件路径。
@@ -821,13 +826,13 @@ def get_input_paths_from_gui():
     file_selector = FileSelector()
     return file_selector.get_input_paths_from_gui()
 
+
 def get_input_paths_from_cmd():
     """
     从命令行读取文件路径，直到输入空行。
     """
     tips_m.print_message("Enter paths (press Enter twice to finish):")
     video_paths_list = []
-
 
 
     while True:
@@ -849,6 +854,7 @@ def get_input_paths_from_cmd():
     #         input_lines.append(line)
     #     except EOFError:
     #         break
+
 
 def handle_input():
     """
@@ -2035,7 +2041,8 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
 
         if not existing_file_found:
             iteration_num = 1
-            while True:
+            max_iterations = 15  # 设置最大迭代数为15
+            while iteration_num <= max_iterations:
                 # 构建拆分命令
                 processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
                 split_command = [
@@ -2078,10 +2085,16 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         part_max_duration *= adjustment_factor
                         iteration_num += 1
 
-                        log_info_m.print_message(f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
-                        for f in final_segment_files:
-                            os.remove(f)
+
+                        log_info_m.print_message(
+                            f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
+                        if iteration_num < max_iterations:
+                            for f in final_segment_files:
+                                os.remove(f)
                         log_info_m.print_message(f"iteration_num：{iteration_num}")
+                except Exception as e:
+                    log_info_m.print_message(message=f"Error occurred while processing file {output_prefix}: {str(e)}")
+                    global_exception_handler(type(e), e, e.__traceback__)
 
 
 
@@ -2360,7 +2373,7 @@ def check_video_for_green_screen(video_path, check_frames=60):
         return False
 
 
-# TODO
+# TODO 进一步优化
 def check_video_frames(video_path):
     cap = cv2.VideoCapture(video_path)
 
@@ -2566,12 +2579,15 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                             break
                     if video_time is not None:
 
-                        log_info_m.print_message(f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+
+                        log_info_m.print_message(
+                            f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
+
                         process.terminate()
                         return video_path
                     else:
                         log_info_m.print_message(f"Error detected in {video_path}: {error_message}")
-           
+
         # 等待进程结束
         process.wait()
         return None
@@ -2752,6 +2768,15 @@ def profile_all_functions(enable=False):
         return wrapper
 
     return decorator
+
+def change_log_level(num):
+    if num == 919:
+        model.result_m.print_message("L0g Level Up!")
+        model.LOG_LEVEL = 'DEBUG'
+    if num == 106:
+        model.result_m.print_message("L0g Level Down!")
+        model.LOG_LEVEL = 'INFO'
+
 
 def change_log_level(num):
     if num == 919:

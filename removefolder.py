@@ -39,8 +39,9 @@ def remove_small_folders():
         remaining_files = delete_small_files(folder, min_size)
 
     if remaining_files:
-        result_m.print_message(message="True：输出删除的文件列表："+ '_' * 80)
-        tools.for_in_for_print(remaining_files,flag=True)
+        result_m.print_message(message="True：输出删除的文件列表：" + '_' * 80)
+        tools.for_in_for_print(remaining_files, flag=True)
+        return remaining_files
 
 
 def delete_small_files(folder, min_size):

@@ -22,6 +22,7 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
+
 def check_zip_password_old():
     """判断指定文件夹下的压缩文件是否加密（不支持7z分卷）"""
     tips_m.print_message(message="请输入需要检索的文件夹")
@@ -221,6 +222,8 @@ def extract_archive():
                                    "--------------------------------------------------有密码----------------------------------------------------")
             tools.for_in_for_print(sorted(final_lists))
         print(datetime.datetime.now())
+        if not tools.check_is_None(final_lists, ex_lists):
+            return sorted(ex_lists), sorted(final_lists)
 
 
 def get_rar_header_type(rar_file_path):

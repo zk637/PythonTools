@@ -57,6 +57,7 @@ def getfoldercount():
             count += len(files)
     # log_info_m.print_message("test")
     result_m.print_message(message=count)
+    return count
 
 
 def getfoldercount_by_include():
@@ -79,7 +80,10 @@ def getfoldercount_by_include():
     else:
         path_list = None
         result_m.print_message("参数有误，不是合法的路径？")
-    tools.cont_files_processor(path_list, index)
+
+    f_path_list = tools.cont_files_processor(path_list, index)
+    return f_path_list
+
 
 
 def getfoldercount_by_exclude():
@@ -104,7 +108,11 @@ def getfoldercount_by_exclude():
     else:
         path_list = None
         result_m.print_message("参数有误，不是合法的路径？")
-    tools.cont_files_processor(path_list, index)
+
+    f_path_list = tools.cont_files_processor(path_list, index)
+
+    return f_path_list
+
 
 
 def get_file_count_by_underfolder_size():
@@ -141,3 +149,4 @@ def get_file_count_by_underfolder_size():
             tools.for_in_for_print([folder for folder in result_wipe_list if tools.get_file_paths(folder)])
             result_m.print_message(message='录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
             tools.for_in_for_print([folder for folder in result_list if tools.get_file_paths(folder)])
+        return file_list, result_wipe_list, result_list
