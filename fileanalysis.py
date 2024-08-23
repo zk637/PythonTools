@@ -79,6 +79,8 @@ def get_low_resolution_media_files():
         files = tools.add_quotes_forpath_list(files)
         log_info_m.print_message(message="\n".join(files))
 
+    return files
+
 
 def get_video_duration_sorted():
     """取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件"""
@@ -171,6 +173,7 @@ def get_video_duration_sorted():
                         for path in paths[1:]:
                             path = tools.add_quotes_forpath(path)
                             print(path)
+                    return paths
 
 
 def print_video_info_list():
@@ -217,6 +220,7 @@ def print_video_info_list():
                   end="")
 
             result_m.print_message(message=" " * (max_path_len - len(path) + 1))
+        return video_info_list
 
 
 def get_video_audio():
@@ -234,6 +238,7 @@ def get_video_audio():
     for path in folder:
         tools.convert_video_to_mp3(path)
     result_m.print_message(message="队列执行完成")
+    return folder
 
 
 def getfiletypeislegal():
@@ -292,7 +297,7 @@ def split_video():
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                    if part_num > 1:
+                    if part_num > 1 and max_size_mb < os.path.getsize(input_video):
                         part_max_size = os.path.getsize(input_video) / part_num
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
@@ -326,7 +331,7 @@ def split_audio():
 
 # TODO 10bit视频嵌入硬字幕
 def add_srt():
-    """为视频文件添加字幕"""
+    """为视频文件添加字幕(支持嵌入硬字幕时控制生成视频的质量)"""
 
     tips_m.print_message(message="输入视频文件路径")
     video_path = tools.process_input_str_limit().replace('"', '')
@@ -402,7 +407,7 @@ def add_srt():
                     command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
                 else:
                     command = f'ffmpeg -i "{video_path}" -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k ' \
-                                f'-preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+                              f'-preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
             else:
                 # 构建不使用质量控制的 FFmpeg 命令
                 command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
@@ -461,6 +466,8 @@ def check_files_subtitle_stream():
 
     tools.for_in_for_print(videos_without_subtitle_stream)
 
+    return videos_with_subtitle_stream, videos_without_subtitle_stream
+
 
 def check_video_integrity():
     """
@@ -507,7 +514,7 @@ def check_video_integrity():
         lflag, last_duration = tools.extract_last_5_minutes(video_path)
         if not lflag:
             weight += 100
-            log_info_m.print_message(message="extract_last_5_minutes is not pass:" +video_path)
+            log_info_m.print_message(message="extract_last_5_minutes is not pass:" + video_path)
             video_unintegrity[video_path] = {"last_duration": last_duration, "start_duration": 0}
 
         if weight < 100 and weight != 100:
@@ -547,10 +554,10 @@ def check_video_integrity():
     result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
     tools.for_in_for_print(video_unintegrity_list)
 
+    check_video_paths = []
     if video_unintegrity:
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
         flag = tools.process_input_str_limit().upper() or 'N'
-        check_video_paths = []
         # flag = 'Y'
         if flag == 'Y':
             # 初始化进度条
@@ -568,3 +575,5 @@ def check_video_integrity():
         result_m.print_message(message="False：检查播放后视频文件不完整的有：" + '_' * 80)
 
         tools.for_in_for_print(check_video_paths)
+
+    return video_integrity, video_unintegrity_list, check_video_paths
