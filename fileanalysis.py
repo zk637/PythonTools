@@ -116,13 +116,18 @@ def get_video_duration_sorted():
             paths = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
 
         if paths:
+            # 初始化进度条
+            progress_bar = tqdm(total=len(paths), desc="Processing Files")
             durations = []
             for path in paths:
+                progress_bar.update(1)
                 duration = tools.get_video_duration(path)
                 if duration is not None:
                     durations.append((path, duration))
 
             sorted_durations = sorted(durations, key=lambda x: x[1], reverse=date_flag)
+            progress_bar.close()
+
             for path, duration in sorted_durations:
                 if flag == 'Y':
                     path = tools.add_quotes_forpath(path)
@@ -140,7 +145,11 @@ def get_video_duration_sorted():
 
         if video_extensions:
             file_sizes = {}
+            # 初始化进度条
+            progress_bar = tqdm(total=len(video_extensions), desc="Processing Files")
+
             for path in video_extensions:
+                progress_bar.update(1)
                 duration = tools.get_video_duration(path)
                 if duration is not None:
                     file_size = os.path.getsize(path)
@@ -160,6 +169,7 @@ def get_video_duration_sorted():
                     duration_groups[duration].append(path)
 
                 duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
+                progress_bar.close()
 
                 for duration, paths in duration_groups.items():
                     if flag == 'Y':
@@ -173,7 +183,8 @@ def get_video_duration_sorted():
                         for path in paths[1:]:
                             path = tools.add_quotes_forpath(path)
                             print(path)
-                    return paths
+
+            return paths
 
 
 def print_video_info_list():
@@ -235,8 +246,12 @@ def get_video_audio():
     if not folder:
         result_m.print_message(message="文件为空，需检查条件或参数！")
         return
+    # 初始化进度条
+    progress_bar = tqdm(total=len(folder), desc="Processing videos")
     for path in folder:
+        progress_bar.update(1)
         tools.convert_video_to_mp3(path)
+    progress_bar.close()
     result_m.print_message(message="队列执行完成")
 
     return folder
@@ -326,10 +341,14 @@ def split_audio():
     else:
         return
 
+    # 初始化进度条
+    progress_bar = tqdm(total=len(path_list), desc="Processing videos")
     for path in path_list:
+        progress_bar.update(1)
         duration, bitrate = tools.get_audio_details(path)
         tools.split_audio_for_duration(path, duration)
 
+    progress_bar.close()
 
 # TODO 10bit视频嵌入硬字幕
 def add_srt():

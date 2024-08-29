@@ -149,9 +149,8 @@ def global_exception_handler(exctype, value, tb, *args):
             62: [tqdm.TqdmWarning, f"tqdm.TqdmWarning: {value}\n"],
             63: [tkinter.dialog.TclError, f"tkinter.dialog.TclError: {value}\n"],
             64: [tkinter.simpledialog.TclError, f"ttkinter.simpledialog.TclError: {value}\n"],
-            65: [tkinter.tix.TclError, f"tkinter.tix.TclError: {value}\n"],
-            66: [BrokenBarrierError, f"threading.BrokenBarrierError: {value}\n"],
-            67: [ThreadError, f"ThreadError: {value}\n"]
+            65: [BrokenBarrierError, f"threading.BrokenBarrierError: {value}\n"],
+            66: [ThreadError, f"ThreadError: {value}\n"]
         }
 
         # 在异常处理过程中关闭传入的资源对象
