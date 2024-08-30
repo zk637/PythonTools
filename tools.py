@@ -26,7 +26,6 @@ import tkinter as tk
 from tkinter import filedialog
 import threading
 
-
 import numpy as np
 from pypinyin import lazy_pinyin
 from tqdm import tqdm
@@ -323,7 +322,6 @@ def check_file_or_folder(str_list):
 #
 #     print("Final input lines:", input_lines)
 #     return input_lines
-
 
 
 # def get_input_paths_from_gui():
@@ -833,7 +831,6 @@ def get_input_paths_from_cmd():
     """
     tips_m.print_message("Enter paths (press Enter twice to finish):")
     video_paths_list = []
-
 
     while True:
         try:
@@ -1975,6 +1972,54 @@ def seconds_to_hhmmss(seconds):
     return f"{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}"
 
 
+def convert_timestamp(timestamp):
+    """
+    将 Unix 时间戳转换为可读的日期时间格式。
+
+    :param timestamp: Unix 时间戳，通常为浮点数。
+    :return: 格式化的日期时间字符串。
+    """
+    # 将时间戳转换为本地时间的 struct_time 对象
+    local_time = time.localtime(timestamp)
+
+    # 格式化时间为可读的字符串格式
+    readable_time = time.strftime("%Y-%m-%d %H:%M:%S", local_time)
+
+    return readable_time
+
+
+def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=None, suffixes=None):
+    """
+    通用的字典遍历和打印函数，支持任意数量的值、值的转换及自定义后缀。
+
+    :param data: 字典结构，键可以是任意类型，值是包含多个元素的元组或列表。
+    :param key_label: 用于显示键的标签，默认为 'Key: '。
+    :param value_labels: 可选的列表，用于描述值的标签。如果提供，将使用标签显示值。
+    :param converters: 可选的列表，包含针对值的转换函数。每个函数将应用于对应位置的值。
+    :param suffixes: 可选的列表，包含用于值的后缀字符串。每个后缀将应用于对应位置的值。
+    """
+    for key, value_list in data.items():
+        print('-' * 50)  # 空行用于分隔不同键的输出
+        print(f"{key_label}{key}{suffixes[0] if suffixes and len(suffixes) > 0 else ''}")
+        for values in value_list:
+            converted_values = []
+            for i, val in enumerate(values):
+                # 应用转换函数
+                if converters and i < len(converters) and converters[i] is not None:
+                    val = converters[i](val)
+                # 添加后缀
+                if suffixes and i + 1 < len(suffixes):
+                    val = f"{val}{suffixes[i + 1]}"
+                converted_values.append(val)
+
+            # 输出带标签和值
+            if value_labels and len(value_labels) == len(converted_values):
+                value_str = " - ".join(f"{label}{val}" for label, val in zip(value_labels, converted_values))
+            else:
+                value_str = " - ".join(str(val) for val in converted_values)
+            print(f"  {value_str}")
+
+
 def get_video_info(path):
     try:
         if os.path.exists(path):
@@ -2085,7 +2130,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         part_max_duration *= adjustment_factor
                         iteration_num += 1
 
-
                         log_info_m.print_message(
                             f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
                         if iteration_num < max_iterations:
@@ -2095,7 +2139,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                 except Exception as e:
                     log_info_m.print_message(message=f"Error occurred while processing file {output_prefix}: {str(e)}")
                     global_exception_handler(type(e), e, e.__traceback__)
-
 
 
 def split_audio_for_duration(path, duration):
@@ -2579,7 +2622,6 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
                             break
                     if video_time is not None:
 
-
                         log_info_m.print_message(
                             f"Error detected in {video_path} at {video_time:.2f} seconds: {error_message}")
 
@@ -2768,6 +2810,7 @@ def profile_all_functions(enable=False):
         return wrapper
 
     return decorator
+
 
 def change_log_level(num):
     if num == 919:

@@ -98,16 +98,16 @@ def get_video_duration_sorted():
     tips_m.print_message(message="是否纯净输出Y/N")
     flag = tools.process_input_str_limit().upper()
     # 处理用户输入
-    tips_m.print_message(message="输出文件创建时间较早的?Y/N def:N")
+    tips_m.print_message(message="输出文件创建时间较晚的?Y/N def:N")
     user_input = tools.process_input_str_limit().upper()
     # 设置布尔值，根据用户输入和默认值进行判断
     if user_input == "Y":
-        date_flag = True
-    elif user_input == "N":
         date_flag = False
+    elif user_input == "N":
+        date_flag = True
     else:
         # 默认值
-        date_flag = False
+        date_flag = True
 
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
@@ -159,9 +159,10 @@ def get_video_duration_sorted():
                     file_sizes[file_size].append((path, duration, creation_time))
 
             file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
+            final_list = file_sizes
 
             for file_size, paths_durations_creation in file_sizes.items():
-                paths_durations_creation.sort(key=lambda x: x[2], reverse=True)
+                paths_durations_creation.sort(key=lambda x: x[2], reverse=date_flag)
                 duration_groups = {}
                 for path, duration, _ in paths_durations_creation:
                     if duration not in duration_groups:
@@ -172,17 +173,17 @@ def get_video_duration_sorted():
                 progress_bar.close()
 
                 for duration, paths in duration_groups.items():
-                    if flag == 'Y':
-                        for path in paths[1:]:
-                            path = tools.add_quotes_forpath(path)
-                            print(path)
-                    else:
+                    for path in paths[1:]:
+                        path = tools.add_quotes_forpath(path)
+                        print(path)
 
-                        log_info_m.print_message(message=f"{duration / 60:.2f} min")
-
-                        for path in paths[1:]:
-                            path = tools.add_quotes_forpath(path)
-                            print(path)
+            if flag == 'N' and not tools.check_is_None(final_list):
+                key_label = '文件大小：'
+                labels = ["文件路径：", "时长：", "创建时间："]
+                converters = [None, None, tools.convert_timestamp]
+                suffixes = ["字节", "", "秒", ""]
+                tools.print_dict_structure(final_list, key_label=key_label, value_labels=labels, converters=converters,
+                                           suffixes=suffixes)
 
             return paths
 
@@ -255,7 +256,6 @@ def get_video_audio():
     result_m.print_message(message="队列执行完成")
 
     return folder
-
 
 
 def getfiletypeislegal():
@@ -349,6 +349,7 @@ def split_audio():
         tools.split_audio_for_duration(path, duration)
 
     progress_bar.close()
+
 
 # TODO 10bit视频嵌入硬字幕
 def add_srt():
