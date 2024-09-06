@@ -77,12 +77,14 @@ def create_symbolic_links():
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
-    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入END结束：\n")
     while True:
         input_str = tools.process_input_str()
-        if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
+        if input_str and input_str.upper() == 'END':  # 如果用户只输入了END，则结束输入
             break
-        input_list = input_str.split('\n')  # 将输入字符串转换为列表，按行分割
+
+        input_list = [] if input_str is None else input_str.split('\n')
+        # 将输入字符串转换为列表，按行分割
         for path in input_list:
             if path.startswith('"') and path.endswith('"'):
                 path = path[1:-1]  # 去除引号

@@ -64,7 +64,7 @@ def get_low_resolution_media_files():
 
                 global_exception_handler(type(e), e, e.__traceback__)
 
-    if ('Y' == flag.upper()):
+    if (flag and 'Y' == flag.upper()):
         try:
             files = tools.getbitratesort(files)
             files = tools.add_quotes_forpath_list(files)
@@ -93,21 +93,21 @@ def get_video_duration_sorted():
     if not folder_flag:
         paths = path_list
 
-    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N def:N")
-    same_flag = tools.process_input_str_limit().upper()
+    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N def:N \n")
+    same_flag = tools.process_input_str_limit().upper() or 'N'
     tips_m.print_message(message="是否纯净输出Y/N")
-    flag = tools.process_input_str_limit().upper()
+    flag = tools.process_input_str_limit().upper() or ''
     # 处理用户输入
-    tips_m.print_message(message="输出文件创建时间较早的?Y/N def:N")
+    tips_m.print_message(message="输出文件创建时间较晚的?Y/N def:N")
     user_input = tools.process_input_str_limit().upper()
     # 设置布尔值，根据用户输入和默认值进行判断
     if user_input == "Y":
-        date_flag = True
-    elif user_input == "N":
         date_flag = False
+    elif user_input == "N":
+        date_flag = True
     else:
         # 默认值
-        date_flag = False
+        date_flag = True
 
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
     # 如果选择不输出时长相同的列表
@@ -151,7 +151,7 @@ def get_video_duration_sorted():
             for path in video_extensions:
                 progress_bar.update(1)
                 duration = tools.get_video_duration(path)
-                if duration is not None:
+                if duration is not None and os.path.exists(path):
                     file_size = os.path.getsize(path)
                     creation_time = os.path.getctime(path)
                     if file_size not in file_sizes:
@@ -159,9 +159,10 @@ def get_video_duration_sorted():
                     file_sizes[file_size].append((path, duration, creation_time))
 
             file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
+            final_list = file_sizes
 
             for file_size, paths_durations_creation in file_sizes.items():
-                paths_durations_creation.sort(key=lambda x: x[2], reverse=True)
+                paths_durations_creation.sort(key=lambda x: x[2], reverse=date_flag)
                 duration_groups = {}
                 for path, duration, _ in paths_durations_creation:
                     if duration not in duration_groups:
@@ -172,19 +173,19 @@ def get_video_duration_sorted():
                 progress_bar.close()
 
                 for duration, paths in duration_groups.items():
-                    if flag == 'Y':
-                        for path in paths[1:]:
-                            path = tools.add_quotes_forpath(path)
-                            print(path)
-                    else:
+                    for path in paths[1:]:
+                        path = tools.add_quotes_forpath(path)
+                        print(path)
 
-                        log_info_m.print_message(message=f"{duration / 60:.2f} min")
+            if flag == 'N' and not tools.check_is_None(final_list):
+                key_label = '文件大小：'
+                labels = ["文件路径：", "时长：", "创建时间："]
+                converters = [None, None, tools.convert_timestamp]
+                suffixes = ["字节", "", "秒", ""]
+                tools.print_dict_structure(final_list, key_label=key_label, value_labels=labels, converters=converters,
+                                           suffixes=suffixes)
 
-                        for path in paths[1:]:
-                            path = tools.add_quotes_forpath(path)
-                            print(path)
-
-            return paths
+    return paths
 
 
 def print_video_info_list():
@@ -255,7 +256,6 @@ def get_video_audio():
     result_m.print_message(message="队列执行完成")
 
     return folder
-
 
 
 def getfiletypeislegal():
@@ -349,6 +349,7 @@ def split_audio():
         tools.split_audio_for_duration(path, duration)
 
     progress_bar.close()
+
 
 # TODO 10bit视频嵌入硬字幕
 def add_srt():
@@ -482,10 +483,10 @@ def check_files_subtitle_stream():
     progress_bar.close()
 
     result_m.print_message(message="True：存在字幕流的文件：" + '_' * 80)
-    tools.for_in_for_print(videos_with_subtitle_stream)
+    tools.print_list_structure(videos_with_subtitle_stream)
     result_m.print_message(message="False：不存在字幕流的文件：" + '_' * 80)
 
-    tools.for_in_for_print(videos_without_subtitle_stream)
+    tools.print_list_structure(videos_without_subtitle_stream)
 
     return videos_with_subtitle_stream, videos_without_subtitle_stream
 
@@ -573,9 +574,9 @@ def check_video_integrity():
 
     # 输出
     result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
-    tools.for_in_for_print(video_integrity)
+    tools.print_list_structure(video_integrity)
     result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
-    tools.for_in_for_print(video_unintegrity_list)
+    tools.print_list_structure(video_unintegrity_list)
 
     check_video_paths = []
     if video_unintegrity:
@@ -598,6 +599,6 @@ def check_video_integrity():
             progress_bar.close()
         result_m.print_message(message="False：检查播放后视频文件不完整的有：" + '_' * 80)
 
-        tools.for_in_for_print(check_video_paths)
+        tools.print_list_structure(check_video_paths)
 
     return video_integrity, video_unintegrity_list, check_video_paths

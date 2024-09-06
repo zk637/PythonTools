@@ -124,12 +124,12 @@ def check_files_in_folder(file_list):
     if non_matching_paths and "Y" == flag.upper():
         non_matching_paths = set(non_matching_paths)
         result_m.print_message(message="True：找到不匹配的文件：")
-        tools.for_in_for_print(non_matching_paths, flag=True)
+        tools.print_list_structure(non_matching_paths)
     else:
         # 如果找到了匹配的文件，则输出每个匹配的文件的路径
         result_m.print_message(message="False：找到匹配的文件：")
         matching_paths = set(matching_paths)
-        tools.for_in_for_print(matching_paths, flag=True)
+        tools.print_list_structure(matching_paths)
 
     return matching_paths, non_matching_paths
 
@@ -169,7 +169,7 @@ def get_file_paths_with_rules():
 
         # 打印匹配的路径
         log_info_m.print_message(message="匹配到路径有：")
-        tools.for_in_for_print(paths)
+        tools.print_list_structure(paths)
         return paths
 
 
@@ -225,12 +225,12 @@ def same_file_createsymbolic_links():
     tools.admin_process()
     # 定义源路径列表
     source_dirs = []
-    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入END结束：\n")
     while True:
-        input_str = tools.process_input_str().strip('"')
-        if not input_str.strip():  # 如果用户只输入了空格或者回车符，则结束输入
+        input_str = tools.process_input_str()
+        if input_str is not None and input_str.upper() == 'END':  # 如果用户只输入了END，则结束输入
             break
-        input_list = input_str.split('\n')  # 将输入字符串转换为列表，按行分割
+        input_list = [] if input_str is None else input_str.strip('"').split('\n')  # 将输入字符串转换为列表，按行分割
         for path in input_list:
             if path.startswith('"') and path.endswith('"'):
                 path = path[1:-1]  # 去除引号
@@ -326,7 +326,7 @@ def get_exclude_suffix_list():
                                                                  flag=sub_folder_flag, *excluded_extensions)
     if matching_files:
         result_m.print_message(message="Matching files:")
-        tools.for_in_for_print(matching_files)
+        tools.print_list_structure(matching_files)
     else:
         result_m.print_message(message="No matching files found")
 
@@ -366,7 +366,6 @@ def format_rules_and_tag_sort():
             formatted_paths = tools.format_paths_from_string(raw_paths_string)
             result_m.print_message("格式化后的路径：")
             for path in formatted_paths:
-
                 result_m.print_message(path.replace('\\\\', '\\'))
 
                 extract_filename = tools.extract_filename_from_path(path)
@@ -416,15 +415,15 @@ def check_symbolic_link():
     # 打印分类结果
     result_m.print_message(message="\nRelative Symbolic Links:")
     tips_m.print_message(message="-" * 70)
-    tools.for_in_for_print(relative_links)
+    tools.print_list_structure(relative_links)
 
     result_m.print_message(message="\nAbsolute Symbolic Links:")
     tips_m.print_message(message="-" * 70)
-    tools.for_in_for_print(absolute_links)
+    tools.print_list_structure(absolute_links)
 
     result_m.print_message(message="\nInvalid Symbolic Links:")
     tips_m.print_message(message="-" * 70)
-    tools.for_in_for_print(invalid_links)
+    tools.print_list_structure(invalid_links)
 
 
 def excel_compare():
@@ -529,7 +528,7 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
         # 输出匹配结果
         if matche_lists:
             result_m.print_message(message="以下内容文件夹中有但CSV文件中没有：")
-            tools.for_in_for_print(matche_lists)
+            tools.print_list_structure(matche_lists)
         else:
             result_m.print_message(message="没有任何匹配的结果")
 
@@ -537,7 +536,7 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
             if no_matche_lists:
                 log_info_m.print_message(message='\n' + '-' * 100)
                 result_m.print_message(message="以下内容文件夹中和CSV中都存在：")
-                tools.for_in_for_print(no_matche_lists)
+                tools.print_list_structure(no_matche_lists)
         else:
             result_m.print_message(message="没有任何匹配的结果")
 
@@ -769,5 +768,5 @@ def get_exclude_suffix_folder_list():
     folders_without_extension = all_folders - set(excluded_folders)
     if folders_without_extension:
         result_m.print_message(message="不含指定后缀的文件夹：")
-        tools.for_in_for_print(folders_without_extension)
+        tools.print_list_structure(folders_without_extension)
     return folders_without_extension
