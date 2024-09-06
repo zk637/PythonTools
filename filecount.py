@@ -85,7 +85,6 @@ def getfoldercount_by_include():
     return f_path_list
 
 
-
 def getfoldercount_by_exclude():
     """获取指定文件类型外文件的数量和路径"""
     list, dir = tools.process_paths_list_or_folder()
@@ -114,7 +113,6 @@ def getfoldercount_by_exclude():
     return f_path_list
 
 
-
 def get_file_count_by_underfolder_size():
     """
     获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
@@ -137,16 +135,16 @@ def get_file_count_by_underfolder_size():
 
         if flag.upper() == 'N':
             result_m.print_message(message='录入列表的单个文件\n')
-            tools.for_in_for_print(file_list)
+            tools.print_list_structure(file_list)
             result_m.print_message(message='录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
-            tools.for_in_for_print(result_wipe_list)
+            tools.print_list_structure(result_wipe_list)
             result_m.print_message(message='录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
-            tools.for_in_for_print(result_list)
+            tools.print_list_structure(result_list)
         else:
             result_m.print_message(message='录入列表的单个文件\n')
-            tools.for_in_for_print(file_list)
+            tools.print_list_structure(file_list)
             result_m.print_message(message='录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
-            tools.for_in_for_print([folder for folder in result_wipe_list if tools.get_file_paths(folder)])
+            tools.print_list_structure([folder for folder in result_wipe_list if tools.get_file_paths(folder)])
             result_m.print_message(message='录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
-            tools.for_in_for_print([folder for folder in result_list if tools.get_file_paths(folder)])
+            tools.print_list_structure([folder for folder in result_list if tools.get_file_paths(folder)])
         return file_list, result_wipe_list, result_list

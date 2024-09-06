@@ -98,7 +98,7 @@ def find_matching_subtitles():
             # 打印匹配的字幕文件路径列表，并在每个路径后添加换行符
             if slur_matching_subtitles:
                 result_m.print_message(message='True：模糊匹配的字幕文件：')
-                tools.for_in_for_print(slur_matching_subtitles, flag=True)
+                tools.print_list_structure(slur_matching_subtitles)
                 return slur_matching_subtitles
     else:
         log_info_m.print_message(message='"参数有误，路径为空？"')
@@ -201,11 +201,11 @@ def getSrt():
                             path_list.append(subtitle_path)
         if match_list:
             match_list = set(match_list)
-            tools.for_in_for_print(match_list)
+            tools.print_list_structure(match_list)
         log_info_m.print_message(message='-' * 150)
         if path_list:
             path_list = set(path_list)
-            tools.for_in_for_print(path_list)
+            tools.print_list_structure(path_list)
         return match_list, path_list
     else:
         log_info_m.print_message(message="参数有误，路径为空？")
@@ -272,12 +272,12 @@ def getSrtNew_process(video_folder, subtitle_folder):
     if match_list:
         match_list = set(match_list)
         # 打印匹配列表
-        tools.for_in_for_print(match_list)
+        tools.print_list_structure(match_list)
     log_info_m.print_message(message='-' * 150)
     if path_list:
         path_list = set(path_list)
         # 打印路径列表
-        tools.for_in_for_print(path_list)
+        tools.print_list_structure(path_list)
 
     return match_list, path_list
 
@@ -371,8 +371,6 @@ def find_best_match(target, options):
     # similarity = fuzz.ratio(target, best_match)
     similarity = fuzz.token_sort_ratio(target, best_match)
     return best_match, similarity
-
-
 
 # def matching_subtitles_after_rename():
 #     print("请输入视频文件夹所在位置： ")

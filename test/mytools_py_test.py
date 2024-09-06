@@ -5,10 +5,12 @@
 @License :   (C)Copyright Apache-2.0 license
 My_Tools的Testcase
 '''
+import subprocess
 
 import pytest
 import os
 import fileSize
+import my_exception
 import tools
 import translate
 import filecount
@@ -242,7 +244,7 @@ def test_getfoldercount(monkeypatch):
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\新建文件夹 (2)",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\新建文件夹 (3)",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\新建文件夹",
-        '""'  # 空行，用于结束输入
+        'end'  # 空行，用于结束输入
     ]
 
     # 创建一个 MagicMock 对象来模拟 input 函数
@@ -349,7 +351,14 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
         paths = fileanalysis.get_video_duration_sorted()
-        expected_paths = None
+        expected_paths = [
+            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
+            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
+            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
+            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
+            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
+            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm'
+        ]
         assert paths == expected_paths
 
 
@@ -367,7 +376,17 @@ def test_get_video_duration_sorted_no(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         paths = fileanalysis.get_video_duration_sorted()
-        expected_paths = None
+        expected_paths = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6078060425344189964.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Thumb.webm'
+        ]
         assert paths == expected_paths
 
 
@@ -511,7 +530,7 @@ def test_create_symbolic_links(monkeypatch):
         , r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
         , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
-          '"'  # 空行结束输入
+          'end'  # 空行结束输入
     ]
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links\新建文件夹']
     mocked_input = MagicMock(side_effect=inputs_list)
@@ -578,7 +597,7 @@ def test_get_file_paths_with_name(monkeypatch):
         , r"5_6080421351686931793"
         , r"5_6061903926607741990"
         , r"5_6075682606895072339",
-        '""'  # 空行，用于结束输入
+        'end'  # 空行，用于结束输入
     ]
     # 使用 patch 模拟 input 函数的行为
     with patch('builtins.input', side_effect=inputs_list):
@@ -1240,10 +1259,9 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
 
 
 def test_flag_y(monkeypatch):
-    inputs_list = ['Y'
+    inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"
-                   r"st_count\4",
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
@@ -1251,7 +1269,14 @@ def test_flag_y(monkeypatch):
                    ]
 
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-    expected_paths = []
+    expected_paths = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\4",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat"
+    ]
 
     assert path_list == expected_paths
     assert folder is None
@@ -1266,6 +1291,84 @@ def test_flag_n(monkeypatch):
 
     assert path_list == expected_paths
     assert folder == expected_folder
+
+
+def test_process_input_str_limit_pass(monkeypatch):
+    long_input = 'a' * 195  # 小于195个字符的字符串
+
+    def mock_input(prompt=''):
+        return long_input
+
+    def mock_main():
+        return None
+
+    monkeypatch.setattr('builtins.input', mock_input)
+    monkeypatch.setattr('main.main', mock_main)
+
+    try:
+        # 调用需要测试的函数
+        line = tools.process_input_str_limit()
+    except my_exception.InputLengthExceededException as e:
+        # 断言捕获的异常是期望的异常类型
+        assert line <= 195
+        return  # 测试通过，捕获到预期的异常
+    except Exception as e:
+        # 如果捕获到其他异常，则测试失败
+        pytest.fail(f"Unexpected exception raised: {e}")
+
+
+def test_process_input_str_limit_failed(monkeypatch):
+    long_input = 'a' * 196  # 超过195个字符的字符串
+
+    def mock_input(prompt=''):
+        return long_input
+
+    def mock_main():
+        return None
+
+    monkeypatch.setattr('builtins.input', mock_input)
+    monkeypatch.setattr('main.main', mock_main)
+
+    try:
+        # 调用需要测试的函数
+        tools.process_input_str_limit()
+    except my_exception.InputLengthExceededException as e:
+        # 断言捕获的异常是期望的异常类型
+        assert isinstance(e, my_exception.InputLengthExceededException)
+        return  # 测试通过，捕获到预期的异常
+    except Exception as e:
+        # 如果捕获到其他异常，则测试失败
+        pytest.fail(f"Unexpected exception raised: {e}")
+
+    inputs_list = (
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3\n"
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te\n"
+        r"st_count\4\n"
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\5\n"
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\1\n"
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\2\n"
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\批量提取文件名.bat\n"
+    )
+
+    def mock_input(prompt=''):
+        return inputs_list
+
+    def mock_main():
+        return None
+
+    monkeypatch.setattr('builtins.input', mock_input)
+    monkeypatch.setattr('main.main', mock_main)
+
+    try:
+        # 调用需要测试的函数
+        tools.process_input_str_limit()
+    except my_exception.InputLengthExceededException as e:
+        # 断言捕获的异常是期望的异常类型
+        assert isinstance(e, my_exception.InputLengthExceededException)
+        return  # 测试通过，捕获到预期的异常
+    except Exception as e:
+        # 如果捕获到其他异常，则测试失败
+        pytest.fail(f"Unexpected exception raised: {e}")
 
 
 def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=None):
@@ -1350,6 +1453,34 @@ def test_get_video_resolution():
     assert resolution == expected_resolution
 
 
+def test_print_list_structure():
+    list = [
+        "这是一些测试数据",
+        "这是一些测试数据",
+        "19231313",
+        '',
+        "这是一些测试数据",
+        "这是一些测试数据",
+    ]
+    converter = tools.check_file_or_folder
+    tools.print_list_structure(list, converter=converter, prefix='这是前缀[', suffix='这是后缀]')
+
+
+def test_print_dict_structure():
+    key_label = '文件大小：'
+    labels = ["文件路径：", "时长：", "创建时间："]
+    converters = [None, None, tools.convert_timestamp]
+    suffixes = ["字节", "", "秒", ""]
+    data = {
+        607115366: [
+            (r"a:\n\test2.mp4", 857.466667, 1725022442.18),
+            (r"t:\test1.mp4", 857.466667, 1724994240.9)
+        ]
+    }
+    tools.print_dict_structure(data=data, key_label=key_label, value_labels=labels, converters=converters,
+                               suffixes=suffixes)
+
+
 def test_get_free_space_cmd():
     folder_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
     space = tools.get_free_space_cmd(folder_path)
@@ -1386,7 +1517,7 @@ def test_parse():
     d = 1.1
     print(str(d))
 
-    print('-'*50+'All TestCase End'+'-'*50)
+    print('-' * 50 + 'All TestCase End' + '-' * 50)
     print("注意！如果未初始化测试数据多次测试会导致三个接口不通过，这是符合预期的结果")
     # e =d*c
     # print(e)

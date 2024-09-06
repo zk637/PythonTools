@@ -4,6 +4,7 @@
 @License :   Apache-2.0 license
 '''
 import ctypes
+import msvcrt
 import os
 import re
 import shutil
@@ -30,6 +31,7 @@ import numpy as np
 from pypinyin import lazy_pinyin
 from tqdm import tqdm
 
+import main
 import model
 import my_exception
 
@@ -59,6 +61,23 @@ def get_input_duration():
 
 
 # 定义一个新的输入函数，用于替换标准的 input 函数
+# def custom_input(prompt=''):
+#     global program_start_time
+#     global last_input_time
+#
+#     if program_start_time is None:
+#         program_start_time = time.perf_counter()  # 记录程序开始时间
+#     start_time = time.perf_counter()  # 记录输入开始时间
+#     user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
+#     end_time = time.perf_counter()  # 记录输入结束时间
+#     current_time = time.perf_counter()  # 获取当前进程的运行时间
+#     if user_input.strip() != '':
+#         if last_input_time is not None and current_time >= last_input_time:
+#             input_duration = end_time - start_time  # 计算实际输入耗时
+#             input_durations.append(input_duration)  # 将时间差添加到列表中
+#         last_input_time = current_time  # 更新上次输入时间
+#     return user_input
+
 def custom_input(prompt=''):
     global program_start_time
     global last_input_time
@@ -66,14 +85,29 @@ def custom_input(prompt=''):
     if program_start_time is None:
         program_start_time = time.perf_counter()  # 记录程序开始时间
     start_time = time.perf_counter()  # 记录输入开始时间
-    user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
+
+    # 显示提示
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    # 清空输入缓冲区
+    clear_input_buffer()
+
+    try:
+        # 从 stdin 读取输入
+        user_input = sys.stdin.readline().rstrip('\n')
+    except Exception as e:
+        tips_m.print_message(message=f"处理输入时发生错误: {e}")
+        user_input = None
+
     end_time = time.perf_counter()  # 记录输入结束时间
     current_time = time.perf_counter()  # 获取当前进程的运行时间
-    if user_input.strip() != '':
+
+    if user_input is not None and user_input.strip() != '':
         if last_input_time is not None and current_time >= last_input_time:
             input_duration = end_time - start_time  # 计算实际输入耗时
             input_durations.append(input_duration)  # 将时间差添加到列表中
         last_input_time = current_time  # 更新上次输入时间
+
     return user_input
 
 
@@ -85,39 +119,68 @@ builtins.input = custom_input
 from my_profile import profile
 
 
+def clear_input_buffer():
+    """清空标准输入缓冲区的替代方案：Windows 上不直接支持 termios"""
+    # 使用 msvcrt 模块检测并清空缓冲区的内容
+    while msvcrt.kbhit():  # 检查缓冲区中是否有多余字符
+        msvcrt.getch()  # 读取并丢弃缓冲区中的字符
+
+
 @profile(enable=False)
 def process_input_str(s=None):
     """输入参数为字符串"""
-    str = ""
-    str = input().strip()
-    return str
+    # 读取输入并去除前后的空白符号
+    input_str = input()
+    return input_str if input_str else None
 
 
 temp_input = []
+stop_input = False
 
 
 @profile(enable=False)
 def process_input_str_limit(ui_param=None):
     """输入参数为字符串，限制总长度不超过195个字符"""
     global temp_input
-    temp_input = []
+    global stop_input
 
+    line = None
     while True:
-        if ui_param is None:
-            # 从命令行获取输入
+        try:
+            if ui_param is None and not stop_input:
+                # 从命令行获取输入
+                line = input().strip().replace('"', '')
+            else:
+                # 从UI组件获取输入
+                line = ui_param.toPlainText().strip("")
 
-            line = input().strip().replace('"', '')
+            temp_input.append(line)
 
-        else:
-            # 从UI组件获取输入
-            line = ui_param.toPlainText().strip("")
+            # 输出当前拼接的输入
+            log_info_m.print_message(''.join(temp_input))
 
-        temp_input.append(line)
+            # 判断总长度是否超限
+            if len(' '.join(temp_input)) > 195:
+                stop_input = True
+                temp_input = []  # 立即清空输入缓存，避免保留上次超限的输入
+                line = None
+                raise my_exception.InputLengthExceededException()  # 抛出异常
 
-        if len(' '.join(temp_input)) > 195:
-            raise my_exception.InputLengthExceededException()
+            return line  # 如果没有超限，正常返回输入
 
-        return line
+        except my_exception.InputLengthExceededException as e:
+            # 处理异常，提示重新输入
+            result_m.print_message(f"{e}，输入有误将返回主程序！")
+            stop_input = False  # 重置停止标志，继续输入
+            # 清空输入缓冲区
+            clear_input_buffer()
+
+            # 返回主程序
+            return main.main()
+        except Exception as e:
+            # 处理其他异常
+            stop_input = False  # 重置停止标志，继续输入
+            global_exception_handler(type(e), e, e.__traceback__)
 
 
 @profile(enable=False)
@@ -127,10 +190,12 @@ def process_input_list(ui_param=None):
 
     # 处理控制台输入
     if ui_param is None:
-        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
+        tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入END结束：\n")
         while True:
-            path = input().strip('"')
-            if not path:
+            path = process_input_str()
+            if path is None:
+                continue  # 如果输入无效，则跳过这次循环
+            if path and path.upper() == 'END':
                 break
             file_paths.append(path.strip('"'))
     # 处理界面输入
@@ -147,7 +212,7 @@ def processs_input_until_end(prompt, value_type):
     if value_type.lower() == 'list':
         user_input_list = []
         while True:
-            line = input()
+            line = input() or ''
             if line.upper() == "END":
                 break
             user_input_list.append(line)
@@ -155,7 +220,7 @@ def processs_input_until_end(prompt, value_type):
     else:
         user_input_str = ''
         while True:
-            line = input()
+            line = input() or ''
             if line.upper() == "END":
                 break
             user_input_str += line + "\n"
@@ -228,231 +293,6 @@ def check_file_or_folder(str_list):
     return list(file_list), list(folder_list)
 
 
-# def get_input_paths():
-#     # 提示用户输入路径或拖拽文件
-#     print("Enter paths , then press Enter:")
-#     input_paths = sys.stdin.read().strip()  # 读取所有输入内容
-#     return input_paths
-
-# def get_input_paths():
-#     tips_m.print_message("Enter paths  (press Enter twice to finish):")
-#     input_lines = []
-#
-#     while True:
-#         try:
-#             line = sys.stdin.readline().strip().strip('"')
-#             if line == '':
-#                 break
-#             input_lines.append(line)
-#         except EOFError:
-#             break
-#
-#     return input_lines
-
-# def get_input_paths():
-#     print("Enter paths or drag files (press Enter twice to finish):")
-#
-#     input_lines = []
-#     buffer = []
-#
-#     while True:
-#         line = sys.stdin.readline().strip()  # 读取每一行并去除两端空白
-#         if line == '':  # 检查是否为空行
-#             if buffer:  # 如果缓冲区有内容，加入到输入行
-#                 input_lines.append(' '.join(buffer))
-#                 buffer = []
-#             if len(input_lines) >= 1:  # 如果已经输入了至少一个路径，终止输入
-#                 break
-#         else:
-#             buffer.append(line)  # 将行内容加入缓冲区
-#
-#     return input_lines
-
-# return "\n".join(input_lines)
-
-
-# import keyboard
-# import threading
-# import time
-# import io
-# import signal
-#
-# stop_input_flag = False
-#
-# def stop_input():
-#     global stop_input_flag
-#     stop_input_flag = True
-#     print("\nInput terminated by user.")
-#
-# def keyboard_listener():
-#     # 监听 Alt+Q 键盘快捷键来终止输入
-#     keyboard.add_hotkey('alt+q', stop_input)
-#     keyboard.wait('esc')  # 持续监听
-#
-# def get_input_paths():
-#     global stop_input_flag
-#     stop_input_flag = False
-#
-#     print("Enter paths or drag files (press Alt+Q to finish):")
-#
-#     # 在后台线程中启动键盘监听器
-#     listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
-#     listener_thread.start()
-#
-#     input_buffer = io.StringIO()
-#
-#     while not stop_input_flag:
-#         if stop_input_flag:
-#             break
-#         try:
-#             # 非阻塞读取 stdin
-#             if keyboard.is_pressed('alt+q'):
-#                 stop_input()
-#                 break
-#             # 使用 select 检查是否有输入数据
-#             line = sys.stdin.read()
-#             if not line:
-#                 break
-#             input_buffer.write(line)
-#         except EOFError:
-#             break
-#
-#     input_buffer.seek(0)
-#     input_lines = [line.strip().strip('"') for line in input_buffer.readlines()]
-#
-#     print("Final input lines:", input_lines)
-#     return input_lines
-
-
-# def get_input_paths_from_gui():
-#     """
-#     弹出 GUI 文件选择对话框以获取文件路径。
-#     """
-#     root = tk.Tk()
-#     root.withdraw()  # 隐藏主窗口
-#     file_paths = filedialog.askopenfilenames(title="Select Files")
-#     return list(file_paths)
-#
-# def get_input_paths_from_cmd():
-#     """
-#     从命令行读取文件路径，直到输入空行。
-#     """
-#     print("Enter paths (press Enter twice to finish):")
-#     input_lines = []
-#
-#     while True:
-#         try:
-#             line = sys.stdin.readline().strip().strip('"')
-#             if line == '':
-#                 break
-#             input_lines.append(line)
-#         except EOFError:
-#             break
-#
-#     return input_lines
-#
-# def handle_input():
-#     """
-#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
-#     """
-#     # 检测是否支持拖放操作（在实际应用中可能需要更复杂的检测）
-#     drag_and_drop_supported = os.name == 'nt'
-#
-#     if drag_and_drop_supported:
-#         print("Opening GUI for file selection...")
-#         paths = get_input_paths_from_gui()
-#     else:
-#         print("Using command line input...")
-#         paths = get_input_paths_from_cmd()
-#
-#     return paths
-#
-# def get_input_paths_from_gui():
-#     """
-#     弹出 GUI 文件选择对话框以获取文件路径。
-#     """
-#     root = tk.Tk()
-#     root.withdraw()  # 隐藏主窗口
-#     file_paths = filedialog.askopenfilenames(title="Select Files")
-#     return list(file_paths)
-#
-#
-# def get_input_paths_from_cmd():
-#     """
-#     从命令行读取文件路径，直到输入空行。
-#     """
-#     print("Enter paths (press Enter twice to finish):")
-#     input_lines = []
-#
-#     while True:
-#         try:
-#             line = sys.stdin.readline().strip().strip('"')
-#             if line == '':
-#                 break
-#             input_lines.append(line)
-#         except EOFError:
-#             break
-#
-#     return input_lines
-#
-#
-# def handle_input():
-#     """
-#     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
-#     """
-#     # 检查是否支持拖拽操作（在实际应用中可能需要更复杂的检测）
-#     if os.environ.get('DRAG_DROP_EVENT'):
-#         print("Opening GUI for file selection...")
-#         paths = get_input_paths_from_gui()
-#     else:
-#         print("Using command line input...")
-#         paths = get_input_paths_from_cmd()
-#
-#     return paths
-
-# class FileSelector:
-#     def __init__(self):
-#         self.file_paths = []
-#         self.gui_done = threading.Event()
-#         self.gui_thread = None
-#
-#     def open_file_dialog(self):
-#         root = tk.Tk()
-#         root.withdraw()  # 隐藏主窗口
-#         file_paths = filedialog.askopenfilenames(title="Select Files")
-#         self.file_paths = list(file_paths)
-#         self.gui_done.set()  # 标记 GUI 完成
-#         root.destroy()  # 关闭窗口
-#
-#     def get_input_paths_from_gui(self):
-#         """
-#         弹出 GUI 文件选择对话框以获取文件路径。
-#         """
-#         self.gui_thread = threading.Thread(target=self.open_file_dialog)
-#         self.gui_thread.start()
-#         self.gui_done.wait()  # 等待 GUI 完成
-#         return self.file_paths
-#
-#
-# def get_input_paths_from_cmd():
-#     """
-#     从命令行读取文件路径，直到输入空行。
-#     """
-#     print("Enter paths (press Enter twice to finish):")
-#     input_lines = []
-#
-#     while True:
-#         try:
-#             line = sys.stdin.readline().strip().strip('"')
-#             if line == '':
-#                 break
-#             input_lines.append(line)
-#         except EOFError:
-#             break
-#
-#     return input_lines
-#
-#
 # def handle_input():
 #     """
 #     处理输入逻辑，根据用户的操作选择 GUI 或命令行输入。
@@ -827,19 +667,21 @@ def get_input_paths_from_gui():
 
 def get_input_paths_from_cmd():
     """
-    从命令行读取文件路径，直到输入空行。
+    从命令行读取文件路径，直到输入END。
     """
-    tips_m.print_message("Enter paths (press Enter twice to finish):")
+    tips_m.print_message("Enter paths (press Enter 'END' to finish):")
     video_paths_list = []
 
     while True:
-        try:
-            path = process_input_str().strip('"')
-            if path == '':
-                break
-            video_paths_list.append(path)
-        except EOFError:
+        path = process_input_str()
+        # 处理END输入以结束输入
+        if path and path.upper() == 'END':
             break
+        # 处理有效路径
+        if path is not None:
+            video_paths_list.append(path.strip().strip('"'))
+        else:
+            continue
 
     return video_paths_list
 
@@ -857,7 +699,8 @@ def handle_input():
     """
     根据用户的选择调用不同的输入函数。
     """
-    choice = input("选择输入方式：Y/N cmd文件路径列表(Y) GUI（N） def:Y \n").strip().upper() or 'Y'
+    tips_m.print_message("选择输入方式：Y/N cmd文件路径列表(Y) GUI（N） def:Y \n")
+    choice = input().strip().upper() or 'Y'
 
     if choice == 'Y':
         # 使用命令行输入
@@ -887,7 +730,6 @@ def process_paths_list_or_folder(ui_param=None):
         flag = process_input_str_limit().lower() or 'n'
 
         if flag == 'y':
-            tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
             # handler = FileInputHandler()
             # video_paths_list = handler.handle_input()
             video_paths_list = handle_input()
@@ -1035,32 +877,43 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-def for_in_for_print(list, flag=False):
+def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
-    通用的单纯for循环输出结果
-        Args:
-        list: 包含文件路径的列表。
-        flag: 是否使用“”包裹路径
-    example：
-    ---------------符合条件的内容---------------
-    print()
-    ---------------不符合条件的内容---------------
-    print()
-    """
-    # 清除 list 中为 None 的字符串
-    list = [str for str in list if not check_str_is_None(str)]
+    通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
 
-    # 如果 list 非空且 flag 不为 True
-    if list and not flag:
-        for str in list:
-            result_m.print_message(message=str)
-    # 如果 list 非空且 flag 为 True
-    elif list and flag:
-        for str in list:
-            result_m.print_message(message=add_quotes_forpath(str))
-    # 如果 list 为空或其他异常情况
-    else:
+    Args:
+        lst: 包含文件路径或其他元素的列表。
+        converter: 用于转换元素的函数（可选）。
+        prefix: 每个元素的前缀字符串（可选）。
+        suffix: 每个元素的后缀字符串（可选）。
+
+    Example:
+        ---------------符合条件的内容---------------
+        print("Prefix: value Suffix")
+        ---------------不符合条件的内容---------------
+    """
+    # 清除 lst 中为 None 的字符串
+    lst = [str for str in lst if not check_str_is_None(str)]
+
+    # 如果 lst 为空，输出错误信息
+    if not lst:
         log_info_m.print_message(message="参数有误,列表为空？")
+        return
+
+    # 处理前缀和后缀的默认值
+    prefix = "\"" if prefix is None else prefix
+    suffix = "\"" if suffix is None else suffix
+
+    # 遍历列表并处理每个元素
+    for item in lst:
+        if converter:
+            item = converter(item)  # 应用转换函数
+
+        # 直接添加前缀和后缀
+        item = f"{prefix}{item}{suffix}"
+
+        # 输出最终结果
+        result_m.print_message(message=item)
 
 
 def cont_files_processor(path_list, index):
@@ -1071,7 +924,7 @@ def cont_files_processor(path_list, index):
         tips_m.print_message(message="是否输出符合条件的文件路径 Y/N")
         flag = process_input_str_limit()
         if flag.upper() == 'Y':
-            for_in_for_print(path_list)
+            print_list_structure(path_list)
         return path_list
 
 
@@ -2898,6 +2751,12 @@ def get_free_space_cmd(folder_path):
 # 设置 cmd 窗口的标题
 def set_cmd_title(title):
     ctypes.windll.kernel32.SetConsoleTitleW(title)
+
+
+def restart_program():
+    """重启当前的程序"""
+    python = sys.executable
+    os.execv(python, [python] + sys.argv)
 
 
 def capture_output_to_file(func):

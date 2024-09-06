@@ -28,7 +28,7 @@ def remove_small_folders():
     """删除小于指定大小的文件所在的文件夹"""
     tips_m.print_message(message="是否使用回收站Y/N:")
     flag = tools.process_input_str_limit()
-    if 'Y' == flag.upper():
+    if flag and 'Y' == flag.upper():
         # input_logger.stop_logging()
         # input_logger.close()
         remaining_files = delete_small_files_re(folder, min_size)
@@ -40,7 +40,7 @@ def remove_small_folders():
 
     if remaining_files:
         result_m.print_message(message="True：输出删除的文件列表：" + '_' * 80)
-        tools.for_in_for_print(remaining_files, flag=True)
+        tools.print_list_structure(remaining_files)
         return remaining_files
 
 

@@ -30,8 +30,6 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-sys.stdin.reconfigure(encoding='utf-8')
-sys.stdout.reconfigure(encoding='utf-8')
 out_put = createog()
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
@@ -45,7 +43,7 @@ def print_hi(name):
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-if __name__ == '__main__':
+def main():
     """1、获取相同子目录下的文件大小            code==01
     #  2、获取不同子目录下的文件大小         code==02
     #  3、使用关键词来查找字幕文件           code==03
@@ -90,7 +88,6 @@ if __name__ == '__main__':
         # ...
         def default_method():
             pass
-
 
         methods = {
             0: tools.profile_all_functions,
@@ -216,9 +213,12 @@ if __name__ == '__main__':
                     path = tools.process_input_str()
                     # input_logger.stop_logging()
                     # input_logger.close()
-                    if not path:
+                    if path is None:
                         break
                     file_paths.append(path.strip('"'))
+                if os.path.exists(profile_file):
+                    enable_profile = True
+                    methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)(file_paths)
                 print(
                     f"--------------------------------------------------End----------------------------------------------------")
@@ -233,10 +233,10 @@ if __name__ == '__main__':
                     f"--------------------------------------------------End----------------------------------------------------")
             print("是否继续执行？(Y/N)\n")
             user_input = tools.process_input_str_limit()
-            if user_input.upper() == "Y":
+            if user_input and user_input.upper() == "Y":
                 # 继续执行，回到程序开头
                 continue
-            elif user_input.upper() == "N":
+            elif user_input and user_input.upper() == "N":
                 # 结束循环，退出程序
                 if os.path.exists(profile_file):
                     os.remove(profile_file)
@@ -257,5 +257,9 @@ if __name__ == '__main__':
         finally:
             logger.stop_logging()
             logger.close()
+
+
+if __name__ == '__main__':
+    main()
     # logging.basicConfig(filename='output.log', level=logging.DEBUG, format='%(asctime)s:%(levelname)s:%(message)s',
     #                     datefmt='%Y-%m-%d %H:%M:%S')

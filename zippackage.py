@@ -29,7 +29,7 @@ def check_zip_password_old():
     var = tools.process_input_str_limit()
     tips_m.print_message(message="是否处理7zip格式？ y/n")
     zipflag = tools.process_input_str_limit()
-    if zipflag.upper() == 'Y':
+    if zipflag and zipflag.upper() == 'Y':
         tips_m.print_message(message="选择7zip的处理模式 r-(默认：读取现有文件),w-(截断并写入新文件可以解决部分7z文件报错的情况),a-(追加到现有文件)")
         flag = tools.process_input_str_limit() or 'R'
         if flag.upper() not in ['R', 'W', 'A']:
@@ -49,7 +49,7 @@ def check_zip_password_old():
     # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
-    if zipflag.upper() == 'Y' and sevenzip_lists:
+    if zipflag and zipflag.upper() == 'Y' and sevenzip_lists:
         # print(datetime.datetime.now())
         for sevenzip_list in sevenzip_lists:
             try:
@@ -104,10 +104,10 @@ def check_zip_password_old():
     """遍历结果"""
     log_info_m.print_message(
         message="--------------------------------------------------无密码----------------------------------------------------")
-    tools.for_in_for_print(sorted(ex_final_lists))
+    tools.print_list_structure(sorted(ex_final_lists))
     log_info_m.print_message(
         message="--------------------------------------------------有密码----------------------------------------------------")
-    tools.for_in_for_print(sorted(final_lists))
+    tools.print_list_structure(sorted(final_lists))
     # print(datetime.datetime.now())
 
 
@@ -216,11 +216,11 @@ def extract_archive():
             ex_lists = ex_lists - final_lists
             result_m.print_message(message=
                                    "--------------------------------------------------无密码----------------------------------------------------")
-            tools.for_in_for_print(sorted(ex_lists))
+            tools.print_list_structure(sorted(ex_lists))
         if final_lists:
             result_m.print_message(message=
                                    "--------------------------------------------------有密码----------------------------------------------------")
-            tools.for_in_for_print(sorted(final_lists))
+            tools.print_list_structure(sorted(final_lists))
         print(datetime.datetime.now())
         if not tools.check_is_None(final_lists, ex_lists):
             return sorted(ex_lists), sorted(final_lists)
