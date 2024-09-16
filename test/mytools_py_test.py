@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 '''
 @File    :   mytools_py_test.py
-@Contact :
-@License :   (C)Copyright Apache-2.0 license
+@Contact :   https://github.com/zk637/PythonTools
+@License :   Apache-2.0 license
 My_Tools的Testcase
 '''
 import subprocess
@@ -1504,6 +1504,61 @@ def test_detect_encoding_and_convert_to_utf8():
     expected_output_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk_utf8.txt"
     print(output_file_path)
     assert output_file_path == expected_output_file_path
+
+
+def test_profile_file():
+    methods = {
+        0: tools.profile_all_functions,
+        1: fileSize.get_total_file_size,
+        2: fileSize.get_total_size,
+    }
+    profile_file = 'Profile'
+    print("Profile enabled.")
+    # 创建一个空的 Profile 文件
+    with open(profile_file, 'w', encoding='UTF-8'):
+        pass
+
+    file_paths = [
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"
+    ]
+    user_input = 2
+    if os.path.exists(profile_file):
+        enable_profile = True
+        methods = tools.apply_profile_to_methods(enable_profile, methods)
+    methods.get(user_input, methods)(file_paths)
+    if os.path.exists(profile_file):
+        os.remove(profile_file)
+
+
+import cv2
+import ffmpeg
+import py7zr
+import rarfile
+
+
+def test_global_exception_handler():
+    class FileSelector:
+        def __init__(self):
+            self.file_paths = []
+            self.gui_thread = None
+
+    fileSelector = FileSelector()
+
+    try:
+        raise ffmpeg._probe.Error('', 'out', 'error')
+    except ffmpeg._probe.Error as e:
+        global_exception_handler(type(e), e, e.__traceback__)
+
+    try:
+        raise py7zr.Bad7zFile(fileSelector)
+    except py7zr.Bad7zFile as e:
+        global_exception_handler(type(e), e, e.__traceback__)
+
+    try:
+        raise rarfile.Error(fileSelector)
+    except rarfile.Error as e:
+        global_exception_handler(type(e), e, e.__traceback__)
 
 
 def test_parse():

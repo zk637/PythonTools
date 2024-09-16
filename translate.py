@@ -21,49 +21,49 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
-# 复制字幕文件到视频文件下
-def find_subtitle():
-    # video_path=input("请输入视频路径:")
-    # video_path = input("请输入视频路径: ").replace('"', '')
-    # subtitles_foldern=input("请输入字幕文件夹路径:")
-    # shlex.split(subtitles_foldern)
-    tips_m.print_message(message="请输入视频路径")
-    video_path = tools.process_input_str_limit()
-    tips_m.print_message(message="请输入字幕文件夹路径")
-    subtitles_folder = tools.process_input_str_limit()
-    # 提取视频文件名中的关键字
-    video_filename = os.path.basename(video_path)
-    match = re.search(r"\b\w+\b|\((.*?)\)", video_filename)
-    if match:
-        keyword = match.group(0)
-    else:
-        return None
-
-    # 构造字幕文件名的正则表达式
-    subtitle_pattern = re.compile(f"^{keyword}.*\.srt$")
-
-    # 遍历字幕文件夹，查找匹配的字幕文件
-    for filename in os.listdir(subtitles_folder):
-        if subtitle_pattern.match(filename):
-            subtitle_path = os.path.join(subtitles_folder, filename)
-
-            # 获取视频文件所在目录和字幕文件名
-            video_folder = os.path.dirname(video_path)
-            new_subtitle_name = os.path.basename(subtitle_path)
-            # print(video_folder)
-            # 拼接新的字幕文件路径
-            new_subtitle_path = os.path.join(os.path.dirname((video_path)), new_subtitle_name)
-            # print(new_subtitle_path)
-            # 复制字幕文件到视频文件所在路径的前一级目录
-            shutil.copy(subtitle_path, new_subtitle_path)
-            if subtitle_path:
-                result_m.print_message(message=f"找到匹配的字幕文件：{subtitle_path}")
-            else:
-                result_m.print_message(message="没有找到匹配的字幕文件。")
-            return new_subtitle_path
-
-    # 没有找到匹配的字幕文件
-    return None
+# 复制字幕文件到视频文件下 已废弃代码
+# def find_subtitle():
+#     # video_path=input("请输入视频路径:")
+#     # video_path = input("请输入视频路径: ").replace('"', '')
+#     # subtitles_foldern=input("请输入字幕文件夹路径:")
+#     # shlex.split(subtitles_foldern)
+#     tips_m.print_message(message="请输入视频路径")
+#     video_path = tools.process_input_str_limit()
+#     tips_m.print_message(message="请输入字幕文件夹路径")
+#     subtitles_folder = tools.process_input_str_limit()
+#     # 提取视频文件名中的关键字
+#     video_filename = os.path.basename(video_path)
+#     match = re.search(r"\b\w+\b|\((.*?)\)", video_filename)
+#     if match:
+#         keyword = match.group(0)
+#     else:
+#         return None
+#
+#     # 构造字幕文件名的正则表达式
+#     subtitle_pattern = re.compile(f"^{keyword}.*\.srt$")
+#
+#     # 遍历字幕文件夹，查找匹配的字幕文件
+#     for filename in os.listdir(subtitles_folder):
+#         if subtitle_pattern.match(filename):
+#             subtitle_path = os.path.join(subtitles_folder, filename)
+#
+#             # 获取视频文件所在目录和字幕文件名
+#             video_folder = os.path.dirname(video_path)
+#             new_subtitle_name = os.path.basename(subtitle_path)
+#             # print(video_folder)
+#             # 拼接新的字幕文件路径
+#             new_subtitle_path = os.path.join(os.path.dirname((video_path)), new_subtitle_name)
+#             # print(new_subtitle_path)
+#             # 复制字幕文件到视频文件所在路径的前一级目录
+#             shutil.copy(subtitle_path, new_subtitle_path)
+#             if subtitle_path:
+#                 result_m.print_message(message=f"找到匹配的字幕文件：{subtitle_path}")
+#             else:
+#                 result_m.print_message(message="没有找到匹配的字幕文件。")
+#             return new_subtitle_path
+#
+#     # 没有找到匹配的字幕文件
+#     return None
 
 
 def find_matching_subtitles():

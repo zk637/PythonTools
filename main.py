@@ -21,7 +21,7 @@ import removefolder
 import datetime
 
 from loggerconifg import Logger
-from loggerconifg import createog
+from loggerconifg import create_log
 from loggerconifg import exit_handler
 import sys
 
@@ -30,12 +30,16 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-out_put = createog()
+out_put = create_log()
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
 # sys.stderr = Logger('output_f.log', sys.stderr)
 sys.stderr = Logger(f'{out_put}', sys.stderr)
 atexit.register(exit_handler)
+
+# 将控制台代码页设置为65001 (UTF-8)
+os.system('chcp 65001')
+
 
 
 def print_hi(name):
@@ -88,7 +92,6 @@ def main():
         # ...
         def default_method():
             pass
-
         methods = {
             0: tools.profile_all_functions,
             1: fileSize.get_total_file_size,

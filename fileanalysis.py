@@ -172,10 +172,11 @@ def get_video_duration_sorted():
                 duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
                 progress_bar.close()
 
+                # 提取并打印每个列表的第一个元素
                 for duration, paths in duration_groups.items():
                     for path in paths[1:]:
                         path = tools.add_quotes_forpath(path)
-                        print(path)
+                        result_m.print_message(path)
 
             if flag == 'N' and not tools.check_is_None(final_list):
                 key_label = '文件大小：'
@@ -184,6 +185,12 @@ def get_video_duration_sorted():
                 suffixes = ["字节", "", "秒", ""]
                 tools.print_dict_structure(final_list, key_label=key_label, value_labels=labels, converters=converters,
                                            suffixes=suffixes)
+            else:
+                tips_m.print_message(message='\n' + '-' * 50 + '所有满足条件的文件列表并不使用日期进行过滤：' + '-' * 52)
+                for key, value_list in final_list.items():
+                    for values in value_list:
+                        # 打印第一个元素
+                        result_m.print_message(values[0])
 
     return paths
 
@@ -289,7 +296,7 @@ def split_video():
             progress_bar.update()
             if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                if part_num > 1:
+                if part_num >= 2:
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
                     tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
@@ -314,7 +321,7 @@ def split_video():
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                    if part_num > 1 and max_size_mb < os.path.getsize(input_video):
+                    if part_num >= 2 and max_size_mb < os.path.getsize(input_video):
                         part_max_size = os.path.getsize(input_video) / part_num
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
@@ -346,7 +353,35 @@ def split_audio():
     for path in path_list:
         progress_bar.update(1)
         duration, bitrate = tools.get_audio_details(path)
-        tools.split_audio_for_duration(path, duration)
+
+        #获取路径子文件夹下的文件数量
+        dir_path = os.path.dirname(path)
+        dir_num = tools.get_file_count(dir_path)
+
+        output_prefix, file_extension = os.path.splitext(path)
+        output_prefix_tmp = output_prefix
+        output_prefix_tmp.replace(f'{file_extension}', '')
+
+        part_index = output_prefix.rfind('_part')
+        if part_index != -1:
+            # 截取字符串，保留 '_part' 之前的部分
+            output_prefix_tmp = output_prefix[:part_index]
+            output_prefix_tmp = output_prefix_tmp.replace(f'{file_extension}', '')
+            # print("Original Name:", output_prefix_tmp)
+            result_m.print_message(message="File name contain '_part'.")
+        else:
+            # 如果未找到 '_part'，执行其他操作
+            output_prefix_tmp = output_prefix.replace(f'{file_extension}', '')
+            result_m.print_message(message="File name does not contain '_part'.")
+        for part_index in range(int(dir_num)):
+            output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}{file_extension}"
+            if os.path.isfile(output_prefix_tmp):
+                result_m.print_message(message=f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
+                existing_file_found = True
+                output_prefix_tmp = ''
+                break  # 找到一个已存在的文件就跳出循环
+            else:
+                tools.split_audio_for_duration(path, duration)
 
     progress_bar.close()
 

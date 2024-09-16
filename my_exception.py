@@ -35,6 +35,7 @@ import zipfile
 import py7zr
 import rarfile
 
+
 class InputLengthExceededException(Exception):
     """自定义输入长度超出异常类"""
 
@@ -42,12 +43,14 @@ class InputLengthExceededException(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class ReadFrameException(Exception):
     """自定义读取帧异常类"""
 
     def __init__(self, message="读取帧有误！"):
         self.message = message
         super().__init__(self.message)
+
 
 def global_exception_handler(exctype, value, tb, *args):
     """
@@ -78,7 +81,6 @@ def global_exception_handler(exctype, value, tb, *args):
             11: [ReadFrameException, '读取帧有误！\n'],
             12: [BaseException, f"BaseException: {value}\n"]
         }
-
 
         # 构建第三方模块异常字典，键是数字，值是包含异常类型和处理字符串的列表 以便维护和逻辑扩充
         three_exception_dict = {
@@ -160,12 +162,17 @@ def global_exception_handler(exctype, value, tb, *args):
                     arg.release()
                 elif hasattr(arg, 'close') and callable(getattr(arg, 'close')):
                     arg.close()
+        else:
+            pass
 
         # 如果异常不是 ffmpeg._probe.Error，则打印堆栈跟踪信息
         if not issubclass(exctype, ffmpeg._probe.Error) and not issubclass(exctype, InputLengthExceededException):
-            tb_str = ''.join(traceback.format_tb(tb))
-            if tb_str:
-                print(tb_str)
+            if tb is not None and hasattr(tb, 'tb_frame'):
+                tb_str = ''.join(traceback.format_tb(tb))
+                if tb_str:
+                    print(tb_str)
+            else:
+                print(f"异常 {exctype} 没有 traceback 信息。")
 
         # 如果异常是 ffmpeg._probe.Error 类型，则重新抛出异常
         if issubclass(exctype, ffmpeg._probe.Error):
@@ -182,7 +189,7 @@ def global_exception_handler(exctype, value, tb, *args):
                     # 输出处理字符串
                     print(message.format(value=value))
                     # 处理特定类型的异常
-                    if key == 1 or key == 2 or key == 3 or key == 10:
+                    if key == 1 or key == 2 or key == 3:
                         sys.exit(1)
                     break
         else:

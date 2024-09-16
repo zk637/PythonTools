@@ -60,23 +60,12 @@ def get_input_duration():
     return input_durations
 
 
-# 定义一个新的输入函数，用于替换标准的 input 函数
-# def custom_input(prompt=''):
-#     global program_start_time
-#     global last_input_time
-#
-#     if program_start_time is None:
-#         program_start_time = time.perf_counter()  # 记录程序开始时间
-#     start_time = time.perf_counter()  # 记录输入开始时间
-#     user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
-#     end_time = time.perf_counter()  # 记录输入结束时间
-#     current_time = time.perf_counter()  # 获取当前进程的运行时间
-#     if user_input.strip() != '':
-#         if last_input_time is not None and current_time >= last_input_time:
-#             input_duration = end_time - start_time  # 计算实际输入耗时
-#             input_durations.append(input_duration)  # 将时间差添加到列表中
-#         last_input_time = current_time  # 更新上次输入时间
-#     return user_input
+def clear_input_buffer():
+    """清空标准输入缓冲区的替代方案：Windows 上不直接支持 termios"""
+    # 使用 msvcrt 模块检测并清空缓冲区的内容
+    while msvcrt.kbhit():  # 检查缓冲区中是否有多余字符
+        msvcrt.getch()  # 读取并丢弃缓冲区中的字符
+
 
 def custom_input(prompt=''):
     global program_start_time
@@ -117,13 +106,6 @@ builtins.original_input = builtins.input
 builtins.input = custom_input
 
 from my_profile import profile
-
-
-def clear_input_buffer():
-    """清空标准输入缓冲区的替代方案：Windows 上不直接支持 termios"""
-    # 使用 msvcrt 模块检测并清空缓冲区的内容
-    while msvcrt.kbhit():  # 检查缓冲区中是否有多余字符
-        msvcrt.getch()  # 读取并丢弃缓冲区中的字符
 
 
 @profile(enable=False)
@@ -226,18 +208,6 @@ def processs_input_until_end(prompt, value_type):
             user_input_str += line + "\n"
         return user_input_str
 
-
-# @profile(enable=False)
-# def process_input_list(ui_param=None):
-#     """输入参数为列表"""
-#     list = []
-#     tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-#     while True:
-#         path = input().strip('"')
-#         if not path:
-#             break
-#         list.append(path.strip('"'))
-#     return list
 
 
 def check_str_is_None(args):
@@ -901,8 +871,8 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
         return
 
     # 处理前缀和后缀的默认值
-    prefix = "\"" if prefix is None else prefix
-    suffix = "\"" if suffix is None else suffix
+    prefix = '\'' if prefix is None else prefix
+    suffix = '\'' if suffix is None else suffix
 
     # 遍历列表并处理每个元素
     for item in lst:
@@ -1689,12 +1659,29 @@ def get_video_duration(video_path):
     """获取视频时长"""
     try:
         result = subprocess.check_output(
-            ['ffprobe', '-i', video_path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=%s' % ("p=0")])
+            ['ffprobe', '-i', video_path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', f'csv=p=0'])
         duration = float(result)
         return duration
-    except:
-        log_info_m.print_message(message=f"Error: Failed to get duration of video {video_path}")
+    except Exception as e:
+        log_info_m.print_message(message=f"Error: Failed to get duration of video {video_path} Exception：{e}")
         return 0
+
+    # try:
+    #     media_info = get_media_info(video_path)
+    #
+    #     # 从 General 轨道中获取时长
+    #     if 'General' in media_info:
+    #         duration_ms = media_info['General'].get('duration')
+    #         if duration_ms:
+    #             duration_sec = float(duration_ms) / 1000
+    #             return duration_sec
+    #         else:
+    #             print("Duration not found")
+    #     else:
+    #         print("General track not found")
+    # except Exception as e:
+    #     print(e)
+    #     global_exception_handler(e)
 
 
 def check_audio_stream(video_path):
@@ -1908,7 +1895,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             part_max_duration = part_max_size * 8 / total_bitrate
             # 格式化分段最大时长为 HH:MM:SS 格式
             part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
-            log_info_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
+            result_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
             # 添加标志以指示是否存在已存在的文件
             existing_file_found = False
 
@@ -1972,23 +1959,43 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                                            f.startswith(processed_output_prefix + '_part') and f.endswith('.mp4')]
                     # 获取每个段文件的大小
                     segment_sizes = [os.path.getsize(f) for f in final_segment_files]
+                    total_size = sum(segment_sizes)
 
-                    if any(float(size) > part_max_size for size in segment_sizes):
-                        max_size = max(segment_sizes)
-                        # 计算频段基准
-                        offset = part_max_size / os.path.getsize(output_prefix) / part_num
-                        # 优化频段区间
-                        adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
-                        # print(adjustment_factor)
-                        part_max_duration *= adjustment_factor
-                        iteration_num += 1
+                    if len(segment_sizes) > 1 and total_size >= float(part_num*part_max_size):  # 确保有足够的分段文件来进行计算
+                        # 排除最小分段后的总大小和期望分段数量
+                        min_size = min(segment_sizes)
+                        ideal_segment_size = (total_size - min_size) / (part_num - 1)
 
-                        log_info_m.print_message(
-                            f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
-                        if iteration_num < max_iterations:
-                            for f in final_segment_files:
-                                os.remove(f)
-                        log_info_m.print_message(f"iteration_num：{iteration_num}")
+                        # 计算每个分段与理想大小的偏差
+                        size_deviation = [abs(size - ideal_segment_size) / ideal_segment_size for size in segment_sizes
+                                          if size != min_size]
+
+                        # 判断偏差是否在可接受范围内（例如接近0.9）
+                        average_deviation = sum(size_deviation) / len(size_deviation)
+                        if average_deviation < 0.1:
+                            result_m.print_message("所有片段的大小都在预期范围内。提前结束循环以节省资源。")
+                            break
+
+                        # 判断是否有分段超出最大大小
+                        if any(float(size) > part_max_size for size in segment_sizes):
+                            max_size = max(segment_sizes)
+                            offset = part_max_size / total_size / part_num
+                            adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
+                            part_max_duration *= adjustment_factor
+                            iteration_num += 1
+
+                            log_info_m.print_message(
+                                f"有些段超过了最大大小。将持续时间调整为 {part_max_duration} seconds.")
+                            if iteration_num < max_iterations:
+                                for f in final_segment_files:
+                                    os.remove(f)
+                            log_info_m.print_message(f"iteration_num：{iteration_num}")
+                    else:
+                        for f in final_segment_files:
+                            os.remove(f)
+                        result_m.print_message("False：存在无效片段因为无法根据关键帧切割。请重新录入参数！")
+                        break
+
                 except Exception as e:
                     log_info_m.print_message(message=f"Error occurred while processing file {output_prefix}: {str(e)}")
                     global_exception_handler(type(e), e, e.__traceback__)

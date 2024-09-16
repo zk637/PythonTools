@@ -16,6 +16,7 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
+# TODO 兼容UI
 def ui_param_decorator(input_func):
     def wrapper(*args, **kwargs):
         use_ui = kwargs.get('use_ui', False)
