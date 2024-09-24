@@ -139,7 +139,7 @@ def process_input_str_limit(ui_param=None):
             temp_input.append(line)
 
             # 输出当前拼接的输入
-            log_info_m.print_message(''.join(temp_input))
+            log_info_m.print_message(' input：'.join(temp_input))
 
             # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
@@ -1927,6 +1927,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
         if not existing_file_found:
             iteration_num = 1
             max_iterations = 15  # 设置最大迭代数为15
+            pre_average_deviation = None  # 在循环外初始化
             while iteration_num <= max_iterations:
                 # 构建拆分命令
                 processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
@@ -1970,12 +1971,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         size_deviation = [abs(size - ideal_segment_size) / ideal_segment_size for size in segment_sizes
                                           if size != min_size]
 
-                        # 判断偏差是否在可接受范围内（例如接近0.9）
-                        average_deviation = sum(size_deviation) / len(size_deviation)
-                        if average_deviation < 0.1:
-                            result_m.print_message("所有片段的大小都在预期范围内。提前结束循环以节省资源。")
-                            break
-
                         # 判断是否有分段超出最大大小
                         if any(float(size) > part_max_size for size in segment_sizes):
                             max_size = max(segment_sizes)
@@ -1990,6 +1985,20 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                                 for f in final_segment_files:
                                     os.remove(f)
                             log_info_m.print_message(f"iteration_num：{iteration_num}")
+
+                        # 判断偏差是否在可接受范围内（例如接近0.9）
+                        average_deviation = sum(size_deviation) / len(size_deviation)
+                        log_info_m.print_message(f"average_deviation: {average_deviation}")
+                        if average_deviation < 0.1:
+                            result_m.print_message("所有片段的大小都在预期范围内。提前结束循环以节省资源。")
+                            break
+                        elif pre_average_deviation is not None and pre_average_deviation == average_deviation:
+                            # 处理未调整的情况
+                            result_m.print_message("所有片段的大小都在预期范围内但每个片段大小没有变化，提前结束循环!")
+                            break
+
+                        pre_average_deviation = average_deviation  # 更新上一次的偏差值
+
                     else:
                         for f in final_segment_files:
                             os.remove(f)
