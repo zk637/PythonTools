@@ -121,6 +121,7 @@ def get_video_duration_sorted():
             durations = []
             for path in paths:
                 progress_bar.update(1)
+                log_info_m.print_message(f"文件：{path}开始处理")
                 duration = tools.get_video_duration(path)
                 if duration is not None:
                     durations.append((path, duration))
@@ -150,6 +151,7 @@ def get_video_duration_sorted():
 
             for path in video_extensions:
                 progress_bar.update(1)
+                log_info_m.print_message(f"文件：{path}开始处理")
                 duration = tools.get_video_duration(path)
                 if duration is not None and os.path.exists(path):
                     file_size = os.path.getsize(path)
@@ -191,6 +193,10 @@ def get_video_duration_sorted():
                     for values in value_list:
                         # 打印第一个元素
                         result_m.print_message(values[0])
+
+            if tools.check_is_None(final_list):
+                result_m.print_message("False：没有符合条件的文件！")
+                return
 
     return paths
 
@@ -258,6 +264,7 @@ def get_video_audio():
     progress_bar = tqdm(total=len(folder), desc="Processing videos")
     for path in folder:
         progress_bar.update(1)
+        log_info_m.print_message(f"文件：{path}开始处理")
         tools.convert_video_to_mp3(path)
     progress_bar.close()
     result_m.print_message(message="队列执行完成")
@@ -293,14 +300,14 @@ def split_video():
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
         for input_video in input_video_list:
-            progress_bar.update()
+            progress_bar.update(1)
             if input_video != '':
                 part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
-                if part_num >= 2:
+                if part_num >= 1:
                     part_max_size = os.path.getsize(input_video) / (os.path.getsize(input_video) / max_size_mb)
                     tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                 else:
-                    log_info_m.print_message(message=f"文件无法拆分：{input_video}")
+                    result_m.print_message(message=f"文件无法拆分：{input_video}")
 
         progress_bar.close()
     elif os.path.isdir(input_video_dir):
@@ -317,7 +324,7 @@ def split_video():
             # 初始化进度条
             progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
             for input_video in input_video_list:
-                progress_bar.update()
+                progress_bar.update(1)
                 free_space = tools.get_free_space_cmd(input_video_dir)
                 if free_space > os.path.getsize(input_video):
                     part_num = round(os.path.getsize(input_video) / max_size_mb, 2)
@@ -326,7 +333,7 @@ def split_video():
                         tools.split_video_for_size(part_max_size, part_num, input_video, output_dir)
                     else:
 
-                        log_info_m.print_message(message=f"文件无法拆分：{input_video}")
+                        result_m.print_message(message=f"文件无法拆分：{input_video}")
 
             progress_bar.close()
     else:
@@ -354,7 +361,7 @@ def split_audio():
         progress_bar.update(1)
         duration, bitrate = tools.get_audio_details(path)
 
-        #获取路径子文件夹下的文件数量
+        # 获取路径子文件夹下的文件数量
         dir_path = os.path.dirname(path)
         dir_num = tools.get_file_count(dir_path)
 
