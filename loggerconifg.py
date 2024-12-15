@@ -4,16 +4,13 @@
 
 '''
 import os
-import io
 import sys
+import io
 
-
-def createog():
-    # 设置日志文件夹和文件名前缀
+def create_log():
     log_dir = './logs'
     log_prefix = 'output'
 
-    # 获取当前日志文件编号
     log_count_file = os.path.join(log_dir, 'log_count.txt')
     if os.path.exists(log_count_file):
         with open(log_count_file, 'r', encoding='UTF-8') as f:
@@ -21,61 +18,51 @@ def createog():
     else:
         log_count = 1
 
-    # 检查当前日志文件大小是否超过限制，超过则创建新的日志文件
     log_file = os.path.join(log_dir, f'{log_prefix}-{log_count}.log')
     if os.path.exists(log_file) and os.path.getsize(log_file) > 20 * 1024 * 1024:
         log_count += 1
         log_file = os.path.join(log_dir, f'{log_prefix}-{log_count}.log')
 
-    # 将新的日志文件编号写入文件
     with open(log_count_file, 'w', encoding='UTF-8') as f:
         f.write(str(log_count))
 
-    # 创建日志对象
-    logger = Logger(log_file, sys.stdout)
     return log_file
-
 
 def check_log_size(out_put):
     if os.path.exists(out_put) and os.path.getsize(out_put) >= 20 * 1024 * 1024:
-        out_put = createog()
+        out_put = create_log()
         return ConsoleLogger(out_put)
     else:
         return ConsoleLogger(out_put)
 
-
 class Logger(object):
     def __init__(self, filename='default.log', stream=sys.stdout):
         self.terminal = stream
-        self.log = open(filename, 'a', encoding='utf-8')
+        self.log = open(filename, 'a', encoding='UTF-8')
 
     def write(self, message):
         self.terminal.write(message)
         self.log.write(message)
 
     def flush(self):
-        pass
-
+        self.terminal.flush()
+        self.log.flush()
 
 def clear_stdin():
     sys.stdin = io.StringIO()
 
-
 def clear_stdout():
     sys.stdout = io.StringIO()
-
 
 def clear_stderr():
     sys.stderr = io.StringIO()
 
-
 class ConsoleLogger:
     def __init__(self, log_file):
         self.log_file = log_file
-        self.log_handle = open(self.log_file, 'a', encoding='utf-8')
+        self.log_handle = open(self.log_file, 'a', encoding='UTF-8')
         self.stdin_backup = None
         self.log_cache = io.StringIO()
-        # 实例化 LogWriter 和 LogReader 对象
         self.log_writer = self.LogWriter(self.log_handle, self.log_cache)
         self.log_reader = self.LogReader(self.log_handle, self.log_cache)
 
@@ -87,14 +74,12 @@ class ConsoleLogger:
 
     def stop_logging(self):
         sys.stdin = self.stdin_backup
-        sys.stderr = sys.stderr
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
     def close(self):
-        sys.stdin = self.stdin_backup
-        # clear_stdin()
-        # clear_stdout()
-        # clear_stderr()
-        # self.log_handle.close()
+        self.stop_logging()
+        self.log_handle.close()
 
     class LogWriter:
         def __init__(self, log_handle, log_cache):
@@ -106,9 +91,6 @@ class ConsoleLogger:
             sys.__stdout__.flush()
             self.log_cache.write(data)
             self.flush()
-            # 如果缓冲区大小达到一定阈值，则写入文件
-            # if self.log_cache.tell() > 1024:
-            #     self.flush()
 
         def flush(self):
             sys.__stdout__.flush()

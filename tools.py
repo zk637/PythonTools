@@ -60,23 +60,7 @@ def get_input_duration():
     return input_durations
 
 
-# 定义一个新的输入函数，用于替换标准的 input 函数
-# def custom_input(prompt=''):
-#     global program_start_time
-#     global last_input_time
-#
-#     if program_start_time is None:
-#         program_start_time = time.perf_counter()  # 记录程序开始时间
-#     start_time = time.perf_counter()  # 记录输入开始时间
-#     user_input = builtins.original_input(prompt)  # 调用原始的 input 函数
-#     end_time = time.perf_counter()  # 记录输入结束时间
-#     current_time = time.perf_counter()  # 获取当前进程的运行时间
-#     if user_input.strip() != '':
-#         if last_input_time is not None and current_time >= last_input_time:
-#             input_duration = end_time - start_time  # 计算实际输入耗时
-#             input_durations.append(input_duration)  # 将时间差添加到列表中
-#         last_input_time = current_time  # 更新上次输入时间
-#     return user_input
+
 
 def custom_input(prompt=''):
     global program_start_time
@@ -90,7 +74,9 @@ def custom_input(prompt=''):
     sys.stdout.write(prompt)
     sys.stdout.flush()
     # 清空输入缓冲区
-    clear_input_buffer()
+
+    # clear_input_buffer()
+
 
     try:
         # 从 stdin 读取输入
@@ -157,7 +143,9 @@ def process_input_str_limit(ui_param=None):
             temp_input.append(line)
 
             # 输出当前拼接的输入
-            log_info_m.print_message(''.join(temp_input))
+
+            log_info_m.print_message(' input：'.join(temp_input))
+=
 
             # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
@@ -173,7 +161,9 @@ def process_input_str_limit(ui_param=None):
             result_m.print_message(f"{e}，输入有误将返回主程序！")
             stop_input = False  # 重置停止标志，继续输入
             # 清空输入缓冲区
-            clear_input_buffer()
+
+            # clear_input_buffer()
+
 
             # 返回主程序
             return main.main()
@@ -225,19 +215,6 @@ def processs_input_until_end(prompt, value_type):
                 break
             user_input_str += line + "\n"
         return user_input_str
-
-
-# @profile(enable=False)
-# def process_input_list(ui_param=None):
-#     """输入参数为列表"""
-#     list = []
-#     tips_m.print_message(message="请输入文件名，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
-#     while True:
-#         path = input().strip('"')
-#         if not path:
-#             break
-#         list.append(path.strip('"'))
-#     return list
 
 
 def check_str_is_None(args):
@@ -713,6 +690,27 @@ def handle_input():
         # return handle_input()  # 重新调用以获取有效输入
 
 
+def get_input_paths_and_passes(parent_flag=False):
+    # 获取父文件夹路径
+    parent_folder = None
+    if parent_flag:
+        parent_folder = input("请输入父文件夹路径: ").strip()
+        if not os.path.isdir(parent_folder):
+            print("父文件夹路径无效！")
+            return None, None
+    # 获取压缩包路径列表
+    print("请输入压缩包文件路径（每行一个）")
+    zip_paths = []
+    zip_paths = process_input_list()
+
+    # 获取密码列表
+    print("请输入对应的密码（每行一个）")
+    passwords = []
+    passwords = process_input_list()
+
+    return parent_folder, zip_paths, passwords
+
+
 @profile(enable=False)
 def process_paths_list_or_folder(ui_param=None):
     """
@@ -877,6 +875,7 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
+
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -914,6 +913,7 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
+
 
 
 def cont_files_processor(path_list, index):
@@ -985,6 +985,11 @@ def get_file_extension(file_path):
     file_ext = ''.join(reversed(extensions)).lower()
 
     return file_ext
+
+
+def display_size_in_mb(size_in_bytes):
+    size_in_mb = size_in_bytes / (1024 * 1024)
+    return f"{size_in_mb:.2f} MB"
 
 
 def check_in_suffix(file_path, *suffixes):
@@ -1488,17 +1493,30 @@ def subprocess_common_bat(bat_file, command, shell=False, capture_output=True, t
         log_info_m.print_message(message=f"Error: {e}")
 
 
-def subprocess_with_progress(command, shell=True):
+def subprocess_with_progress(command, shell=True, success_tip='', faild_tip='', warning_tip=''):
     """通用的子进程工具
        输入参数为command
     """
     # 启动子进程
     log_info_m.print_message(message=command)
-    process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                               universal_newlines=True)
+    try:
+        process = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   universal_newlines=True)
 
-    log_info_m.print_message(message=process)
-    process.communicate()
+        # 获取输出和错误信息
+        stdout, stderr = process.communicate()
+
+        # 判断执行结果
+        if process.returncode == 0:
+            result_m.print_message(message=success_tip)  # 执行成功提示
+        else:
+            result_m.print_message(message=faild_tip)  # 执行错误提示
+            log_info_m.print_message(message=stderr)  # 打印错误信息
+            if warning_tip:  # 可选的警告提示
+                log_info_m.print_message(message=warning_tip)
+        return stdout, stderr  # 返回标准输出和错误信息
+    except Exception as e:
+        global_exception_handler(Exception, f"命令：{command}执行出错！", e)
 
 
 # -------------------------------
@@ -1648,6 +1666,7 @@ def get_video_info_list(paths):
     for path in paths:
         # 更新进度条
         progress_bar.update(1)
+        log_info_m.print_message(f"文件：{path}开始处理")
         try:
             duration, bitrate, width, height = get_video_details(path)
             if duration == 0 or bitrate == 0 or width == 0 or height == 0:
@@ -1689,12 +1708,29 @@ def get_video_duration(video_path):
     """获取视频时长"""
     try:
         result = subprocess.check_output(
-            ['ffprobe', '-i', video_path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=%s' % ("p=0")])
+            ['ffprobe', '-i', video_path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', f'csv=p=0'])
         duration = float(result)
         return duration
-    except:
-        log_info_m.print_message(message=f"Error: Failed to get duration of video {video_path}")
+    except Exception as e:
+        log_info_m.print_message(message=f"Error: Failed to get duration of video {video_path} Exception：{e}")
         return 0
+
+    # try:
+    #     media_info = get_media_info(video_path)
+    #
+    #     # 从 General 轨道中获取时长
+    #     if 'General' in media_info:
+    #         duration_ms = media_info['General'].get('duration')
+    #         if duration_ms:
+    #             duration_sec = float(duration_ms) / 1000
+    #             return duration_sec
+    #         else:
+    #             print("Duration not found")
+    #     else:
+    #         print("General track not found")
+    # except Exception as e:
+    #     print(e)
+    #     global_exception_handler(e)
 
 
 def check_audio_stream(video_path):
@@ -1841,6 +1877,47 @@ def convert_timestamp(timestamp):
     return readable_time
 
 
+
+def print_list_structure(lst, converter=None, prefix=None, suffix=None):
+    """
+    通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
+
+    Args:
+        lst: 包含文件路径或其他元素的列表。
+        converter: 用于转换元素的函数（可选）。
+        prefix: 每个元素的前缀字符串（可选）。
+        suffix: 每个元素的后缀字符串（可选）。
+
+    Example:
+        ---------------符合条件的内容---------------
+        print("Prefix: value Suffix")
+        ---------------不符合条件的内容---------------
+    """
+    # 清除 lst 中为 None 的字符串
+    lst = [str for str in lst if not check_str_is_None(str)]
+
+    # 如果 lst 为空，输出错误信息
+    if not lst:
+        log_info_m.print_message(message="参数有误,列表为空？")
+        return
+
+    # 处理前缀和后缀的默认值
+    prefix = '' if prefix is None else prefix
+    suffix = '' if suffix is None else suffix
+
+    # 遍历列表并处理每个元素
+    for item in lst:
+        if converter:
+            item = converter(item)  # 应用转换函数
+
+        # 直接添加前缀和后缀
+        item = f"{prefix}{item}{suffix}"
+
+        # 输出最终结果
+        result_m.print_message(message=item)
+
+
+
 def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=None, suffixes=None):
     """
     通用的字典遍历和打印函数，支持任意数量的值、值的转换及自定义后缀。
@@ -1908,7 +1985,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
             part_max_duration = part_max_size * 8 / total_bitrate
             # 格式化分段最大时长为 HH:MM:SS 格式
             part_max_duration_formatted = seconds_to_hhmmss(part_max_duration)
-            log_info_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
+            result_m.print_message(message=f"格式化后的最大时长: {part_max_duration_formatted}")
             # 添加标志以指示是否存在已存在的文件
             existing_file_found = False
 
@@ -1940,6 +2017,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
         if not existing_file_found:
             iteration_num = 1
             max_iterations = 15  # 设置最大迭代数为15
+            pre_average_deviation = None  # 在循环外初始化
             while iteration_num <= max_iterations:
                 # 构建拆分命令
                 processed_output_prefix = output_prefix.replace('.mp4', '').replace("'", '-')
@@ -1972,6 +2050,62 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                                            f.startswith(processed_output_prefix + '_part') and f.endswith('.mp4')]
                     # 获取每个段文件的大小
                     segment_sizes = [os.path.getsize(f) for f in final_segment_files]
+                    total_size = sum(segment_sizes)
+
+                    if len(segment_sizes) > 1 and total_size <= float(
+                            part_num * part_max_size) + part_max_size * 0.1:  # 确保有足够的分段文件来进行计算
+                        # 排除最小分段后的总大小和期望分段数量
+                        min_size = min(segment_sizes)
+                        ideal_segment_size = (total_size - min_size) / (part_num - 1)
+
+                        # 计算每个分段与理想大小的偏差
+                        size_deviation = [abs(size - ideal_segment_size) / ideal_segment_size for size in segment_sizes
+                                          if size != min_size]
+
+                        # 判断是否有分段超出最大大小
+                        if any(float(size) > part_max_size for size in segment_sizes):
+                            max_size = max(segment_sizes)
+                            offset = part_max_size / total_size / part_num
+                            adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
+                            part_max_duration *= adjustment_factor
+                            iteration_num += 1
+
+                            log_info_m.print_message(
+                                f"有些段超过了最大大小。将持续时间调整为 {part_max_duration} seconds.")
+                            if iteration_num < max_iterations:
+                                for f in final_segment_files:
+                                    os.remove(f)
+                            log_info_m.print_message(f"iteration_num：{iteration_num}")
+
+                            # 重置分段文件列表
+                            final_segment_files = []
+                            log_info_m.print_message(f"已重置分段文件列表：{final_segment_files}")
+
+                        # 判断偏差是否在可接受范围内（例如接近0.9）
+                        if not final_segment_files:
+                            result_m.print_message("未找到有效分段文件，继续调整分段参数。")
+                            iteration_num += 1
+                            continue
+
+                        average_deviation = sum(size_deviation) / len(size_deviation)
+                        log_info_m.print_message(f"average_deviation: {average_deviation}")
+
+                        if average_deviation < 0.1 and len(segment_sizes) >= part_num:
+                            result_m.print_message("所有片段的大小都在预期范围内，且分段数量满足要求。提前结束循环以节省资源。")
+                            break
+                        elif pre_average_deviation is not None and pre_average_deviation == average_deviation:
+                            result_m.print_message("片段大小未发生变化，可能无法进一步优化，提前结束循环。")
+                            break
+                        else:
+                            pre_average_deviation = average_deviation  # 更新上一次的偏差值
+
+
+                    else:
+                        for f in final_segment_files:
+                            os.remove(f)
+                        result_m.print_message("False：存在无效片段因为无法根据关键帧切割。请重新录入参数！")
+                        break
+
 
                     if any(float(size) > part_max_size for size in segment_sizes):
                         max_size = max(segment_sizes)
@@ -1989,6 +2123,7 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                             for f in final_segment_files:
                                 os.remove(f)
                         log_info_m.print_message(f"iteration_num：{iteration_num}")
+
                 except Exception as e:
                     log_info_m.print_message(message=f"Error occurred while processing file {output_prefix}: {str(e)}")
                     global_exception_handler(type(e), e, e.__traceback__)
@@ -2000,6 +2135,7 @@ def split_audio_for_duration(path, duration):
     log_info_m.print_message(message=video_duration)
     split_command = ['ffmpeg', '-i', path, '-f', 'segment', '-segment_time', str(video_duration), '-c', 'copy',
                      filename + '_part%d.mp3']
+    log_info_m.print_message(split_command)
     subprocess.run(split_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True,
                    encoding='utf-8')
 
@@ -2033,7 +2169,7 @@ def check_subtitle_stream(video_path):
         # ffprobe -v error -select_streams s -show_entries stream=index,codec_name -of default=noprint_wrappers=1:nokey=1 "H:\videos\test.mp4"
         command = ['ffprobe', '-v', 'error', '-select_streams', 's', '-show_entries', 'stream=index,codec_name', '-of',
                    'default=noprint_wrappers=1:nokey=1', video_path]
-        print(command)
+        log_info_m.print_message(command)
         try:
             output = subprocess.check_output(command, stderr=subprocess.STDOUT, universal_newlines=True)
             if output:
@@ -2665,6 +2801,7 @@ def profile_all_functions(enable=False):
     return decorator
 
 
+
 def change_log_level(num):
     if num == 919:
         model.result_m.print_message("L0g Level Up!")
@@ -2674,13 +2811,6 @@ def change_log_level(num):
         model.LOG_LEVEL = 'INFO'
 
 
-def change_log_level(num):
-    if num == 919:
-        model.result_m.print_message("L0g Level Up!")
-        model.LOG_LEVEL = 'DEBUG'
-    if num == 106:
-        model.result_m.print_message("L0g Level Down!")
-        model.LOG_LEVEL = 'INFO'
 
 
 def apply_profile_to_methods(enable_profile, methods):

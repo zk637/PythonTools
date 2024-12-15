@@ -173,107 +173,13 @@ def get_file_paths_with_rules():
         return paths
 
 
-def create_symbolic_links():
-    tools.admin_process()
-    excluded_extensions = ['.dll', '.exe', '.png', '.xml', '.html', '.mp3', '.ts']
-    tips_m.print_message(message="请输入源文件夹路径:")
-    source_folder_path = input("").strip()
-    tips_m.print_message(message="请输入目标文件夹路径:")
-    target_folder_path = input("").strip()
-    source_files_list = []
-    same_list = []
-
-    for root, dirs, files in os.walk(source_folder_path):
-        for file in files:
-            source_files_list.append(os.path.join(root, file))
-
-    for root, dirs, files in os.walk(target_folder_path):
-        for folder in dirs:
-            target_folder_name = os.path.basename(folder)
-            target_folder_path = os.path.join(root, folder)
-            file_name = os.path.splitext(target_folder_name)[0]
-            same_name_files = []
-            for source_file in source_files_list:
-                source_file_base = os.path.splitext(os.path.basename(source_file))[0]
-                if source_file_base not in excluded_extensions and source_file != target_folder_path and source_file_base == file_name:
-                    same_name_files.append(source_file)
-            if same_name_files:
-                same_list.append((same_name_files, target_folder_path))
-
-    log_info_m.print_message(message="为以下目标文件建立符号链接:")
-    for item in same_list:
-        for source_file in item[0]:
-            target_dir = item[1]
-            cmd = ['mklink', os.path.join(target_dir, os.path.basename(source_file)), source_file]
-            log_info_m.print_message(message='\n' + '-' * 50)
-            log_info_m.print_message(message="\n" + "执行命令: " + ' '.join(cmd) + "\n")
-            # os.system(" ".join(cmd))
-            subprocess.check_call(cmd, shell=True)
-            # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-            # print("result: " + output+"\n")
-            result_m.print_message(message="源文件路径: " + source_file)
-            result_m.print_message(message="目标文件夹路径: " + target_dir)
-    tips_m.print_message(message="输入空格结束程序")
-    input_str = input("")
-    if input_str.isspace():
-        sys.exit()
-    else:
-        log_info_m.print_message(message="非空格，程序继续.....")
-
-
-def same_file_createsymbolic_links():
-    tools.admin_process()
-    # 定义源路径列表
-    source_dirs = []
-    tips_m.print_message(message="请输入文件路径或文件夹路径，每个路径都用双引号括起来并占据一行，输入END结束：\n")
-    while True:
-        input_str = tools.process_input_str()
-        if input_str is not None and input_str.upper() == 'END':  # 如果用户只输入了END，则结束输入
-            break
-        input_list = [] if input_str is None else input_str.strip('"').split('\n')  # 将输入字符串转换为列表，按行分割
-        for path in input_list:
-            if path.startswith('"') and path.endswith('"'):
-                path = path[1:-1]  # 去除引号
-            source_dirs.append(path)
-    # 指定目标目录
-    tips_m.print_message(message="请输入要创建的目标目录：")
-    target_dir = tools.process_input_str_limit()
-    # 遍历源路径列表，将文件和文件夹分别添加到不同的列表中
-    files, folders = tools.get_listunder_fileandfolder(source_dirs)
-    # # 输出结果
-    # print('Files:')
-    # for file_path in files:
-    #     print(file_path)
-    # print('Folders:')
-    # for folder_path in folders:
-    #     print(folder_path)
-    # 遍历路径列表，为每个文件或文件夹创建符号链接
-    files = [file for file in files if os.path.isfile(file)]
-    folders = [folder for folder in files if os.path.isdir(folder)]
-
-    for source_file in files:
-        log_info_m.print_message(message="文件符号链接")
-        tools.create_symbolic_link(source_file, target_dir)
-
-    for source_folder in folders:
-        log_info_m.print_message(message="文件夹符号链接")
-        tools.create_symbolic_link(source_folder, target_dir, is_folder=True)
-
-    tips_m.print_message(message="输入空格结束程序")
-    input_str = input("")
-    if input_str.isspace():
-        sys.exit()
-    else:
-        log_info_m.print_message(message="非空格，程序继续.....")
-
-
 def get_file_paths_with_name():
     """获取检索文件夹下和检索文件名相同的路径列表"""
     # 获取用户输入的文件名列表和路径
     tips_m.print_message(message=r"请输入需要检索的文件夹路径：")
     folderpath = tools.process_input_str_limit()
     found_files = []
-    tips_m.print_message(message=r"请输入需要检索的文件列表：")
+    tips_m.print_message(message=r"请输入需要检索的文件名列表：")
     filenames_list = tools.process_input_list()
     # 获取指定路径下及其子目录下的所有文件路径
     if filenames_list and os.path.isdir(folderpath):
@@ -427,39 +333,52 @@ def check_symbolic_link():
 
 
 def excel_compare():
-    """文件夹内容与csv对比"""
-    tips_m.print_message(message="请输入需要比较的CSV文件: ")
-    excel_path = tools.process_input_str_limit().replace('"', '')
-    if not tools.check_is_None(excel_path):
-        encode = tools.detect_encoding(excel_path)
-        # excel_path = tools.convert_to_utf8(excel_path,encode)
-        with open(excel_path, 'r', encoding=encode) as file:
-            for _ in range(5):  # 读取前5行
-                print(file.readline().strip())
+    """文件夹内容与多个 CSV 文件对比"""
+    tips_m.print_message(message="请输入需要比较的CSV文件路径列表每行一个 ")
+    excel_paths = tools.process_input_list()
+
+    if not tools.check_is_None(excel_paths):
+        valid_csv_paths = []
+
+        # 遍历 CSV 文件路径，逐个处理
+        for excel_path in excel_paths:
+            encode = tools.detect_encoding(excel_path)
+
+            try:
+                # 读取前 5 行，检测文件内容
+                with open(excel_path, 'r', encoding=encode) as file:
+                    print(f"预览文件 {excel_path} 的前5行内容:")
+                    for _ in range(5):
+                        print(file.readline().strip())
+
+                # 如果文件能够读取，加入有效 CSV 文件路径列表
+                valid_csv_paths.append(excel_path)
+            except Exception as e:
+                # 遇到问题时，记录错误并继续处理下一个文件
+                tips_m.print_message(message=f"无法读取 CSV 文件 {excel_path}，错误信息：{e}，跳过该文件。")
+
+        # 如果没有有效的 CSV 文件，终止任务
+        if not valid_csv_paths:
+            result_m.print_message(message="未找到有效的 CSV 文件，任务终止。")
+            return
+
+        # 继续处理其他输入
         tips_m.print_message(message="请输入需要比较的文件夹路径: ")
         folder_path = tools.process_input_str_limit()
-        tips_m.print_message(message="请输入比较文件大小限制（def:200): ")
-        size_threshold = int(tools.process_input_str_limit() or 200)
 
-        # excel_path = "Z:\\WizTree_20231209231054.csv"  # 替换为你的 Excel 文件路径
-        # folder_path = "H:\\videos\EN_video(H)"  # 替换为你的文件夹路径
-
-        size_threshold = size_threshold * 1024 * 1024  # 设置文件大小的阈值，单位为字节（这里是200MB）
-
-        # flag=input("纠错模式：将会打印读取的关键字的行数 Y/N（无法读取开启 def:N): ") or 'N'
-        # if flag.upper()=='Y':
-        #     encode = detect_encoding(excel_path)
-        #     with open(excel_path, 'r', encoding=encode) as file:
-        #         for _ in range(5):  # 读取前5行
-        #             print(file.readline())
-        # 获取需要比较的列名列表
+        tips_m.print_message(message="请输入比较文件大小限制（默认: 200MB): ")
+        size_threshold = int(tools.process_input_str_limit() or 200) * 1024 * 1024  # 设置文件大小的阈值，单位为字节
 
         tips_m.print_message(message="请输入需要比较的列名，以逗号分隔: ")
         compare_columns = tools.process_input_str_limit().split(',')
-        tips_m.print_message(message="是否输出CSV和文件夹都有的内容 Y/N (def:N) :")
+
+        tips_m.print_message(message="是否输出CSV和文件夹都有的内容 Y/N (默认: N) :")
         flag = tools.process_input_str_limit() or 'N'
-        matche_lists, no_matche_lists = find_missing_files(excel_path, folder_path, size_threshold, compare_columns,
-                                                           flag)
+
+        # 调用 find_missing_files 函数，进行文件对比
+        matche_lists, no_matche_lists = find_missing_files(valid_csv_paths, folder_path, size_threshold,
+                                                           compare_columns, flag)
+
         return matche_lists, no_matche_lists
 
 
@@ -474,53 +393,61 @@ def get_file_paths(folder, size_threshold):
     return paths
 
 
-def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, flag):
-    if csv_path and folder_path and size_threshold and compare_columns:
-        encode = tools.detect_encoding(csv_path)
-        # csv_path = tools.convert_to_utf8(csv_path,encode)
-        # 读取 CSV 文件，指定 encoding 参数为 'gbk'
-        df_csv = None  # 将 df_excel 初始化为 None
-        for header_row in range(0, 5):
-            try:
-                df_csv = pd.read_csv(csv_path, usecols=compare_columns, encoding=encode, header=header_row)
-                # 如果成功读取，跳出循环
-                tips_m.print_message(message=f"成功以第 {header_row} 行作为列名。")
-                break
-            except ValueError as e:
-                tips_m.print_message(message=f"尝试以第 {header_row} 行作为列名时出错：{e}")
+def find_missing_files(csv_paths, folder_path, size_threshold, compare_columns, flag):
+    if csv_paths and folder_path and size_threshold and compare_columns:
+        combined_csv_files = set()  # 用于存储所有CSV文件中的比较数据
 
-        # 如果 df_excel 未成功读取，给出错误信息并退出
-        if df_csv is None:
-            result_m.print_message(message="无法读取 Excel 文件。")
+        # 遍历多个CSV文件路径
+        for csv_path in csv_paths:
+            encode = tools.detect_encoding(csv_path)
+            df_csv = None  # 初始化为 None
+
+            # 尝试读取 CSV 文件
+            for header_row in range(0, 5):
+                try:
+                    df_csv = pd.read_csv(csv_path, usecols=compare_columns, encoding=encode, header=header_row)
+                    tips_m.print_message(message=f"成功以第 {header_row} 行作为列名读取CSV文件 {csv_path}。")
+                    break
+                except ValueError as e:
+                    tips_m.print_message(message=f"尝试以第 {header_row} 行作为列名时出错：{e}")
+
+            if df_csv is None:
+                result_m.print_message(message=f"无法读取 CSV 文件 {csv_path}。")
+                continue
+
+            # 将当前CSV文件的值加入到总集合中
+            current_csv_files = set(df_csv[compare_columns].values.flatten())
+            combined_csv_files.update(current_csv_files)
+
+        if not combined_csv_files:
+            result_m.print_message(message="所有CSV文件中没有可用数据。")
             return
-        # 获取文件夹下所有文件
-        # all_files = [f for f in os.listdir(folder_path) ifG:\Videos\3d
-        #              os.path.isfile(os.path.join(folder_path, f)) and os.path.getsize(
-        #                  os.path.join(folder_path, f)) > size_threshold]
-        all_files = get_file_paths(folder_path, size_threshold)
-        csv_files = set(df_csv[compare_columns].values.flatten())
 
-        # 遍历目标列的值
+        # 获取文件夹下所有文件
+        all_files = get_file_paths(folder_path, size_threshold)
+
+        # 提取combined_csv_files中每个元素的文件名，并动态判断是否需要split操作
+        csv_files_names = set(
+            csv_file.split('\\')[-1] if isinstance(csv_file, str) else csv_file
+            for csv_file in combined_csv_files
+        )
+
+        # 用于存储匹配和不匹配的文件列表
         matche_lists = []
         no_matche_lists = []
 
-        # 提取csv_files中每个元素的文件名，存入新的集合
-        csv_files_names = set(csv_file.split('\\')[-1] for csv_file in csv_files)
-
-        # 遍历文件列表，逐个与目标字符串比较
+        # 遍历文件夹中的文件与CSV数据进行对比
         for file in all_files:
             file_base_name = os.path.basename(file)
-
-            # 获取文件名的集合
             file_name_set = {file_base_name}
 
-            # 取两个集合的差集
+            # 查找文件是否在CSV文件中未匹配的内容
             unmatched_set = file_name_set - csv_files_names
-            # 如果差集不为空，表示找到了CSV中没有的内容
             if unmatched_set:
                 matche_lists.append(file)
+
             if flag.upper() == 'Y':
-                # 取两个集合的并集
+                # 查找文件是否在CSV文件中存在
                 matched_set = file_name_set.intersection(csv_files_names)
                 if matched_set:
                     no_matche_lists.append(file)
@@ -530,7 +457,7 @@ def find_missing_files(csv_path, folder_path, size_threshold, compare_columns, f
             result_m.print_message(message="以下内容文件夹中有但CSV文件中没有：")
             tools.print_list_structure(matche_lists)
         else:
-            result_m.print_message(message="没有任何匹配的结果")
+            result_m.print_message(message="没有找到文件夹中存在而CSV中不存在的文件。")
 
         if flag.upper() == 'Y':
             if no_matche_lists:

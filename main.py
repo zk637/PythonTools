@@ -21,7 +21,7 @@ import removefolder
 import datetime
 
 from loggerconifg import Logger
-from loggerconifg import createog
+from loggerconifg import create_log
 from loggerconifg import exit_handler
 import sys
 
@@ -30,12 +30,17 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-out_put = createog()
+
+out_put = create_log()
+
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
 # sys.stderr = Logger('output_f.log', sys.stderr)
 sys.stderr = Logger(f'{out_put}', sys.stderr)
 atexit.register(exit_handler)
+
+# 将控制台代码页设置为65001 (UTF-8)
+os.system('chcp 65001')
 
 
 def print_hi(name):
@@ -62,7 +67,7 @@ def main():
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
     #  18、判断指定文件夹下的压缩文件是否加密（不支持7z分卷）
-    #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
+    #  19、压缩包相关函数（检查是否存在密码，批量校验压缩包，批量解压缩）
     #  20、获取检索文件夹下和检索文件名相同的路径列表
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化
@@ -80,7 +85,7 @@ def main():
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
-    #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
+    #  37、获取录入文件夹列表中子文件大于指定大小（MB)且存在3个以上文件的文件夹并输出不符合条件的文件夹
     #  38、拆分音频为两段（支持文件列表和文件夹）
     #  39、获取文件夹列表中文件夹不存在指定后缀的文件"""
     while True:
@@ -109,7 +114,7 @@ def main():
             16: filebackup.create_symbolic_links,
             17: filebackup.same_file_createsymbolic_links,
             18: zippackage.check_zip_password_old,
-            19: zippackage.extract_archive,
+            19: zippackage.zip_process_conception,
             20: filecomparison.get_file_paths_with_name,
             21: filecomparison.get_exclude_suffix_list,
             22: filecomparison.format_rules_and_tag_sort,
@@ -158,7 +163,7 @@ def main():
     #  16、获取两个目录下所有路径，源文件的文件名和目标文件的文件夹名一致则建立符号链接（需管理员权限）
     #  17、为指定的文件列表在指定目录下创建符号链接（需管理员权限）支持文件和文件夹混合
     #  18、判断指定文件夹下的压缩文件是否加密（不支持7z分卷）
-    #  19、判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）
+    #  19、压缩包相关函数（检查是否存在密码，批量校验压缩包，批量解压缩）
     #  20、获取检索文件夹下和检索文件名相同的路径列表
     #  21、获取不在指定后缀的文件路径（输入为路径列表或文件夹）
     #  22、过滤规则格式化，文件路径格式化，标签格式化，提取路径中的标签
@@ -166,7 +171,7 @@ def main():
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比
+    #  27、文件夹内容与csv对比(支持对比多个csv文件)
     #  28、提取视频的音频文件（支持文件列表和文件夹）
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
@@ -176,7 +181,7 @@ def main():
     #  34、获取指定文件列表或文件夹下的视频是否完整
     #  35、获取指定文件类型的文件数量和路径
     #  36、获取指定文件类型外文件的数量和路径
-    #  37、获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
+    #  37、获取录入文件夹列表中子文件大于指定大小（MB)且存在3个以上文件的文件夹并输出不符合条件的文件夹
     #  38、拆分音频为两段（支持文件列表和文件夹）
     #  39、获取文件夹列表中文件夹不存在指定后缀的文件""")
         try:

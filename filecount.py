@@ -16,6 +16,7 @@ from my_exception import global_exception_handler
 global_exception_handler = global_exception_handler
 
 
+# TODO 兼容UI
 def ui_param_decorator(input_func):
     def wrapper(*args, **kwargs):
         use_ui = kwargs.get('use_ui', False)
@@ -115,11 +116,13 @@ def getfoldercount_by_exclude():
 
 def get_file_count_by_underfolder_size():
     """
-    获取录入文件列表中子文件大于3GB且存在3个以上文件的文件夹并输出不符合条件的文件夹
+    获取录入文件夹列表中子文件大于指定大小（MB)且存在3个以上文件的文件夹并输出不符合条件的文件夹
     """
     file_paths_folder_paths = tools.process_input_list()
     tips_m.print_message(message="是否打印每个文件夹下的具体内容？Y/N def:N")
     flag = tools.process_input_str_limit() or 'N'
+    tips_m.print_message(message="文件夹下的内容最低应大于？（MB）")
+    size = tools.process_input_str_limit()
     if not tools.check_is_None(file_paths_folder_paths):
         result_list = set()
         result_wipe_list = set()
@@ -130,7 +133,7 @@ def get_file_count_by_underfolder_size():
         if folder_list:
             result_list = [folder for folder in folder_list if
                            tools.get_file_count(folder) >= 3 and tools.get_folder_size
-                           (folder) >= 3 * 1024 * 1024 * 1024]
+                           (folder) >= size * 1024 * 1024]
             result_wipe_list = set(folder_list) - set(result_list)
 
         if flag.upper() == 'N':

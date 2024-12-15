@@ -5,6 +5,7 @@
 '''
 import datetime
 import os
+import re
 import subprocess
 import shutil
 import sys
@@ -111,8 +112,26 @@ def check_zip_password_old():
     # print(datetime.datetime.now())
 
 
+def zip_process_conception():
+    process_map = {
+        1: encryp_judgment,
+        2: verify_zip,
+        3: extract_zip,
+    }
+    tips_m.print_message(message="请输入要执行的操作（1-判断指定文件夹下的压缩文件是否加密， 2-批量校验压缩包, 3-批量解压缩）")
+    index = int(tools.process_input_str_limit())
+
+    process_function = process_map.get(index)
+
+    if process_function:
+        log_info_m.print_message(f"process_name: {process_function.__name__}")
+        process_function()  # 调用对应的函数
+    else:
+        result_m.print_message("参数有误！")
+
+
 # TODO 更多格式的判断
-def extract_archive():
+def encryp_judgment():
     """判断指定文件夹下的压缩文件是否加密-精确(支持7z分卷格式）"""
     tips_m.print_message(message="请输入文件夹")
     folder = tools.process_input_str_limit()
@@ -224,6 +243,99 @@ def extract_archive():
         print(datetime.datetime.now())
         if not tools.check_is_None(final_lists, ex_lists):
             return sorted(ex_lists), sorted(final_lists)
+
+
+def get_archive_uncompressed_size(zip_path):
+    """获取压缩包解压后所需的磁盘空间"""
+    try:
+        # 调用 7z 命令并获取输出
+        cmd = f'"D:\\Green software\\7-Zip\\7z.exe" l "{zip_path}"'
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # 检查是否成功运行
+        if result.returncode != 0:
+            result_m.print_message(f"无法处理压缩包 {zip_path}，错误信息:\n{result.stderr}")
+            return 0
+
+            # 解析输出以获取未压缩大小
+        uncompressed_size = 0
+        lines = result.stdout.splitlines()
+
+        log_info_m.print_message("命令输出:", result.stdout)  # 查看命令输出
+
+        for line in lines:
+            # 检查最后一行，寻找包含未压缩大小的行
+            if "files" in line:  # 检查是否为最后统计信息行
+                # parts = line.split()
+                try:
+                    # 更新正则表达式：限制最后部分为文件名，而不是 "files" 或 "folders"
+                    summary_pattern = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s+(\d+)\s+\d+\s+\d+ files')
+                    match = summary_pattern.search(line)
+
+                    if match:
+                        uncompressed_size = int(match.group(1))  # 提取未压缩大小
+                        return uncompressed_size
+                    else:
+                        print(f"未匹配汇总行: {line}")
+                except ValueError as e:
+                    result_m.print_message(f"解析错误: {e} - 行内容: {line}")  # 输出错误行以便调试
+
+        return uncompressed_size
+    except Exception as e:
+        result_m.print_message(f"处理压缩包 {zip_path} 时出错: {e}")
+        return 0
+
+
+def verify_zip():
+    parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes()
+    if zip_paths and passwords:
+        # 如果只输入一行密码，将该密码应用于所有文件
+        if len(passwords) == 1:
+            passwords = passwords * len(zip_paths)
+
+        for zip_path, password in zip(zip_paths, passwords):
+            if not os.path.isfile(zip_path):
+                result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
+                continue
+            # 定义验证压缩包命令
+            cmd = f'"D:\Softwere green\winrar\WinRAR.exe" t -p"{password}" "{zip_path}"'
+            tools.subprocess_with_progress(cmd, success_tip=f"验证通过： {zip_path} ", faild_tip=f"False:验证失败： {zip_path} ")
+
+        total_uncompressed_size = 0
+        print('-' * 50)
+        for zip_path in zip_paths:
+            if not os.path.isfile(zip_path):
+                result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
+                continue
+            # 获取解压后所需的空间
+            uncompressed_size = get_archive_uncompressed_size(zip_path)
+            result_m.print_message(f"压缩包 {zip_path} 解压后需要空间: {tools.display_size_in_mb(uncompressed_size)} MB")
+            total_uncompressed_size += uncompressed_size
+
+        # 输出总的解压空间
+        result_m.print_message(f"\n所有压缩包解压后总共需要空间: {tools.display_size_in_mb(total_uncompressed_size)} MB")
+
+
+def extract_zip():
+    parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes(parent_flag=True)
+    if parent_folder and zip_paths and passwords:
+        # 如果只输入一行密码，将该密码应用于所有文件
+        if len(passwords) == 1:
+            passwords = passwords * len(zip_paths)
+
+        for zip_path, password in zip(zip_paths, passwords):
+            if not os.path.isfile(zip_path):
+                result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
+                continue
+            # 创建子文件夹
+            zip_name = os.path.splitext(os.path.basename(zip_path))[0]
+            extract_folder = os.path.join(parent_folder, zip_name)
+            os.makedirs(extract_folder, exist_ok=True)
+
+            # 定义解压缩命令
+            cmd = f'"D:\Softwere green\winrar\WinRAR.exe" x -p"{password}" "{zip_path}" "{extract_folder}\\"'
+            tools.subprocess_with_progress(cmd, success_tip=f"成功解压 {zip_path} 到 {extract_folder}",
+                                           faild_tip=f"False:解压 {zip_path} 失败")
 
 
 def get_rar_header_type(rar_file_path):
