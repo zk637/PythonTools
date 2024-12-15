@@ -143,9 +143,7 @@ def process_input_str_limit(ui_param=None):
             temp_input.append(line)
 
             # 输出当前拼接的输入
-
             log_info_m.print_message(' input：'.join(temp_input))
-=
 
             # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
@@ -161,9 +159,7 @@ def process_input_str_limit(ui_param=None):
             result_m.print_message(f"{e}，输入有误将返回主程序！")
             stop_input = False  # 重置停止标志，继续输入
             # 清空输入缓冲区
-
             # clear_input_buffer()
-
 
             # 返回主程序
             return main.main()
