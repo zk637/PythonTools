@@ -30,7 +30,9 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
+
 out_put = create_log()
+
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
 # sys.stderr = Logger('output_f.log', sys.stderr)

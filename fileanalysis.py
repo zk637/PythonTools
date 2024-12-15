@@ -178,6 +178,7 @@ def get_video_duration_sorted():
                 for duration, paths in duration_groups.items():
                     for path in paths[1:]:
                         path = tools.add_quotes_forpath(path)
+
                         result_m.print_message(path)
 
             if flag == 'N' and not tools.check_is_None(final_list):
@@ -197,6 +198,7 @@ def get_video_duration_sorted():
             if tools.check_is_None(final_list):
                 result_m.print_message("False：没有符合条件的文件！")
                 return
+
 
     return paths
 

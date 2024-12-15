@@ -4,6 +4,7 @@
 @License :   Apache-2.0 license
 '''
 import ctypes
+import msvcrt
 import os
 import re
 import shutil
@@ -59,11 +60,6 @@ def get_input_duration():
     return input_durations
 
 
-# def clear_input_buffer():
-#     """清空标准输入缓冲区的替代方案：Windows 上不直接支持 termios"""
-#     # 使用 msvcrt 模块检测并清空缓冲区的内容
-#     while msvcrt.kbhit():  # 检查缓冲区中是否有多余字符
-#         msvcrt.getch()  # 读取并丢弃缓冲区中的字符
 
 
 def custom_input(prompt=''):
@@ -78,7 +74,9 @@ def custom_input(prompt=''):
     sys.stdout.write(prompt)
     sys.stdout.flush()
     # 清空输入缓冲区
+
     # clear_input_buffer()
+
 
     try:
         # 从 stdin 读取输入
@@ -105,6 +103,13 @@ builtins.original_input = builtins.input
 builtins.input = custom_input
 
 from my_profile import profile
+
+
+def clear_input_buffer():
+    """清空标准输入缓冲区的替代方案：Windows 上不直接支持 termios"""
+    # 使用 msvcrt 模块检测并清空缓冲区的内容
+    while msvcrt.kbhit():  # 检查缓冲区中是否有多余字符
+        msvcrt.getch()  # 读取并丢弃缓冲区中的字符
 
 
 @profile(enable=False)
@@ -138,7 +143,9 @@ def process_input_str_limit(ui_param=None):
             temp_input.append(line)
 
             # 输出当前拼接的输入
+
             log_info_m.print_message(' input：'.join(temp_input))
+=
 
             # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
@@ -154,7 +161,9 @@ def process_input_str_limit(ui_param=None):
             result_m.print_message(f"{e}，输入有误将返回主程序！")
             stop_input = False  # 重置停止标志，继续输入
             # 清空输入缓冲区
+
             # clear_input_buffer()
+
 
             # 返回主程序
             return main.main()
@@ -864,6 +873,47 @@ def count_files(file_paths: list) -> int:
             file_count += 1
 
     return file_count
+
+
+
+def print_list_structure(lst, converter=None, prefix=None, suffix=None):
+    """
+    通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
+
+    Args:
+        lst: 包含文件路径或其他元素的列表。
+        converter: 用于转换元素的函数（可选）。
+        prefix: 每个元素的前缀字符串（可选）。
+        suffix: 每个元素的后缀字符串（可选）。
+
+    Example:
+        ---------------符合条件的内容---------------
+        print("Prefix: value Suffix")
+        ---------------不符合条件的内容---------------
+    """
+    # 清除 lst 中为 None 的字符串
+    lst = [str for str in lst if not check_str_is_None(str)]
+
+    # 如果 lst 为空，输出错误信息
+    if not lst:
+        log_info_m.print_message(message="参数有误,列表为空？")
+        return
+
+    # 处理前缀和后缀的默认值
+    prefix = "\"" if prefix is None else prefix
+    suffix = "\"" if suffix is None else suffix
+
+    # 遍历列表并处理每个元素
+    for item in lst:
+        if converter:
+            item = converter(item)  # 应用转换函数
+
+        # 直接添加前缀和后缀
+        item = f"{prefix}{item}{suffix}"
+
+        # 输出最终结果
+        result_m.print_message(message=item)
+
 
 
 def cont_files_processor(path_list, index):
@@ -1827,6 +1877,7 @@ def convert_timestamp(timestamp):
     return readable_time
 
 
+
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -1864,6 +1915,7 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
+
 
 
 def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=None, suffixes=None):
@@ -2047,11 +2099,30 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                         else:
                             pre_average_deviation = average_deviation  # 更新上一次的偏差值
 
+
                     else:
                         for f in final_segment_files:
                             os.remove(f)
                         result_m.print_message("False：存在无效片段因为无法根据关键帧切割。请重新录入参数！")
                         break
+
+
+                    if any(float(size) > part_max_size for size in segment_sizes):
+                        max_size = max(segment_sizes)
+                        # 计算频段基准
+                        offset = part_max_size / os.path.getsize(output_prefix) / part_num
+                        # 优化频段区间
+                        adjustment_factor = 1 - (max_size - part_max_size) / max_size - offset
+                        # print(adjustment_factor)
+                        part_max_duration *= adjustment_factor
+                        iteration_num += 1
+
+                        log_info_m.print_message(
+                            f"Some segments exceed max size. Adjusting duration to {part_max_duration} seconds.")
+                        if iteration_num < max_iterations:
+                            for f in final_segment_files:
+                                os.remove(f)
+                        log_info_m.print_message(f"iteration_num：{iteration_num}")
 
                 except Exception as e:
                     log_info_m.print_message(message=f"Error occurred while processing file {output_prefix}: {str(e)}")
@@ -2730,6 +2801,7 @@ def profile_all_functions(enable=False):
     return decorator
 
 
+
 def change_log_level(num):
     if num == 919:
         model.result_m.print_message("L0g Level Up!")
@@ -2737,6 +2809,8 @@ def change_log_level(num):
     if num == 106:
         model.result_m.print_message("L0g Level Down!")
         model.LOG_LEVEL = 'INFO'
+
+
 
 
 def apply_profile_to_methods(enable_profile, methods):
