@@ -139,15 +139,15 @@ def get_file_count_by_underfolder_size():
         if flag.upper() == 'N':
             result_m.print_message(message='录入列表的单个文件\n')
             tools.print_list_structure(file_list)
-            result_m.print_message(message='录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
+            result_m.print_message(message=f'录入列表文件夹不符合大于{size}MB且至少存在3个文件的文件夹\n')
             tools.print_list_structure(result_wipe_list)
-            result_m.print_message(message='录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
+            result_m.print_message(message=f'录入列表文件夹符合大于{size}MB且至少存在3个文件的文件夹\n')
             tools.print_list_structure(result_list)
         else:
             result_m.print_message(message='录入列表的单个文件\n')
             tools.print_list_structure(file_list)
-            result_m.print_message(message='录入列表文件夹不符合大于3GB且至少存在3个文件的文件夹\n')
+            result_m.print_message(message=f'录入列表文件夹不符合大于{size}MB且至少存在3个文件的文件夹\n')
             tools.print_list_structure([folder for folder in result_wipe_list if tools.get_file_paths(folder)])
-            result_m.print_message(message='录入列表文件夹符合大于3GB且至少存在3个文件的文件夹\n')
+            result_m.print_message(message=f'录入列表文件夹符合大于{size}MB且至少存在3个文件的文件夹\n')
             tools.print_list_structure([folder for folder in result_list if tools.get_file_paths(folder)])
         return file_list, result_wipe_list, result_list

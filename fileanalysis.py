@@ -199,7 +199,6 @@ def get_video_duration_sorted():
                 result_m.print_message("False：没有符合条件的文件！")
                 return
 
-
     return paths
 
 
@@ -557,7 +556,8 @@ def check_video_integrity():
     # 去除不支持的文件格式和缓存
     video_files = [video_path for video_path in video_files if
                    not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX)]
-
+    video_files = [video_path for video_path in video_files if
+                   tools.check_in_suffix(video_path, constants.VIDEO_SUFFIX)]
     # 初始化进度条
     progress_bar = tqdm(total=len(video_files), desc="Processing videos")
 

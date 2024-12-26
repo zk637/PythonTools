@@ -60,8 +60,6 @@ def get_input_duration():
     return input_durations
 
 
-
-
 def custom_input(prompt=''):
     global program_start_time
     global last_input_time
@@ -76,7 +74,6 @@ def custom_input(prompt=''):
     # 清空输入缓冲区
 
     # clear_input_buffer()
-
 
     try:
         # 从 stdin 读取输入
@@ -871,7 +868,6 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -909,7 +905,6 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
-
 
 
 def cont_files_processor(path_list, index):
@@ -1321,18 +1316,13 @@ def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-def detect_encoding(file_path):
-    """通用的文件编码检测
-        输入参数为文件路径
-    """
+def detect_file_encoding(file_path):
+    """检测文件编码并返回结果，如果无法检测到，则默认返回 'utf-8' 编码"""
+
     with open(file_path, 'rb') as f:
-        raw_data = f.read()
-        result = chardet.detect(raw_data)
-        encoding = result['encoding']
-        if encoding:
-            return encoding
-        else:
-            return 'utf-8'  # 默认返回 utf-8 编码
+        raw_data = f.read()  # 读取整个文件内容以提高检测精度
+    result = chardet.detect(raw_data)
+    return result.get('encoding', 'utf-8')
 
 
 def convert_to_utf8(input_file_path, encoding):
@@ -1873,7 +1863,6 @@ def convert_timestamp(timestamp):
     return readable_time
 
 
-
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -1911,7 +1900,6 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
-
 
 
 def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=None, suffixes=None):
@@ -2101,7 +2089,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                             os.remove(f)
                         result_m.print_message("False：存在无效片段因为无法根据关键帧切割。请重新录入参数！")
                         break
-
 
                     if any(float(size) > part_max_size for size in segment_sizes):
                         max_size = max(segment_sizes)
@@ -2617,7 +2604,7 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
 
         # 等待进程结束
         process.wait()
-        return None
+        return video_path
     except Exception as e:
         print(f"Exception occurred: {e}")
         process.kill()
@@ -2797,7 +2784,6 @@ def profile_all_functions(enable=False):
     return decorator
 
 
-
 def change_log_level(num):
     if num == 919:
         model.result_m.print_message("L0g Level Up!")
@@ -2805,8 +2791,6 @@ def change_log_level(num):
     if num == 106:
         model.result_m.print_message("L0g Level Down!")
         model.LOG_LEVEL = 'INFO'
-
-
 
 
 def apply_profile_to_methods(enable_profile, methods):

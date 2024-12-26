@@ -4,12 +4,17 @@
 
 '''
 VIDEO_SUFFIX = ('.avi', '.wmv', '.wmp', '.wm', '.asf', '.mpg', '.mpeg', '.mpe', '.m1v', '.m2v',
-                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
-                '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm', '.ram', '.rmvb', '.rpm', '.flv',
-                '.mov',
-                '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mht', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr',
                 '.amv',
-                '.divx', '.webm', '.wtv', '.f4v', '.mxf')
+                '.divx', '.webm', '.wtv', '.f4v', '.mxf'
+                                                  '.m4p', '.m4b', '.3gp', '.3gpp', '.3g2', '.3gp2', '.mkv', '.rm',
+                '.ram', '.rmvb', '.rpm', '.flv',
+                '.mov',
+                '.mpv2', '.mp2v', '.tp', '.tpr', '.trp', '.vob', '.ifo', '.ogm', '.ogv', '.mp4', '.m4v',
+                '.qt', '.nsv', '.dpg', '.m2ts', '.m2t', '.mht', '.mts', '.dvr-ms', '.k3g', '.skm', '.evo', '.nsr',
+                '.3gp', '.3g2', '.avi', '.dat', '.divx', '.flv', '.ifo', '.m1v', '.m2t', '.m2ts',
+                '.m2v', '.m4b', '.m4p', '.m4v', '.mkv', '.mov', '.mp4', '.mpg', '.mpeg', '.mpv2',
+                '.mxf', '.ogm', '.ogv', '.qt', '.rm', '.rmvb', '.swf', '.ts', '.vob', '.webm',
+                '.wm', '.wmp', '.wmv')
 
 CHECK_VIDEO_SUFFIX = (".avi.!qb",
                       ".wmv.!qb", ".wmp.!qb", ".wm.!qb", ".asf.!qb", ".mpg.!qb", ".mpeg.!qb", ".mpe.!qb", ".m1v.!qb",

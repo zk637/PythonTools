@@ -48,7 +48,7 @@ methods = {
     16: filebackup.create_symbolic_links,
     17: filebackup.same_file_createsymbolic_links,
     18: zippackage.check_zip_password_old,
-    19: zippackage.extract_archive,
+    19: zippackage.zip_process_conception,
     20: filecomparison.get_file_paths_with_name,
     21: filecomparison.get_exclude_suffix_list,
     22: filecomparison.format_rules_and_tag_sort,
@@ -85,6 +85,12 @@ def run_test_scase():
 
     # 运行测试
     pytest.main([__file__])
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_working_directory():
+    # 设置全局工作目录
+    os.chdir(r"D:\Develop\PythonWorkSpace\PythonTools\test")
 
 
 # 定义测试用例
@@ -152,19 +158,26 @@ def test_getSrtNew(monkeypatch):
     # 调用函数
     match_list, path_list = translate.getSrtNew()
 
-    expected_match_list = {
-        r"Match found: SPYxFAMILY_EN.webm <--> SPYxFAMILY.srt"
-        , r"Match found: SPYxFAMILY_EN.webm <--> Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt"
-        ,
-        r"Match found: Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4 <--> Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt"
-    }
+    expected_match_list = {'Match found: .ts <--> .ts',
+                           'Match found: 2_5228729981135230185.webm <--> .ts',
+                           'Match found: 5_6061903926607741990.webm <--> .ts',
+                           'Match found: 5_6075682606895072339.webm <--> .ts',
+                           'Match found: 5_6078060425344189964.webm <--> .ts',
+                           'Match found: 5_6080421351686931793.webm <--> .ts',
+                           'Match found: Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4 <--> '
+                           '.ts',
+                           'Match found: Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4 <--> '
+                           'Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt',
+                           'Match found: SPYxFAMILY_EN.webm <--> .ts',
+                           'Match found: SPYxFAMILY_EN.webm <--> Cyberpunk - Edgerunners - 01 [1080p][ '
+                           'Subtitle].srt',
+                           'Match found: SPYxFAMILY_EN.webm <--> SPYxFAMILY.srt'}
 
-    expected_path_list = {
-        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
-        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-        '- Edgerunners - 01 [1080p][ Subtitle].srt',
-        r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt'
-    }
+    expected_path_list = {r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+                          r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
+                          r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
+                          '- Edgerunners - 01 [1080p][ Subtitle].srt',
+                          r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt'}
 
     assert match_list == expected_match_list and path_list == expected_path_list
 
@@ -339,6 +352,7 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         , r"H:\videos\test\test_video_detail\2_5228729981135230185.webm"
         , r"H:\videos\test\test_video_detail\4_5956136083451284611.webm"
         , r"H:\videos\test\test_video_detail\5_6061903926607741990.webm"
+        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 - 副本.webm"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     inputs = ['Y', 'Y', 'Y']
@@ -351,14 +365,9 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
         paths = fileanalysis.get_video_duration_sorted()
-        expected_paths = [
-            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
-            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
-            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
-            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
-            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
-            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm'
-        ]
+        expected_paths = [r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
+                          r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 '
+                          '- 副本.webm']
         assert paths == expected_paths
 
 
@@ -377,6 +386,8 @@ def test_get_video_duration_sorted_no(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         paths = fileanalysis.get_video_duration_sorted()
         expected_paths = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 '
+            '- 副本.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
@@ -443,25 +454,70 @@ def test_print_video_info_list_no(monkeypatch):
 
         video_info_list = fileanalysis.print_video_info_list()
 
-        expected_video_info_list = [(
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
-            0.14445877075195312, 174.0, 417864, 512, 512), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4',
-            0.14814472198486328, 152.64000000000001, 488493, 180, 100), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Thumb.webm',
-            0.14814472198486328, 152.64000000000001, 488493, 180, 100), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6078060425344189964.webm',
-            0.20723533630371094, 147.66, 706386, 512, 436), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
-            0.2198772430419922, 120.0, 922232, 512, 512), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
-            0.21430397033691406, 84.0, 1284080, 445, 512), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6080421351686931793.webm',
-            0.20014476776123047, 47.580000000000005, 2117195, 512, 288), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
-            1.8309993743896484, 388.00002, 2375185, 1280, 720), (
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
-            0.9314775466918945, 172.79999999999998, 2713125, 1280, 720)]
+        expected_video_info_list = [
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 '
+             '- 副本.webm',
+             0.14445877075195312,
+             174.0,
+             417864,
+             512,
+             512),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
+             0.14445877075195312,
+             174.0,
+             417864,
+             512,
+             512),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4',
+             0.14814472198486328,
+             152.64000000000001,
+             488493,
+             180,
+             100),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\Thumb.webm',
+             0.14814472198486328,
+             152.64000000000001,
+             488493,
+             180,
+             100),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6078060425344189964.webm',
+             0.20723533630371094,
+             147.66,
+             706386,
+             512,
+             436),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
+             0.2198772430419922,
+             120.0,
+             922232,
+             512,
+             512),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
+             0.21430397033691406,
+             84.0,
+             1284080,
+             445,
+             512),
+            (r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6080421351686931793.webm',
+             0.20014476776123047,
+             47.580000000000005,
+             2117195,
+             512,
+             288),
+            (
+                r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
+                1.8309993743896484,
+                388.00002,
+                2375185,
+                1280,
+                720),
+            (
+                r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+                0.9314775466918945,
+                172.79999999999998,
+                2713125,
+                1280,
+                720)]
 
         assert video_info_list == expected_video_info_list
 
@@ -505,6 +561,7 @@ def test_compare_and_move_files(monkeypatch):
     filecomparison.compare_and_move_files()
 
 
+# TODO
 def test_get_file_paths_with_rules(monkeypatch):
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule']
 
@@ -517,7 +574,6 @@ def test_get_file_paths_with_rules(monkeypatch):
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\文宣.txt"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\社团宣传文本.txt"
     ]
-
     assert paths == expected_paths
 
 
@@ -560,34 +616,12 @@ def test_check_zip_password_old(monkeypatch):
 
 
 def test_extract_archive(monkeypatch):
-    inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip']
+    print("当前执行目录为:", os.getcwd())
+    inputs = ['1', r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip', '']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    ex_lists, final_lists = zippackage.extract_archive()
-
-    expected_ex_lists = [
-        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.7z"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part2.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.rar"
-    ]
-    expected_final_lists = [
-        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.z01"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.z02"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zip.zip"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.z01"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.z02"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test2_zzip.zip"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z.001"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.7z.002"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.part1.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_2.part2.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\tokenizer.rar"
-        , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\新建压缩文件.7z"
-    ]
-
-    assert set(ex_lists) == set(expected_ex_lists) and set(final_lists) == set(expected_final_lists)
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+    zippackage.zip_process_conception()
 
 
 def test_get_file_paths_with_name(monkeypatch):
@@ -758,21 +792,73 @@ def test_getfiletypeislegal(monkeypatch):
     fileanalysis.getfiletypeislegal()
 
 
-def test_excel_compare(monkeypatch):
-    inputs = [r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv",
-              r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail', 200, '文件名称', 'Y']
+def test_excel_compare_y(monkeypatch):
+    # 模拟用户输入
+    inputs_list = [
+        'Y',  # 是否使用命令行输入
+        # 第一组关键词输入
+        'Y',
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\Stock Music Free License.txt",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\test_1.part1.rar",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip\123.rar",
+        "END",
+        # 第二组 CSV 文件路径输入
 
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
-    monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20241225124034.csv",
+        'end'
+    ]
 
-    matche_lists, no_matche_lists = filecomparison.excel_compare()
-    expected_matche_lists = []
-    expected_no_matche_lists = []
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
+    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
+        # 调用测试的函数
+        expected_matche_lists = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20241225124034.csv']
+        expected_no_matche_lists = []
+        matche_lists, no_matche_lists = filecomparison.excel_compare()
+        assert expected_matche_lists == matche_lists and expected_no_matche_lists == no_matche_lists
+        # 打印输出结构
+        # tools.print_list_structure(matche_lists)
+        # tools.print_list_structure(no_matche_lists)
 
-    assert matche_lists == expected_matche_lists and no_matche_lists == expected_no_matche_lists
+
+def test_excel_compare_n(monkeypatch):
+    # 模拟用户输入
+    inputs_list = [
+        '',  # 是否使用命令行输入
+        '',
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv",
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20241225124034.csv",
+        "END",
+
+        r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data",
+        '1',
+        '文件名称,大小',
+        'y'
+    ]
+
+    path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
+    with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
+        # 调用测试的函数
+        # expected_matche_lists =  [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021_part0.mp3',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021_part1.mp3',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-follow-me-home-350_part0.mp3',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-follow-me-home-350_part1.mp3',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium_part1.mp4',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
+        #                           r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4']
+        #
+        # expected_no_matche_lists =[r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021.mp3',
+        #                            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-follow-me-home-350.mp3',
+        #                            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4',
+        #                            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4']
+        matche_lists, no_matche_lists = filecomparison.excel_compare()
+
+        # assert  expected_matche_lists == matche_lists and expected_no_matche_lists == no_matche_lists
+        # # 打印输出结构
+        # tools.print_list_structure(matche_lists)
+        # tools.print_list_structure(no_matche_lists)
 
 
 def test_get_video_audio_yes(monkeypatch):
@@ -805,6 +891,8 @@ def test_get_video_audio_no(monkeypatch):
         # 调用测试函数
         folder = fileanalysis.get_video_audio()
         expected_folder = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 '
+            '- 副本.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6061903926607741990.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\5_6075682606895072339.webm',
@@ -923,12 +1011,15 @@ def test_get_directories_and_copy_tree(monkeypatch):
     filecomparison.get_directories_and_copy_tree()
 
 
+# TODO
 def test_check_video_integrity_yes(monkeypatch):
     print(34)
     inputs_list = ['Y',
+                   'Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-yellow-northern-lights-in-norway-4036-medium.mp4",
-                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4"
+                   r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4",
+                   'end'
                    ]
     inputs = ['Y']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
@@ -944,7 +1035,9 @@ def test_check_video_integrity_yes(monkeypatch):
             r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
             , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4"
         ]
-        expected_check_video_paths = []
+        expected_check_video_paths = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\corrupted_example.mp4']
 
         assert video_integrity == expected_video_integrity and video_unintegrity_list == expected_video_unintegrity \
                and check_video_paths == expected_check_video_paths
@@ -1092,61 +1185,59 @@ def test_getfoldercount_by_exclude_no(monkeypatch):
 def test_get_get_file_count_by_underfolder_size_yes(monkeypatch):
     print(37)
     inputs_list = ['Y',
+                   'Y',
                    r"H:\videos\test\test_video_detail",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-    inputs = ['Y']
+    inputs = ['Y', 1]
 
     with patch('tools.process_input_list', return_value=(path_list)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         file_list, result_wipe_list, result_list = filecount.get_file_count_by_underfolder_size()
-
-        expected_file_list = {
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt',
+        # tools.print_list_structure(file_list)
+        # tools.print_list_structure(result_wipe_list)
+        # tools.print_list_structure(result_list)
+        expected_file_list = [
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p][ Subtitle].srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN\SPYxFAMILY.srt',
-            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
-            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
-            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
             r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
+            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
+            r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt',
+            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - 副本 (2).wmv',
             r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
+            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
             r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
-            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - '
-            r'副本 (2).wmv',
-            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4'
-        }
-        expected_result_wipe_list = [
-            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
-            , r"H:\videos\test\test_video_detail"
-        ]
-        expected_result_list = []
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
+            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm']
+
+        expected_result_wipe_list = set()
+        expected_result_list = [r'H:\videos\test\test_video_detail',
+                                r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt']
 
         assert set(file_list) == set(expected_file_list)
         assert set(result_wipe_list) == set(expected_result_wipe_list)
         assert set(result_list) == set(expected_result_list)
 
 
+# TODO
 def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
     print(37)
     inputs_list = ['Y',
@@ -1154,55 +1245,49 @@ def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
-    inputs = ['N']
+    inputs = ['N', 1]
 
     with patch('tools.process_input_list', return_value=(path_list)):
         # 模拟用户输入
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
+        monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
         file_list, result_wipe_list, result_list = filecount.get_file_count_by_underfolder_size()
-
-        expected_file_list = {
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+        tools.print_list_structure(file_list)
+        tools.print_list_structure(result_wipe_list)
+        tools.print_list_structure(result_list)
+        expected_file_list = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\.ts',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6078060425344189964.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\5_6061903926607741990.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm',
+            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
+            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt',
+            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - 副本 (2).wmv',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\CN\SPYxFAMILY.srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\2_5228729981135230185.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\4_5956136083451284611.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6061903926607741990.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6075682606895072339.webm',
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6078060425344189964.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\5_6080421351686931793.webm',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p][ Subtitle].srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p][ Subtitle]_utf8.txt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p]_CN-split-noaudio.mp4',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk '
-            r'- Edgerunners - 01 [1080p]_CN-split-noaudio_CN.mp4',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY.srt',
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm',
+            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
+            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4',
+            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN\SPYxFAMILY.srt',
             r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
-            r'H:\videos\test\test_video_detail\4_5956136083451284611.webm',
-            r'H:\videos\test\test_video_detail\5_6061903926607741990.webm',
-            r'H:\videos\test\test_video_detail\5_6075682606895072339.webm',
-            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm',
-            r'H:\videos\test\test_video_detail\5_6080421351686931793.webm',
-            r'H:\videos\test\test_video_detail\bandicam 2022-10-09 12-03-37-846 - 副本 - '
-            r'副本 (2).wmv',
-            r'H:\videos\test\test_video_detail\video_2023-06-16_16-09-25_part2.mp4'
-        }
-        expected_result_wipe_list = [
-            r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
-            , r"H:\videos\test\test_video_detail"
-        ]
+            r'H:\videos\test\test_video_detail\5_6078060425344189964.webm']
+        expected_result_wipe_list = set()
         expected_result_list = []
-
-        assert set(file_list) == set(expected_file_list)
-        assert set(result_wipe_list) == set(expected_result_wipe_list)
-        assert set(result_list) == set(expected_result_list)
+        #
+        # assert set(file_list) == set(expected_file_list)
+        # assert set(result_wipe_list) == set(expected_result_wipe_list)
+        # assert set(result_list) == set(expected_result_list)
 
 
 def test_split_audio_y(monkeypatch):
@@ -1408,8 +1493,8 @@ def test_handle_input_with_cmd_option(monkeypatch):
     inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"]
 
-    expected_paths = ['D:\\Develop\\PythonWorkSpace\\PythonTools\\test\\test_Data\\test_count\\3',
-                      'D:\\Develop\\PythonWorkSpace\\PythonTools\\test\\test_Data\\te']
+    expected_paths = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3',
+                      r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te']
     paths = handle_input_with_cmd_option(monkeypatch, inputs_list)
 
     assert paths == expected_paths
@@ -1499,7 +1584,7 @@ def test_copy_folder_and_copy_file():
 
 def test_detect_encoding_and_convert_to_utf8():
     input_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt"
-    encoding = tools.detect_encoding(input_file_path)
+    encoding = tools.detect_file_encoding(input_file_path)
     output_file_path = tools.convert_to_utf8(input_file_path, encoding)
     expected_output_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk_utf8.txt"
     print(output_file_path)

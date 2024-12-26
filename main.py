@@ -30,9 +30,7 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-
 out_put = create_log()
-
 
 sys.stdout = Logger(f'{out_put}', sys.stdout)
 # sys.stderr = Logger('output_f.log', sys.stderr)
@@ -75,7 +73,7 @@ def main():
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比
+    #  27、文件夹内容与csv对比或关键词与csv对比(支持对比多个csv文件)
     #  28、获取给定文件夹或文件的音频文件
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
@@ -171,7 +169,7 @@ def main():
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比(支持对比多个csv文件)
+    #  27、文件夹内容与csv对比或关键词与csv对比(支持对比多个csv文件)
     #  28、提取视频的音频文件（支持文件列表和文件夹）
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
