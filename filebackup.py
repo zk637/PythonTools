@@ -232,6 +232,7 @@ def common_path(paths, destination_folder):
     return final_path
 
 
+
 def copy_source_update_from_symlink(symlink_path, destination_folder, flag):
     updated_file = ''  # 用于存储更新的文件路径
     skipped_file = ''  # 用于存储未更新的文件路径
