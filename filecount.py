@@ -122,7 +122,7 @@ def get_file_count_by_underfolder_size():
     tips_m.print_message(message="是否打印每个文件夹下的具体内容？Y/N def:N")
     flag = tools.process_input_str_limit() or 'N'
     tips_m.print_message(message="文件夹下的内容最低应大于？（MB）")
-    size = tools.process_input_str_limit()
+    size = int(tools.process_input_str_limit())
     if not tools.check_is_None(file_paths_folder_paths):
         result_list = set()
         result_wipe_list = set()

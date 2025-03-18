@@ -13,6 +13,7 @@ import zipfile
 import py7zr
 import rarfile
 import constants
+import model
 import tools
 
 # 注册模块对象
@@ -286,6 +287,7 @@ def get_archive_uncompressed_size(zip_path):
         return 0
 
 
+
 def verify_zip():
     parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes()
     if zip_paths and passwords:
@@ -313,29 +315,53 @@ def verify_zip():
             total_uncompressed_size += uncompressed_size
 
         # 输出总的解压空间
+        model.total_uncompressed_size = total_uncompressed_size
         result_m.print_message(f"\n所有压缩包解压后总共需要空间: {tools.display_size_in_mb(total_uncompressed_size)} MB")
 
 
 def extract_zip():
     parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes(parent_flag=True)
-    if parent_folder and zip_paths and passwords:
-        # 如果只输入一行密码，将该密码应用于所有文件
-        if len(passwords) == 1:
-            passwords = passwords * len(zip_paths)
 
-        for zip_path, password in zip(zip_paths, passwords):
-            if not os.path.isfile(zip_path):
-                result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
-                continue
-            # 创建子文件夹
-            zip_name = os.path.splitext(os.path.basename(zip_path))[0]
-            extract_folder = os.path.join(parent_folder, zip_name)
-            os.makedirs(extract_folder, exist_ok=True)
+    if not (parent_folder and zip_paths and passwords):
+        result_m.print_message("未提供有效的路径或密码，操作终止。")
+        return
 
-            # 定义解压缩命令
+    # 如果只输入一行密码，将该密码应用于所有文件
+    if len(passwords) == 1:
+        passwords = passwords * len(zip_paths)
+
+    if model.total_uncompressed_size > tools.get_free_space_cmd(parent_folder):
+        result_m.print_message("空间不足无法解压程序终止！")
+        return
+
+    for zip_path, password in zip(zip_paths, passwords):
+        if not os.path.isfile(zip_path):
+            result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
+            continue
+
+        # 先验证压缩包
+        cmd = f'"D:\Softwere green\winrar\WinRAR.exe" t -p"{password}" "{zip_path}"'
+        tools.subprocess_with_progress(cmd, success_tip=f"验证通过：{zip_path}", faild_tip=f"False:验证失败：{zip_path}")
+
+        # 获取解压后所需的空间
+        uncompressed_size = get_archive_uncompressed_size(zip_path)
+        result_m.print_message(f"压缩包 {zip_path} 需要解压空间: {tools.display_size_in_mb(uncompressed_size)} MB")
+
+        # 创建子文件夹
+        zip_name = os.path.splitext(os.path.basename(zip_path))[0]
+        extract_folder = os.path.join(parent_folder, zip_name)
+        os.makedirs(extract_folder, exist_ok=True)
+
+        # 判断空间是否足够
+        free_space = tools.get_free_space_cmd(parent_folder)
+        if free_space >= uncompressed_size:
+            # 直接解压
             cmd = f'"D:\Softwere green\winrar\WinRAR.exe" x -p"{password}" "{zip_path}" "{extract_folder}\\"'
             tools.subprocess_with_progress(cmd, success_tip=f"成功解压 {zip_path} 到 {extract_folder}",
                                            faild_tip=f"False:解压 {zip_path} 失败")
+        else:
+            result_m.print_message(
+                f"空间不足，无法解压 {zip_path}（需要 {tools.display_size_in_mb(uncompressed_size)} MB，当前可用 {tools.display_size_in_mb(free_space)} MB）")
 
 
 def get_rar_header_type(rar_file_path):

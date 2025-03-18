@@ -468,7 +468,7 @@ def find_missing_files(csv_paths, folder_path, size_threshold, compare_columns, 
 
         # 遍历多个CSV文件路径
         for csv_path in csv_paths:
-            encode = tools.detect_encoding(csv_path)
+            encode = tools.detect_file_encoding(csv_path)
             df_csv = None  # 初始化为 None
 
             # 尝试读取 CSV 文件

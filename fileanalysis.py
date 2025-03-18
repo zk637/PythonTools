@@ -417,7 +417,7 @@ def add_srt():
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
             bat_file = ''
-            encode = tools.detect_encoding(srt_path)
+            encode = tools.detect_file_encoding(srt_path)
             srt_path_utf8 = tools.convert_to_utf8(srt_path, encode)
             if srt_path_utf8 == None:
                 print(f"Error：字幕文件无法转换{srt_path}为UTF-8！任务结束")

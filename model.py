@@ -7,6 +7,11 @@
 
 LOG_LEVEL = "INFO"
 
+total_uncompressed_size = 0.0  # 确保这个变量始终存在
+
+class Model:
+    def __init__(self):
+        self.total_uncompressed_size = 0.0
 
 class Tips:
     def __init__(self):
@@ -42,9 +47,12 @@ class Result:
         return result, args
 
 
+
 # 创建一个全局 Tips 实例
 tips_m = Tips()
 # 创建一个全局 Log_info 实例
 log_info_m = Log_info()
 # 创建一个全局 Tips 实例
 result_m = Result()
+# 创建一个全局 Model 实例
+model = Model()

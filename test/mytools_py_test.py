@@ -812,10 +812,9 @@ def test_excel_compare_y(monkeypatch):
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'Y', inputs_list=inputs_list)
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 调用测试的函数
-        expected_matche_lists = [
-            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv',
+        expected_matche_lists = []
+        expected_no_matche_lists = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20241225124034.csv']
-        expected_no_matche_lists = []
         matche_lists, no_matche_lists = filecomparison.excel_compare()
         assert expected_matche_lists == matche_lists and expected_no_matche_lists == no_matche_lists
         # 打印输出结构
