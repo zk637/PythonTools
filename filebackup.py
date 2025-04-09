@@ -57,8 +57,7 @@ def same_file_createsymbolic_links():
             try:
                 # os.system(" ".join(cmd))
                 subprocess.check_call(cmd, shell=True)
-                # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-                # print("result: " + output+"\n")
+
                 result_m.print_message(message="源文件路径: " + source_file)
                 result_m.print_message(message="目标文件夹路径: " + target_dir)
             except Exception as e:
@@ -155,7 +154,7 @@ def update_linked_items():
             destination_path = os.path.join(destination_folder, os.path.basename(item_path))
             # print(item_path)
             # 复制符号链接的源文件或文件夹到目标路径
-            skipped_file,updated_file =  copy_source_update_from_symlink(item_path, destination_folder, flag)
+            skipped_file, updated_file = copy_source_update_from_symlink(item_path, destination_folder)
 
             # 确保更新的文件路径不为空
             if updated_file:
@@ -207,12 +206,13 @@ def normalize_path(path):
         return path[4:]  # 移除 '\\?\'
     return path
 
+
 def common_path(paths, symlink_path, destination_folder):
     # 如果路径为空，返回空
     if not paths:
         return ""
 
-    paths=normalize_path(paths)
+    paths = normalize_path(paths)
 
     # 按路径分隔符拆分路径
     destination_parts = symlink_path.split(os.path.sep)
@@ -239,13 +239,12 @@ def common_path(paths, symlink_path, destination_folder):
 
     # 使用 os.path.join 合并共同路径
     common_path = os.path.join(*common_parts)
-    # base_path = r"D:\Back\GameSaveBackup\test"
     base_path = destination_folder
     final_path = os.path.join(base_path, common_path)
     return final_path
 
 
-def copy_source_update_from_symlink(symlink_path, destination_folder, flag):
+def copy_source_update_from_symlink(symlink_path, destination_folder):
     updated_file = ''  # 用于存储更新的文件路径
     skipped_file = ''  # 用于存储未更新的文件路径
 

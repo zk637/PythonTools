@@ -4,10 +4,8 @@
 
 '''
 import csv
-import sys
 import shutil
 import pandas as pd
-import subprocess
 from flashtext import KeywordProcessor
 import constants
 import tools
@@ -19,6 +17,12 @@ from model import tips_m, log_info_m, result_m
 from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
+
+from enum import Enum, StrEnum
+
+
+class Rule_tips(StrEnum):
+    INPUT_RULE_NOTICE = "请输入规则内容（以END结束）："
 
 
 def compare_and_move_files():
@@ -269,7 +273,7 @@ def format_rules_and_tag_sort():
                 return None
 
         elif method_name == 'format_paths_from_string':
-            raw_paths_string = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            raw_paths_string = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             formatted_paths = tools.format_paths_from_string(raw_paths_string)
             result_m.print_message("格式化后的路径：")
             for path in formatted_paths:
@@ -279,11 +283,11 @@ def format_rules_and_tag_sort():
                 result_m.print_message(extract_filename)
 
         elif method_name == 'extract_tags':
-            file_paths = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            file_paths = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             tools.extract_tags(file_paths)
 
         elif method_name == 'sort_rule':
-            rules_str = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            rules_str = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             sort_rule_tag = tools.sort_rule_tag(rules_str)
             result_m.print_message("排序后的tag")
             result_m.print_message(sort_rule_tag)
@@ -612,9 +616,6 @@ async def get_video_details(path):
         bitrate = int(probe["format"]['bit_rate'])
         width = int(video_stream['width'])
         height = int(video_stream['height'])
-        # bitrate = int(video_stream['bit_rate'])
-        # width = int(video_stream['width'])
-        # height = int(video_stream['height'])
         return duration, bitrate, width, height
 
 

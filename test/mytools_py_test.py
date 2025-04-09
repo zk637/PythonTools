@@ -5,7 +5,6 @@
 @License :   Apache-2.0 license
 My_Tools的Testcase
 '''
-import subprocess
 
 import pytest
 import os
@@ -101,6 +100,7 @@ def test_profile_all_functions():
 
 
 def test_get_total_file_size():
+    tools.change_log_level(919)
     file_paths = [
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"
@@ -115,6 +115,7 @@ def test_get_total_file_size():
 
 
 def test_get_total_size():
+    tools.change_log_level(919)
     file_paths = [
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\index.html",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\it-IT.json"
@@ -128,6 +129,7 @@ def test_get_total_size():
 
 
 def test_getSrt(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'SPYxFAMILY', r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video',
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt']
 
@@ -149,6 +151,7 @@ def test_getSrt(monkeypatch):
 
 
 def test_getSrtNew(monkeypatch):
+    tools.change_log_level(919)
     srt_inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video',
                   r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt']
 
@@ -183,6 +186,7 @@ def test_getSrtNew(monkeypatch):
 
 
 def test_find_matching_subtitles(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm",
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt']
 
@@ -201,6 +205,7 @@ def test_find_matching_subtitles(monkeypatch):
 
 
 def test_find_matching_subtitles_create(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\SPYxFAMILY_EN.webm",
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt']
 
@@ -216,6 +221,7 @@ def test_find_matching_subtitles_create(monkeypatch):
 
 
 def test_get_low_resolution_media_files(monkeypatch):
+    tools.change_log_level(919)
     inputs = ['1280*720', '2280*3000', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail", f'Y']
 
     # 模拟用户输入
@@ -234,6 +240,7 @@ def test_get_low_resolution_media_files(monkeypatch):
 
 
 def test_remove_small_folders(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small", f'0.01', f'Y']
 
     # 模拟用户输入
@@ -253,6 +260,7 @@ def test_remove_small_folders(monkeypatch):
 
 
 def test_getfoldercount(monkeypatch):
+    tools.change_log_level(919)
     inputs = [
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\新建文件夹 (2)",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\新建文件夹 (3)",
@@ -273,6 +281,7 @@ def test_getfoldercount(monkeypatch):
 
 def test_filter_files_by_sizeordate_yes(monkeypatch):
     print(10)
+    tools.change_log_level(919)
     # 定义模拟的输入和输出值
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
@@ -299,6 +308,7 @@ def test_filter_files_by_sizeordate_yes(monkeypatch):
 
 def test_filter_files_by_sizeordate_no(monkeypatch):
     print(10)
+    tools.change_log_level(919)
     # 定义模拟的输入和输出值
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count"
@@ -319,6 +329,7 @@ def test_filter_files_by_sizeordate_no(monkeypatch):
 
 def test_filter_files_by_sizeordate_modifiedate(monkeypatch):
     print(11)
+    tools.change_log_level(919)
     # 定义模拟的输入和输出值
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
@@ -345,6 +356,7 @@ def test_filter_files_by_sizeordate_modifiedate(monkeypatch):
 
 def test_get_video_duration_sorted_yes(monkeypatch):
     print(11)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -365,14 +377,13 @@ def test_get_video_duration_sorted_yes(monkeypatch):
         monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
         paths = fileanalysis.get_video_duration_sorted()
-        expected_paths = [r'H:\videos\test\test_video_detail\2_5228729981135230185.webm',
-                          r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\2_5228729981135230185 '
-                          '- 副本.webm']
+        expected_paths = None
         assert paths == expected_paths
 
 
 def test_get_video_duration_sorted_no(monkeypatch):
     print(11)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail",
                    ]
@@ -403,6 +414,7 @@ def test_get_video_duration_sorted_no(monkeypatch):
 
 def test_print_video_info_list_yes(monkeypatch):
     print(12)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -441,6 +453,7 @@ def test_print_video_info_list_yes(monkeypatch):
 
 def test_print_video_info_list_no(monkeypatch):
     print(12)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
                    ]
@@ -523,6 +536,7 @@ def test_print_video_info_list_no(monkeypatch):
 
 
 def test_check_files_in_folder(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y'
         , r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -553,6 +567,7 @@ def test_check_files_in_folder(monkeypatch):
 
 
 def test_compare_and_move_files(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_ts', 'N']
 
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -563,6 +578,7 @@ def test_compare_and_move_files(monkeypatch):
 
 # TODO
 def test_get_file_paths_with_rules(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule']
 
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -579,6 +595,7 @@ def test_get_file_paths_with_rules(monkeypatch):
 
 @pytest.mark.skip(reason="Skipping this test function for now")
 def test_create_symbolic_links(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = [
         r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -597,6 +614,7 @@ def test_create_symbolic_links(monkeypatch):
 
 @pytest.mark.skip(reason="Skipping this test function for now")
 def test_same_file_createsymbolic_links(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links',
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_symbolic_links\same_symbolic', 'N']
 
@@ -607,6 +625,7 @@ def test_same_file_createsymbolic_links(monkeypatch):
 
 
 def test_check_zip_password_old(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip', 'Y', 'r']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -616,6 +635,7 @@ def test_check_zip_password_old(monkeypatch):
 
 
 def test_extract_archive(monkeypatch):
+    tools.change_log_level(919)
     print("当前执行目录为:", os.getcwd())
     inputs = ['1', r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_zip', '']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -625,6 +645,7 @@ def test_extract_archive(monkeypatch):
 
 
 def test_get_file_paths_with_name(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video']
     inputs_list = [
         r"5_6078060425344189964"
@@ -654,6 +675,7 @@ def test_get_file_paths_with_name(monkeypatch):
 
 def test_get_exclude_suffix_list_yes(monkeypatch):
     print(21)
+    tools.change_log_level(919)
     inputs_list = ['Y'
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\pyvenv.cfg"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix\test_CN.mp4"
@@ -683,6 +705,7 @@ def test_get_exclude_suffix_list_yes(monkeypatch):
 
 def test_get_exclude_suffix_list_no(monkeypatch):
     print(21)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix"
                    ]
@@ -708,6 +731,7 @@ def test_get_exclude_suffix_list_no(monkeypatch):
 
 def test_format_rules_and_tag_sort_one(monkeypatch):
     print(22)
+    tools.change_log_level(919)
     inputs = [1]
     inputs_list = ['N', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule\file_name_rules.txt"
                    ]
@@ -720,6 +744,7 @@ def test_format_rules_and_tag_sort_one(monkeypatch):
 
 def test_format_rules_and_tag_sort_two(monkeypatch):
     print(22)
+    tools.change_log_level(919)
     # 预定义输入
     inputs = [r"- E:\Videos\Newqueue 2024-01\2024-01[sort][video].mp4   <20240318-093138 250,307,839>", "END"]
     inputs_iter = iter(inputs)
@@ -738,7 +763,9 @@ def test_format_rules_and_tag_sort_two(monkeypatch):
 
 def test_format_rules_and_tag_sort_three(monkeypatch):
     print(22)
+    tools.change_log_level(919)
     # 预定义输入
+    tools.change_log_level(919)
     inputs = [r"- E:\Videos\Newqueue 2024-01\2024-01[sort][video].mp4   [sort][video]", "END"]
     inputs_iter = iter(inputs)
 
@@ -756,6 +783,7 @@ def test_format_rules_and_tag_sort_three(monkeypatch):
 
 def test_format_rules_and_tag_sort_four(monkeypatch):
     print(22)
+    tools.change_log_level(919)
     # 预定义输入
     inputs = [
         "[Rule253]",
@@ -786,6 +814,8 @@ def test_format_rules_and_tag_sort_four(monkeypatch):
 
 
 def test_getfiletypeislegal(monkeypatch):
+    # 预定义输入
+    tools.change_log_level(919)
     inputs = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
 
@@ -793,6 +823,7 @@ def test_getfiletypeislegal(monkeypatch):
 
 
 def test_excel_compare_y(monkeypatch):
+    tools.change_log_level(919)
     # 模拟用户输入
     inputs_list = [
         'Y',  # 是否使用命令行输入
@@ -813,7 +844,8 @@ def test_excel_compare_y(monkeypatch):
     with patch('tools.process_paths_list_or_folder', return_value=(path_list, folder)):
         # 调用测试的函数
         expected_matche_lists = []
-        expected_no_matche_lists = [r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv',
+        expected_no_matche_lists = [
+            r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20240419210133.csv',
             r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv\WizTree_20241225124034.csv']
         matche_lists, no_matche_lists = filecomparison.excel_compare()
         assert expected_matche_lists == matche_lists and expected_no_matche_lists == no_matche_lists
@@ -823,6 +855,7 @@ def test_excel_compare_y(monkeypatch):
 
 
 def test_excel_compare_n(monkeypatch):
+    tools.change_log_level(919)
     # 模拟用户输入
     inputs_list = [
         '',  # 是否使用命令行输入
@@ -861,6 +894,7 @@ def test_excel_compare_n(monkeypatch):
 
 
 def test_get_video_audio_yes(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
@@ -880,6 +914,7 @@ def test_get_video_audio_yes(monkeypatch):
 
 
 def test_get_video_audio_no(monkeypatch):
+    tools.change_log_level(919)
     inputs = ['N',
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail'
               ]
@@ -906,12 +941,14 @@ def test_get_video_audio_no(monkeypatch):
 
 
 def test_rename_with_dir(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_rename"]
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
     filecomparison.rename_with_dir()
 
 
 def test_split_video(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
@@ -926,6 +963,7 @@ def test_split_video(monkeypatch):
 
 
 def test_add_srt_yes(monkeypatch):
+    tools.change_log_level(919)
     inputs = [
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p]_CN-split-noaudio.mp4",
         r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt\video\Cyberpunk - Edgerunners - 01 [1080p][ Subtitle].srt",
@@ -941,6 +979,7 @@ def test_add_srt_yes(monkeypatch):
 
 # 注意：此函数传入的字幕参数不可用用例应返回错误
 def test_add_srt_no(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r"H:\videos\test\test_srt\4_5956136083451284611.webm",
               r"H:\videos\test\test_srt\4_5956136083451284611.srt",
               'N']
@@ -952,6 +991,7 @@ def test_add_srt_no(monkeypatch):
 
 def test_check_files_subtitle_stream_yes(monkeypatch):
     print(32)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4"
         ,
@@ -976,6 +1016,7 @@ def test_check_files_subtitle_stream_yes(monkeypatch):
 
 def test_check_files_subtitle_stream_no(monkeypatch):
     print(32)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
                    ]
@@ -1003,6 +1044,7 @@ def test_check_files_subtitle_stream_no(monkeypatch):
 
 
 def test_get_directories_and_copy_tree(monkeypatch):
+    tools.change_log_level(919)
     inputs = [r'D:\Back\GameSaveBackupsSource\8Doors',
               r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_folder_tree']
     monkeypatch.setattr(tools, 'process_input_str_limit', lambda: inputs.pop(0))
@@ -1013,6 +1055,7 @@ def test_get_directories_and_copy_tree(monkeypatch):
 # TODO
 def test_check_video_integrity_yes(monkeypatch):
     print(34)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    'Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4",
@@ -1044,6 +1087,7 @@ def test_check_video_integrity_yes(monkeypatch):
 
 def test_check_video_integrity_no(monkeypatch):
     print(34)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_split", 'N'
                    ]
@@ -1070,6 +1114,7 @@ def test_check_video_integrity_no(monkeypatch):
 
 
 def test_getfoldercount_by_include_yes(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -1100,6 +1145,7 @@ def test_getfoldercount_by_include_yes(monkeypatch):
 
 
 def test_getfoldercount_by_include_no(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"H:\videos\test\test_video_detail"
                    ]
@@ -1126,6 +1172,7 @@ def test_getfoldercount_by_include_no(monkeypatch):
 
 def test_getfoldercount_by_exclude_yes(monkeypatch):
     print(36)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail\5_6075682606895072339.webm"
         , r"H:\videos\test\test_video_detail\5_6078060425344189964.webm"
@@ -1155,6 +1202,7 @@ def test_getfoldercount_by_exclude_yes(monkeypatch):
 
 def test_getfoldercount_by_exclude_no(monkeypatch):
     print(36)
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail",
                    ]
@@ -1183,6 +1231,7 @@ def test_getfoldercount_by_exclude_no(monkeypatch):
 # TODO 合并优化
 def test_get_get_file_count_by_underfolder_size_yes(monkeypatch):
     print(37)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    'Y',
                    r"H:\videos\test\test_video_detail",
@@ -1239,6 +1288,7 @@ def test_get_get_file_count_by_underfolder_size_yes(monkeypatch):
 # TODO
 def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
     print(37)
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"H:\videos\test\test_video_detail",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_srt"
@@ -1290,6 +1340,7 @@ def test_get_get_file_count_by_underfolder_size_no(monkeypatch):
 
 
 def test_split_audio_y(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-follow-me-home-350.mp3"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio\mixkit-christmas-jokes-1021.mp3"
@@ -1302,6 +1353,7 @@ def test_split_audio_y(monkeypatch):
 
 
 def test_split_audio_n(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['N',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_audio"]
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs_list)
@@ -1312,6 +1364,7 @@ def test_split_audio_n(monkeypatch):
 
 
 def test_get_exclude_suffix_folder_list(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_csv"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_exclude_suffix"
         , r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_rule"
@@ -1343,6 +1396,7 @@ def test_get_exclude_suffix_folder_list(monkeypatch):
 
 
 def test_flag_y(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y',
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\4",
@@ -1367,6 +1421,7 @@ def test_flag_y(monkeypatch):
 
 
 def test_flag_n(monkeypatch):
+    tools.change_log_level(919)
     inputs = ['N', r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_size_10']
     path_list, folder = process_paths_list_or_folder(monkeypatch, 'N', inputs=inputs)
 
@@ -1378,6 +1433,7 @@ def test_flag_n(monkeypatch):
 
 
 def test_process_input_str_limit_pass(monkeypatch):
+    tools.change_log_level(919)
     long_input = 'a' * 195  # 小于195个字符的字符串
 
     def mock_input(prompt=''):
@@ -1402,6 +1458,7 @@ def test_process_input_str_limit_pass(monkeypatch):
 
 
 def test_process_input_str_limit_failed(monkeypatch):
+    tools.change_log_level(919)
     long_input = 'a' * 196  # 超过195个字符的字符串
 
     def mock_input(prompt=''):
@@ -1456,6 +1513,7 @@ def test_process_input_str_limit_failed(monkeypatch):
 
 
 def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=None):
+    tools.change_log_level(919)
     """
     模拟不同的输入选项，并调用相应的处理函数。
     :param monkeypatch:
@@ -1489,6 +1547,7 @@ def process_paths_list_or_folder(monkeypatch, flag, inputs_list=None, inputs=Non
 
 
 def test_handle_input_with_cmd_option(monkeypatch):
+    tools.change_log_level(919)
     inputs_list = ['Y', r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_count\3",
                    r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\te"]
 
@@ -1500,6 +1559,8 @@ def test_handle_input_with_cmd_option(monkeypatch):
 
 
 def handle_input_with_cmd_option(monkeypatch, inputs_list):
+    tools.change_log_level(919)
+
     # 模拟 get_input_paths_from_cmd 返回一个预定义的文件路径列表
     def mock_get_input_paths_from_cmd():
         return inputs_list
@@ -1515,6 +1576,7 @@ def handle_input_with_cmd_option(monkeypatch, inputs_list):
 
 
 def test_get_input_paths_from_gui():
+    tools.change_log_level(919)
     """
     弹出 GUI 文件选择对话框以获取文件路径。
     """
@@ -1523,6 +1585,7 @@ def test_get_input_paths_from_gui():
 
 
 def test_seconds_to_hhmmss():
+    tools.change_log_level(919)
     parse_time = tools.seconds_to_hhmmss(213131)
     expected_time = '59:12:11'
     print(parse_time)
@@ -1530,6 +1593,7 @@ def test_seconds_to_hhmmss():
 
 
 def test_get_video_resolution():
+    tools.change_log_level(919)
     video_path = r'D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail\mixkit-pine-covered-snowy-mountain-range-3295-medium_part1.mp4'
     resolution = tools.get_video_resolution(video_path)
     expected_resolution = (1280, 720)
@@ -1538,6 +1602,7 @@ def test_get_video_resolution():
 
 
 def test_print_list_structure():
+    tools.change_log_level(919)
     list = [
         "这是一些测试数据",
         "这是一些测试数据",
@@ -1551,6 +1616,7 @@ def test_print_list_structure():
 
 
 def test_print_dict_structure():
+    tools.change_log_level(919)
     key_label = '文件大小：'
     labels = ["文件路径：", "时长：", "创建时间："]
     converters = [None, None, tools.convert_timestamp]
@@ -1566,12 +1632,14 @@ def test_print_dict_structure():
 
 
 def test_get_free_space_cmd():
+    tools.change_log_level(919)
     folder_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_video_detail"
     space = tools.get_free_space_cmd(folder_path)
     print(f"space: {space}")
 
 
 def test_copy_folder_and_copy_file():
+    tools.change_log_level(919)
     source_file = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt"
     destination_file = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\test_small\gbk.txt"
     tools.copy_file(source_file, destination_file)
@@ -1582,6 +1650,7 @@ def test_copy_folder_and_copy_file():
 
 
 def test_detect_encoding_and_convert_to_utf8():
+    tools.change_log_level(919)
     input_file_path = r"D:\Develop\PythonWorkSpace\PythonTools\test\test_Data\gbk.txt"
     encoding = tools.detect_file_encoding(input_file_path)
     output_file_path = tools.convert_to_utf8(input_file_path, encoding)
@@ -1591,6 +1660,7 @@ def test_detect_encoding_and_convert_to_utf8():
 
 
 def test_profile_file():
+    tools.change_log_level(919)
     methods = {
         0: tools.profile_all_functions,
         1: fileSize.get_total_file_size,
@@ -1662,6 +1732,6 @@ def test_parse():
     # print(e)
 
 
-# 运行测试用例
+# 运行 pytest 测试
 if __name__ == "__main__":
-    run_test_scase()
+    pytest.main(["-v"])

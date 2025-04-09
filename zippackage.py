@@ -36,19 +36,11 @@ def check_zip_password_old():
         flag = tools.process_input_str_limit() or 'R'
         if flag.upper() not in ['R', 'W', 'A']:
             raise ValueError('错误的参数！')
-    rar_lists = []
-    sevenzip_lists = []
-    # final_lists_rar=[]
-    # final_lists_7z=[]
     final_lists = []
     ex_final_lists = []
-    # final_list=tools.get_zippartfile(var)
     zip_list = tools.get_file_paths_limit(var, '.zip')
     sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
     rar_lists = tools.get_file_paths_limit(var, ".rar")
-    # file_paths = tools.get_file_paths_limit(var, ".zip")
-    # sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
-    # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
     if zipflag and zipflag.upper() == 'Y' and sevenzip_lists:
@@ -66,7 +58,7 @@ def check_zip_password_old():
             except Exception as e:
                 if 'Password is required for extracting given archive.' in str(e):
                     final_lists.append(sevenzip_list)
-                    pass
+                    continue
                 else:
                     log_info_m.print_message(message=f'{sevenzip_list} 不是有效的7z压缩文件')
     if zip_list:
@@ -79,7 +71,7 @@ def check_zip_password_old():
                         final_lists.append(zip)
                     else:
                         ex_final_lists.append(zip)
-            except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
+            except (zipfile.BadZipfile, subprocess.CalledProcessError):
                 pass
     if rar_lists:
         for rar_list in rar_lists:
@@ -95,11 +87,11 @@ def check_zip_password_old():
                 pass
             except Exception as e:
                 if isinstance(e, rarfile.NeedFirstVolume):
-                    pass
+                    continue
                 else:
                     log_info_m.print_message(message=rar_list + "发生错误：")
                     global_exception_handler(type(e), e, e.__traceback__)
-                    pass
+                    continue
     # 去重
     ex_final_lists = set(ex_final_lists)
     final_lists = set(final_lists)
@@ -209,7 +201,6 @@ def encryp_judgment():
         # print(file_zipparts_lists)
         if file_zipparts_lists:
             for file_zipparts in file_zipparts_lists:
-                # list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
                 # 如果文件组有内容则代表是分卷因为是zip分卷需要手动替换后缀
                 if not tools.check_is_None(file_zipparts[0]):
                     file_zipparts_head = file_zipparts[0][:file_zipparts[0].rfind('.')] + '.zip'
@@ -224,7 +215,6 @@ def encryp_judgment():
         file_rarparts_lists = tools.register_findone(filelists, "([\*^\.$])part\d+\.rar")
         if file_rarparts_lists:
             for file_rarparts in file_rarparts_lists:
-                # list = ','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(',', " ")
                 if not tools.check_is_None(file_rarparts[0]):
 
                     if check_rar_password(file_rarparts[0]) == True:
@@ -267,7 +257,6 @@ def get_archive_uncompressed_size(zip_path):
         for line in lines:
             # 检查最后一行，寻找包含未压缩大小的行
             if "files" in line:  # 检查是否为最后统计信息行
-                # parts = line.split()
                 try:
                     # 更新正则表达式：限制最后部分为文件名，而不是 "files" 或 "folders"
                     summary_pattern = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s+(\d+)\s+\d+\s+\d+ files')
@@ -287,9 +276,8 @@ def get_archive_uncompressed_size(zip_path):
         return 0
 
 
-
 def verify_zip():
-    parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes()
+    _, zip_paths, passwords = tools.get_input_paths_and_passes()
     if zip_paths and passwords:
         # 如果只输入一行密码，将该密码应用于所有文件
         if len(passwords) == 1:
@@ -389,10 +377,8 @@ def check_rar_password(rar_file_path):
                 return True
             else:
                 return False
-    except (rarfile.NotRarFile, subprocess.CalledProcessError, rarfile.NeedFirstVolume) as err:
+    except (rarfile.NotRarFile, subprocess.CalledProcessError, rarfile.NeedFirstVolume):
         pass
-        # print(err)
-        # print('as file:'+rar_file_path)
 
 
 def check_zip_password(zip_file_path):
@@ -405,10 +391,8 @@ def check_zip_password(zip_file_path):
                 return True
             else:
                 return False
-    except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
+    except (zipfile.BadZipfile, subprocess.CalledProcessError):
         pass
-        # print(err)
-        # print('as file:' + zip_file_path)
 
 
 def check_seven_z_password(seven_file_path):

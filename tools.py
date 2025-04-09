@@ -2788,12 +2788,17 @@ def profile_all_functions(enable=False):
 
 
 def change_log_level(num):
-    if num == 919:
-        model.result_m.print_message("L0g Level Up!")
-        model.LOG_LEVEL = 'DEBUG'
-    if num == 106:
-        model.result_m.print_message("L0g Level Down!")
-        model.LOG_LEVEL = 'INFO'
+    if isinstance(num, int):  # 确保 num 是整数
+        if num == 919:
+            model.result_m.print_message("L0g Level Up!")
+            model.LOG_LEVEL = 'DEBUG'
+        elif num == 106:
+            model.result_m.print_message("L0g Level Down!")
+            model.LOG_LEVEL = 'INFO'
+        else:
+            model.result_m.print_message("Invalid log level number!")
+    else:
+        model.result_m.print_message("Invalid input type!")
 
 
 def apply_profile_to_methods(enable_profile, methods):
