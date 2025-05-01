@@ -9,6 +9,7 @@ import os
 import fileSize
 import loggerconifg
 import tools
+import ResourceExplorer
 import translate
 import filecount
 import filebackup
@@ -188,6 +189,8 @@ def main():
             print("Enter a number: \n")
             user_input = int(tools.process_input_str_limit())
             tools.change_log_level(user_input)
+            enable_monitor =True
+            methods = ResourceExplorer.Monitor_All_functions(enable_monitor, methods)
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True

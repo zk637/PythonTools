@@ -1316,16 +1316,18 @@ def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-def detect_file_encoding(file_path):
-    """检测文件编码并返回结果，如果无法检测到，则默认返回 'utf-8' 编码"""
+def detect_encoding(file_path):
+    """通用的文件编码检测
+        输入参数为文件路径
+    """
     with open(file_path, 'rb') as f:
-        raw_data = f.read()  # 读取整个文件内容以提高检测精度
-
-    result = chardet.detect(raw_data)
-    encoding = result.get('encoding')
-
-    # 只有当 chardet 检测到编码时才返回，否则默认 utf-8
-    return encoding if encoding else 'utf-8'
+        raw_data = f.read()
+        result = chardet.detect(raw_data)
+        encoding = result['encoding']
+        if encoding:
+            return encoding
+        else:
+            return 'utf-8'  # 默认返回 utf-8 编码
 
 
 def convert_to_utf8(input_file_path, encoding):
@@ -2788,17 +2790,14 @@ def profile_all_functions(enable=False):
 
 
 def change_log_level(num):
-    if isinstance(num, int):  # 确保 num 是整数
-        if num == 919:
-            model.result_m.print_message("L0g Level Up!")
-            model.LOG_LEVEL = 'DEBUG'
-        elif num == 106:
-            model.result_m.print_message("L0g Level Down!")
-            model.LOG_LEVEL = 'INFO'
-        else:
-            model.result_m.print_message("Invalid log level number!")
-    else:
-        model.result_m.print_message("Invalid input type!")
+    if num == 919:
+        model.result_m.print_message("L0g Level Up!")
+        model.LOG_LEVEL = 'DEBUG'
+    if num == 106:
+        model.result_m.print_message("L0g Level Down!")
+        model.LOG_LEVEL = 'INFO'
+
+
 
 
 def apply_profile_to_methods(enable_profile, methods):
@@ -2841,16 +2840,29 @@ def admin_process():
 
 
 def get_free_space_cmd(folder_path):
+    """检查磁盘是否有空余空间
+        输入文件路径
     """
-        获取指定路径所在磁盘的可用空间（单位：字节）
-    """
-    try:
-        # 获取磁盘使用情况
-        total, used, free = shutil.disk_usage(folder_path)
-        return free  # 直接返回可用空间
-    except Exception as e:
-        print(f"获取磁盘空间失败: {e}")
-        return 0  # 失败时返回 0 避免 NoneType
+    # 提取文件夹所在磁盘的根目录
+    # TODO 多语言环境兼容
+    drive_letter = os.path.splitdrive(os.path.abspath(folder_path))[0]
+    # drive_letter=drive_letter+r'\\'
+    # 使用命令行获取磁盘剩余空间
+    command = f'dir {drive_letter} |  findstr /C:"字节" | findstr /C:"可用"'
+    result = subprocess.run(command, capture_output=True, text=True, shell=True)
+
+    # 提取剩余空间信息G:\Videos\short\test
+    lines = result.stdout.splitlines()
+    # 遍历每行输出，提取目录到可用字节之间的内容
+    for line in lines:
+        match = re.search(r'目录\s+(.*?)\s+可用字节', line)
+        if match:
+            free_space = match.group(1).strip()
+            # print("剩余空间:", free_space)
+            return int(free_space.replace(',', ''))
+        else:
+            log_info_m.print_message(message="未找到剩余空间信息")
+            return 1 / 0
 
 
 # 设置 cmd 窗口的标题
