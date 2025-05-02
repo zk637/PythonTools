@@ -60,8 +60,6 @@ def get_input_duration():
     return input_durations
 
 
-
-
 def custom_input(prompt=''):
     global program_start_time
     global last_input_time
@@ -76,7 +74,6 @@ def custom_input(prompt=''):
     # 清空输入缓冲区
 
     # clear_input_buffer()
-
 
     try:
         # 从 stdin 读取输入
@@ -143,9 +140,7 @@ def process_input_str_limit(ui_param=None):
             temp_input.append(line)
 
             # 输出当前拼接的输入
-
             log_info_m.print_message(' input：'.join(temp_input))
-=
 
             # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
@@ -161,9 +156,7 @@ def process_input_str_limit(ui_param=None):
             result_m.print_message(f"{e}，输入有误将返回主程序！")
             stop_input = False  # 重置停止标志，继续输入
             # 清空输入缓冲区
-
             # clear_input_buffer()
-
 
             # 返回主程序
             return main.main()
@@ -875,7 +868,6 @@ def count_files(file_paths: list) -> int:
     return file_count
 
 
-
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -913,7 +905,6 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
-
 
 
 def cont_files_processor(path_list, index):
@@ -1600,7 +1591,7 @@ def read_rules_from_file():
         with open(filename, "w", encoding='UTF-8') as f:
             result_m.print_message(message="规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
-    encode = detect_encoding(filename)
+    encode = detect_file_encoding(filename)
     with open(filename, encoding=encode) as f:
         content = f.read().strip()
 
@@ -1877,7 +1868,6 @@ def convert_timestamp(timestamp):
     return readable_time
 
 
-
 def print_list_structure(lst, converter=None, prefix=None, suffix=None):
     """
     通用的单纯for循环输出结果，支持前缀、后缀和转换函数。
@@ -1915,7 +1905,6 @@ def print_list_structure(lst, converter=None, prefix=None, suffix=None):
 
         # 输出最终结果
         result_m.print_message(message=item)
-
 
 
 def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=None, suffixes=None):
@@ -2105,7 +2094,6 @@ def split_video_for_size(part_max_size, part_num, output_prefix, output_dir):
                             os.remove(f)
                         result_m.print_message("False：存在无效片段因为无法根据关键帧切割。请重新录入参数！")
                         break
-
 
                     if any(float(size) > part_max_size for size in segment_sizes):
                         max_size = max(segment_sizes)
@@ -2621,7 +2609,7 @@ def play_tocheck_video_minimized(video_path, last_duration, start_duration):
 
         # 等待进程结束
         process.wait()
-        return None
+        return video_path
     except Exception as e:
         print(f"Exception occurred: {e}")
         process.kill()
@@ -2799,7 +2787,6 @@ def profile_all_functions(enable=False):
         return wrapper
 
     return decorator
-
 
 
 def change_log_level(num):

@@ -57,8 +57,7 @@ def same_file_createsymbolic_links():
             try:
                 # os.system(" ".join(cmd))
                 subprocess.check_call(cmd, shell=True)
-                # output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-                # print("result: " + output+"\n")
+
                 result_m.print_message(message="源文件路径: " + source_file)
                 result_m.print_message(message="目标文件夹路径: " + target_dir)
             except Exception as e:
@@ -155,7 +154,7 @@ def update_linked_items():
             destination_path = os.path.join(destination_folder, os.path.basename(item_path))
             # print(item_path)
             # 复制符号链接的源文件或文件夹到目标路径
-            skipped_file,updated_file =  copy_source_update_from_symlink(item_path, destination_folder, flag)
+            skipped_file, updated_file = copy_source_update_from_symlink(item_path, destination_folder)
 
             # 确保更新的文件路径不为空
             if updated_file:
@@ -197,27 +196,42 @@ def create_linked_items():
             copy_source_create_from_symlink(item_path, destination_folder)
 
 
-def common_path(paths, destination_folder):
+def normalize_path(path):
+    # 确保输入是字符串
+    if not isinstance(path, str):
+        raise ValueError("路径必须是字符串")
+
+    # 如果路径包含 '\\?\', 去掉这个前缀
+    if path.startswith('\\\\?\\'):
+        return path[4:]  # 移除 '\\?\'
+    return path
+
+
+def common_path(paths, symlink_path, destination_folder):
     # 如果路径为空，返回空
     if not paths:
         return ""
 
-    # 将路径按分隔符分割
-    parts_list = [os.path.normpath(path).split(os.path.sep) for path in paths]
+    paths = normalize_path(paths)
 
-    # 反转每个路径的部分，从最后一级开始比较
-    reversed_parts_list = [list(reversed(parts)) for parts in parts_list]
+    # 按路径分隔符拆分路径
+    destination_parts = symlink_path.split(os.path.sep)
+    paths_parts_list = paths.split(os.path.sep)
 
-    # 使用 zip 函数遍历路径的各级目录
+    # 反转路径部分，从最后一级开始比较
+    reversed_destination_parts = list(reversed(destination_parts))
+    reversed_parts_list = list(reversed(paths_parts_list))
+
+    # 查找共同部分
     common_parts = []
-    for level_parts in zip(*reversed_parts_list):
-        if all(part == level_parts[0] for part in level_parts):
-            common_parts.append(level_parts[0])
+    for dp, pp in zip(reversed_destination_parts, reversed_parts_list):  # 遍历两个路径的各部分
+        if dp == pp:  # 如果当前部分相同
+            common_parts.append(dp)  # 添加到共同部分列表
         else:
-            break
+            break  # 遇到不同部分时停止
 
-    # 如果没有共同路径，返回空字符串
-    if not common_parts:
+    # 如果没有公共部分，或公共部分少于两个元素，返回空字符串
+    if len(common_parts) < 2:
         return ""
 
     # 反转共同路径，恢复正常顺序
@@ -225,25 +239,29 @@ def common_path(paths, destination_folder):
 
     # 使用 os.path.join 合并共同路径
     common_path = os.path.join(*common_parts)
-    # base_path = r"D:\Back\GameSaveBackup\test"
     base_path = destination_folder
     final_path = os.path.join(base_path, common_path)
-    final_path = os.path.normpath(final_path)
     return final_path
 
 
-def copy_source_update_from_symlink(symlink_path, destination_folder, flag):
+def copy_source_update_from_symlink(symlink_path, destination_folder):
     updated_file = ''  # 用于存储更新的文件路径
     skipped_file = ''  # 用于存储未更新的文件路径
 
     try:
         # 获取符号链接实际指向的路径
-        source_path = os.readlink(symlink_path)
-        log_info_m.print_message(f"符号链接: {symlink_path}")
-        log_info_m.print_message(f"符号链接指向的源路径: {source_path}")
+        source_path_s = os.readlink(symlink_path)
+        source_path = normalize_path(source_path_s)
+        if not os.path.exists(source_path):
+            log_info_m.print_message(f"Error 符号链接: {symlink_path}")
+            log_info_m.print_message(f"Error 符号链接指向的源路径: {source_path}")
+            return
+        else:
+            log_info_m.print_message(f"符号链接: {symlink_path}")
+            log_info_m.print_message(f"符号链接指向的源路径: {source_path}")
 
         # 计算最终的目标备份文件路径
-        final_path = os.path.join(destination_folder, os.path.basename(source_path))
+        final_path = common_path(source_path, symlink_path, destination_folder)
         common_parent = os.path.dirname(final_path)
 
         # 当前时间和昨天的时间

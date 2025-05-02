@@ -13,6 +13,7 @@ import zipfile
 import py7zr
 import rarfile
 import constants
+import model
 import tools
 
 # 注册模块对象
@@ -35,19 +36,11 @@ def check_zip_password_old():
         flag = tools.process_input_str_limit() or 'R'
         if flag.upper() not in ['R', 'W', 'A']:
             raise ValueError('错误的参数！')
-    rar_lists = []
-    sevenzip_lists = []
-    # final_lists_rar=[]
-    # final_lists_7z=[]
     final_lists = []
     ex_final_lists = []
-    # final_list=tools.get_zippartfile(var)
     zip_list = tools.get_file_paths_limit(var, '.zip')
     sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
     rar_lists = tools.get_file_paths_limit(var, ".rar")
-    # file_paths = tools.get_file_paths_limit(var, ".zip")
-    # sevenzip_lists = tools.get_file_paths_limit(var, ".7z")
-    # rar_lists = tools.get_file_paths_limit(var, ".rar")
     """检查压缩文件是否有密码"""
     # file_path.strip('"')
     if zipflag and zipflag.upper() == 'Y' and sevenzip_lists:
@@ -65,7 +58,7 @@ def check_zip_password_old():
             except Exception as e:
                 if 'Password is required for extracting given archive.' in str(e):
                     final_lists.append(sevenzip_list)
-                    pass
+                    continue
                 else:
                     log_info_m.print_message(message=f'{sevenzip_list} 不是有效的7z压缩文件')
     if zip_list:
@@ -78,7 +71,7 @@ def check_zip_password_old():
                         final_lists.append(zip)
                     else:
                         ex_final_lists.append(zip)
-            except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
+            except (zipfile.BadZipfile, subprocess.CalledProcessError):
                 pass
     if rar_lists:
         for rar_list in rar_lists:
@@ -94,11 +87,11 @@ def check_zip_password_old():
                 pass
             except Exception as e:
                 if isinstance(e, rarfile.NeedFirstVolume):
-                    pass
+                    continue
                 else:
                     log_info_m.print_message(message=rar_list + "发生错误：")
                     global_exception_handler(type(e), e, e.__traceback__)
-                    pass
+                    continue
     # 去重
     ex_final_lists = set(ex_final_lists)
     final_lists = set(final_lists)
@@ -208,7 +201,6 @@ def encryp_judgment():
         # print(file_zipparts_lists)
         if file_zipparts_lists:
             for file_zipparts in file_zipparts_lists:
-                # list = ','.join('"{0}"'.format(x) for x in file_zipparts_lists).replace(',', " ")
                 # 如果文件组有内容则代表是分卷因为是zip分卷需要手动替换后缀
                 if not tools.check_is_None(file_zipparts[0]):
                     file_zipparts_head = file_zipparts[0][:file_zipparts[0].rfind('.')] + '.zip'
@@ -223,7 +215,6 @@ def encryp_judgment():
         file_rarparts_lists = tools.register_findone(filelists, "([\*^\.$])part\d+\.rar")
         if file_rarparts_lists:
             for file_rarparts in file_rarparts_lists:
-                # list = ','.join('"{0}"'.format(x) for x in file_rarparts_lists_group).replace(',', " ")
                 if not tools.check_is_None(file_rarparts[0]):
 
                     if check_rar_password(file_rarparts[0]) == True:
@@ -266,7 +257,6 @@ def get_archive_uncompressed_size(zip_path):
         for line in lines:
             # 检查最后一行，寻找包含未压缩大小的行
             if "files" in line:  # 检查是否为最后统计信息行
-                # parts = line.split()
                 try:
                     # 更新正则表达式：限制最后部分为文件名，而不是 "files" 或 "folders"
                     summary_pattern = re.compile(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\s+(\d+)\s+\d+\s+\d+ files')
@@ -287,7 +277,7 @@ def get_archive_uncompressed_size(zip_path):
 
 
 def verify_zip():
-    parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes()
+    _, zip_paths, passwords = tools.get_input_paths_and_passes()
     if zip_paths and passwords:
         # 如果只输入一行密码，将该密码应用于所有文件
         if len(passwords) == 1:
@@ -313,29 +303,53 @@ def verify_zip():
             total_uncompressed_size += uncompressed_size
 
         # 输出总的解压空间
+        model.total_uncompressed_size = total_uncompressed_size
         result_m.print_message(f"\n所有压缩包解压后总共需要空间: {tools.display_size_in_mb(total_uncompressed_size)} MB")
 
 
 def extract_zip():
     parent_folder, zip_paths, passwords = tools.get_input_paths_and_passes(parent_flag=True)
-    if parent_folder and zip_paths and passwords:
-        # 如果只输入一行密码，将该密码应用于所有文件
-        if len(passwords) == 1:
-            passwords = passwords * len(zip_paths)
 
-        for zip_path, password in zip(zip_paths, passwords):
-            if not os.path.isfile(zip_path):
-                result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
-                continue
-            # 创建子文件夹
-            zip_name = os.path.splitext(os.path.basename(zip_path))[0]
-            extract_folder = os.path.join(parent_folder, zip_name)
-            os.makedirs(extract_folder, exist_ok=True)
+    if not (parent_folder and zip_paths and passwords):
+        result_m.print_message("未提供有效的路径或密码，操作终止。")
+        return
 
-            # 定义解压缩命令
+    # 如果只输入一行密码，将该密码应用于所有文件
+    if len(passwords) == 1:
+        passwords = passwords * len(zip_paths)
+
+    if model.total_uncompressed_size > tools.get_free_space_cmd(parent_folder):
+        result_m.print_message("空间不足无法解压程序终止！")
+        return
+
+    for zip_path, password in zip(zip_paths, passwords):
+        if not os.path.isfile(zip_path):
+            result_m.print_message(f"压缩包 {zip_path} 无效，跳过...")
+            continue
+
+        # 先验证压缩包
+        cmd = f'"D:\Softwere green\winrar\WinRAR.exe" t -p"{password}" "{zip_path}"'
+        tools.subprocess_with_progress(cmd, success_tip=f"验证通过：{zip_path}", faild_tip=f"False:验证失败：{zip_path}")
+
+        # 获取解压后所需的空间
+        uncompressed_size = get_archive_uncompressed_size(zip_path)
+        result_m.print_message(f"压缩包 {zip_path} 需要解压空间: {tools.display_size_in_mb(uncompressed_size)} MB")
+
+        # 创建子文件夹
+        zip_name = os.path.splitext(os.path.basename(zip_path))[0]
+        extract_folder = os.path.join(parent_folder, zip_name)
+        os.makedirs(extract_folder, exist_ok=True)
+
+        # 判断空间是否足够
+        free_space = tools.get_free_space_cmd(parent_folder)
+        if free_space >= uncompressed_size:
+            # 直接解压
             cmd = f'"D:\Softwere green\winrar\WinRAR.exe" x -p"{password}" "{zip_path}" "{extract_folder}\\"'
             tools.subprocess_with_progress(cmd, success_tip=f"成功解压 {zip_path} 到 {extract_folder}",
                                            faild_tip=f"False:解压 {zip_path} 失败")
+        else:
+            result_m.print_message(
+                f"空间不足，无法解压 {zip_path}（需要 {tools.display_size_in_mb(uncompressed_size)} MB，当前可用 {tools.display_size_in_mb(free_space)} MB）")
 
 
 def get_rar_header_type(rar_file_path):
@@ -363,10 +377,8 @@ def check_rar_password(rar_file_path):
                 return True
             else:
                 return False
-    except (rarfile.NotRarFile, subprocess.CalledProcessError, rarfile.NeedFirstVolume) as err:
+    except (rarfile.NotRarFile, subprocess.CalledProcessError, rarfile.NeedFirstVolume):
         pass
-        # print(err)
-        # print('as file:'+rar_file_path)
 
 
 def check_zip_password(zip_file_path):
@@ -379,10 +391,8 @@ def check_zip_password(zip_file_path):
                 return True
             else:
                 return False
-    except (zipfile.BadZipfile, subprocess.CalledProcessError) as err:
+    except (zipfile.BadZipfile, subprocess.CalledProcessError):
         pass
-        # print(err)
-        # print('as file:' + zip_file_path)
 
 
 def check_seven_z_password(seven_file_path):

@@ -3,10 +3,9 @@
 @License :   Apache-2.0 license
 
 '''
-import sys
+import csv
 import shutil
 import pandas as pd
-import subprocess
 from flashtext import KeywordProcessor
 import constants
 import tools
@@ -18,6 +17,12 @@ from model import tips_m, log_info_m, result_m
 from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
+
+from enum import Enum, StrEnum
+
+
+class Rule_tips(StrEnum):
+    INPUT_RULE_NOTICE = "请输入规则内容（以END结束）："
 
 
 def compare_and_move_files():
@@ -268,7 +273,7 @@ def format_rules_and_tag_sort():
                 return None
 
         elif method_name == 'format_paths_from_string':
-            raw_paths_string = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            raw_paths_string = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             formatted_paths = tools.format_paths_from_string(raw_paths_string)
             result_m.print_message("格式化后的路径：")
             for path in formatted_paths:
@@ -278,11 +283,11 @@ def format_rules_and_tag_sort():
                 result_m.print_message(extract_filename)
 
         elif method_name == 'extract_tags':
-            file_paths = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            file_paths = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             tools.extract_tags(file_paths)
 
         elif method_name == 'sort_rule':
-            rules_str = tools.processs_input_until_end(prompt="请输入规则内容（以END结束）：", value_type='')
+            rules_str = tools.processs_input_until_end(prompt=Rule_tips.INPUT_RULE_NOTICE, value_type='')
             sort_rule_tag = tools.sort_rule_tag(rules_str)
             result_m.print_message("排序后的tag")
             result_m.print_message(sort_rule_tag)
@@ -333,53 +338,96 @@ def check_symbolic_link():
 
 
 def excel_compare():
-    """文件夹内容与多个 CSV 文件对比"""
-    tips_m.print_message(message="请输入需要比较的CSV文件路径列表每行一个 ")
-    excel_paths = tools.process_input_list()
+    """文件夹内容或关键词与多个 CSV 文件对比"""
+    print("是否使用关键词对比？def:N")
+    flag = tools.process_input_str_limit() or 'N'
+    if flag.upper() == 'N':
+        tips_m.print_message(message="请输入需要比较的CSV文件路径列表每行一个 ")
+        excel_paths = tools.process_input_list()
 
-    if not tools.check_is_None(excel_paths):
-        valid_csv_paths = []
+        if not tools.check_is_None(excel_paths):
+            valid_csv_paths = []
 
-        # 遍历 CSV 文件路径，逐个处理
-        for excel_path in excel_paths:
-            encode = tools.detect_encoding(excel_path)
+            # 遍历 CSV 文件路径，逐个处理
+            for excel_path in excel_paths:
+                encode = tools.detect_file_encoding(excel_path)
 
-            try:
-                # 读取前 5 行，检测文件内容
-                with open(excel_path, 'r', encoding=encode) as file:
-                    print(f"预览文件 {excel_path} 的前5行内容:")
-                    for _ in range(5):
-                        print(file.readline().strip())
+                try:
+                    # 读取前 5 行，检测文件内容
+                    with open(excel_path, 'r', encoding=encode) as file:
+                        print(f"预览文件 {excel_path} 的前5行内容:")
+                        for _ in range(5):
+                            print(file.readline().strip())
 
-                # 如果文件能够读取，加入有效 CSV 文件路径列表
-                valid_csv_paths.append(excel_path)
-            except Exception as e:
-                # 遇到问题时，记录错误并继续处理下一个文件
-                tips_m.print_message(message=f"无法读取 CSV 文件 {excel_path}，错误信息：{e}，跳过该文件。")
+                    # 如果文件能够读取，加入有效 CSV 文件路径列表
+                    valid_csv_paths.append(excel_path)
+                except Exception as e:
+                    # 遇到问题时，记录错误并继续处理下一个文件
+                    tips_m.print_message(message=f"无法读取 CSV 文件 {excel_path}，错误信息：{e}，跳过该文件。")
 
-        # 如果没有有效的 CSV 文件，终止任务
-        if not valid_csv_paths:
-            result_m.print_message(message="未找到有效的 CSV 文件，任务终止。")
-            return
+            # 如果没有有效的 CSV 文件，终止任务
+            if not valid_csv_paths:
+                result_m.print_message(message="未找到有效的 CSV 文件，任务终止。")
+                return
 
-        # 继续处理其他输入
-        tips_m.print_message(message="请输入需要比较的文件夹路径: ")
-        folder_path = tools.process_input_str_limit()
+            # 继续处理其他输入
+            tips_m.print_message(message="请输入需要比较的文件夹路径: ")
+            folder_path = tools.process_input_str_limit()
 
-        tips_m.print_message(message="请输入比较文件大小限制（默认: 200MB): ")
-        size_threshold = int(tools.process_input_str_limit() or 200) * 1024 * 1024  # 设置文件大小的阈值，单位为字节
+            tips_m.print_message(message="请输入比较文件大小限制（默认: 200MB): ")
+            size_threshold = int(tools.process_input_str_limit() or 200) * 1024 * 1024  # 设置文件大小的阈值，单位为字节
 
-        tips_m.print_message(message="请输入需要比较的列名，以逗号分隔: ")
-        compare_columns = tools.process_input_str_limit().split(',')
+            tips_m.print_message(message="请输入需要比较的列名，以逗号分隔: ")
+            compare_columns = tools.process_input_str_limit().split(',')
 
-        tips_m.print_message(message="是否输出CSV和文件夹都有的内容 Y/N (默认: N) :")
-        flag = tools.process_input_str_limit() or 'N'
+            tips_m.print_message(message="是否输出CSV和文件夹都有的内容 Y/N (默认: N) :")
+            flag = tools.process_input_str_limit() or 'N'
 
-        # 调用 find_missing_files 函数，进行文件对比
-        matche_lists, no_matche_lists = find_missing_files(valid_csv_paths, folder_path, size_threshold,
-                                                           compare_columns, flag)
+            # 调用 find_missing_files 函数，进行文件对比
+            matche_lists, no_matche_lists = find_missing_files(valid_csv_paths, folder_path, size_threshold,
+                                                               compare_columns, flag)
 
-        return matche_lists, no_matche_lists
+            return matche_lists, no_matche_lists
+    else:
+        print("请输入要查找的关键词列表（回车换行，输入END结束）：")
+        keywords = tools.process_input_list()
+
+        print("请输入 CSV 文件路径列表（回车换行，输入END结束）：")
+        csv_paths = tools.process_input_list()
+
+        matched_files = []  # 用于存储找到匹配内容的文件路径
+        unmatched_files = []  # 用于存储未找到匹配内容的文件路径
+
+        for csv_file in csv_paths:
+            if not os.path.exists(csv_file):
+                print(f"文件 {csv_file} 不存在，跳过。")
+                unmatched_files.append(csv_file)
+                continue
+
+            # 调用搜索函数，并根据返回值分类
+            if search_keywords_in_csv(csv_file, keywords):
+                matched_files.append(csv_file)
+            else:
+                unmatched_files.append(csv_file)
+
+        # 打印匹配结果
+        print('-' * 200)
+        if matched_files:
+            print("找到匹配内容的文件列表：")
+            for file in matched_files:
+                print(file)
+        else:
+            print("未找到任何匹配内容的文件。")
+
+        print('-' * 200)
+        if unmatched_files:
+            print("未找到匹配内容或无法处理的文件列表：")
+            for file in unmatched_files:
+                print(file)
+        else:
+            print("所有文件均处理完毕且找到匹配内容。")
+
+        return matched_files, unmatched_files
 
 
 def get_file_paths(folder, size_threshold):
@@ -393,13 +441,38 @@ def get_file_paths(folder, size_threshold):
     return paths
 
 
+def search_keywords_in_csv(file_path, keywords):
+    """在 CSV 文件中搜索多个关键词，并标明哪个关键词匹配了哪一行"""
+    matched_files = []  # 存储匹配的文件路径
+    try:
+        encoding = tools.detect_encoding(file_path)
+        with open(file_path, 'r', encoding=encoding, errors='replace') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if not row:  # 跳过空行
+                    continue
+                # 检查该行的任意列是否包含任意一个关键词
+                for cell in row:
+                    for keyword in keywords:
+                        if keyword.lower() in str(cell).lower():
+                            if file_path not in matched_files:
+                                print('-' * 200)
+                                print(f"在文件 {file_path} 中找到匹配的内容：")
+                                matched_files.append(file_path)  # 添加文件路径到列表
+                            print(f"关键词 '{keyword}' 匹配的行：{row}")
+                            break  # 关键词匹配后，跳出当前循环以避免重复匹配
+    except Exception as e:
+        print(f"无法读取 CSV 文件 {file_path}，错误信息：{e}")
+    return matched_files  # 返回包含匹配文件路径的列表
+
+
 def find_missing_files(csv_paths, folder_path, size_threshold, compare_columns, flag):
     if csv_paths and folder_path and size_threshold and compare_columns:
         combined_csv_files = set()  # 用于存储所有CSV文件中的比较数据
 
         # 遍历多个CSV文件路径
         for csv_path in csv_paths:
-            encode = tools.detect_encoding(csv_path)
+            encode = tools.detect_file_encoding(csv_path)
             df_csv = None  # 初始化为 None
 
             # 尝试读取 CSV 文件
@@ -543,9 +616,6 @@ async def get_video_details(path):
         bitrate = int(probe["format"]['bit_rate'])
         width = int(video_stream['width'])
         height = int(video_stream['height'])
-        # bitrate = int(video_stream['bit_rate'])
-        # width = int(video_stream['width'])
-        # height = int(video_stream['height'])
         return duration, bitrate, width, height
 
 

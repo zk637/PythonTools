@@ -42,10 +42,11 @@ def get_total_size(file_paths):
 
 
 def filter_files_by_sizeordate():
-    """获取文件在大小区间下的列表或在修改时间区间下的列表"""
+    """获取文件在大小区间下的列表或在修改时间区间下的列表
+     exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
+                        ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
+    """
     exclude_dirs = [".ts", "WarmSnow"]
-    # exclude_extensions = [".ass", ".srt", ".sub", ".assets", ".dll", ".wem", ".xml", ".ts", ".clpi", ".nfo", ".torrent",
-    #                         ".ssa", ".vtt"]  # 修改为你需要排除的后缀列表
     paths, folder = tools.process_paths_list_or_folder()
     suffix_map = {
         1: constants.ZIP_SUFFIX,
@@ -71,8 +72,7 @@ def filter_files_by_sizeordate():
             tips_m.print_message(message="请输入最大值（MB）")
             max_size = float(tools.process_input_str_limit()) * 1024 * 1024
             log_info_m.print_message(
-                message=f"-------------------------------------end-------------------------------------")
-            # input_logger.stop_logging()
+                message="-------------------------------------end-------------------------------------")
             # input_logger.close()
             filtered_paths = []
             for path in paths:
@@ -81,12 +81,8 @@ def filter_files_by_sizeordate():
                     filtered_paths.append(path)
 
             filtered_paths.sort(key=lambda x: os.path.getsize(x), reverse=True)
-            for path in filtered_paths:
-                filename = os.path.basename(path)
-                size = "{:.2f}MB".format(os.path.getsize(path) / 1024 / 1024)
-                # print(f"{path} {size}")
             log_info_m.print_message(message='\n'.join(filtered_paths))
-        else:
+        elif flag.upper() == 'N':
             tips_m.print_message(message="纯净输出Y/N?")
             cflag = tools.process_input_str_limit()
             tips_m.print_message(message="打印父路径？Y/N?")

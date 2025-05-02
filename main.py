@@ -8,8 +8,8 @@ import os
 
 import fileSize
 import loggerconifg
-import model
 import tools
+import ResourceExplorer
 import translate
 import filecount
 import filebackup
@@ -30,12 +30,9 @@ from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
 
-
 out_put = create_log()
 
-
 sys.stdout = Logger(f'{out_put}', sys.stdout)
-# sys.stderr = Logger('output_f.log', sys.stderr)
 sys.stderr = Logger(f'{out_put}', sys.stderr)
 atexit.register(exit_handler)
 
@@ -75,7 +72,7 @@ def main():
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比
+    #  27、文件夹内容与csv对比或关键词与csv对比(支持对比多个csv文件)
     #  28、获取给定文件夹或文件的音频文件
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
@@ -90,7 +87,6 @@ def main():
     #  39、获取文件夹列表中文件夹不存在指定后缀的文件"""
     while True:
         # 需要重复执行的代码
-        # ...
         def default_method():
             pass
 
@@ -171,7 +167,7 @@ def main():
     #  24、检查录入文件夹下的符号链接是否可用
     #  25、文件自动备份（更新-需提前创建符号链接）
     #  26、文件自动备份（创建-需提前创建符号链接）
-    #  27、文件夹内容与csv对比(支持对比多个csv文件)
+    #  27、文件夹内容与csv对比或关键词与csv对比(支持对比多个csv文件)
     #  28、提取视频的音频文件（支持文件列表和文件夹）
     #  29、文件夹下视频命名规范化
     #  30、根据限制大小拆分视频为多段
@@ -193,14 +189,15 @@ def main():
             print("Enter a number: \n")
             user_input = int(tools.process_input_str_limit())
             tools.change_log_level(user_input)
+            enable_monitor =True
+            methods = ResourceExplorer.Monitor_All_functions(enable_monitor, methods)
             if user_input == 0:
                 # 如果用户输入0，则开启 profile
                 enable_profile = True
                 print("Profile enabled.")
                 # 创建一个空的 Profile 文件
                 with open(profile_file, 'w', encoding='UTF-8'):
-                    pass
-                continue
+                    continue
             elif user_input == -0:
                 # 如果用户输入-0，则关闭性能分析
                 if os.path.exists(profile_file):
@@ -213,11 +210,7 @@ def main():
                 file_paths = []
                 print("请输入文件路径，每个路径都用双引号括起来并占据一行，输入空行结束：\n")
                 while True:
-                    # input_logger = InputLogger('output.txt')
-                    # input_logger.start_logging()
                     path = tools.process_input_str()
-                    # input_logger.stop_logging()
-                    # input_logger.close()
                     if path is None:
                         break
                     file_paths.append(path.strip('"'))
@@ -226,7 +219,7 @@ def main():
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)(file_paths)
                 print(
-                    f"--------------------------------------------------End----------------------------------------------------")
+                    "--------------------------------------------------End----------------------------------------------------")
                 logger.stop_logging()
                 # logger.close()
             else:
@@ -235,7 +228,7 @@ def main():
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)()
                 print(
-                    f"--------------------------------------------------End----------------------------------------------------")
+                    "--------------------------------------------------End----------------------------------------------------")
             print("是否继续执行？(Y/N)\n")
             user_input = tools.process_input_str_limit()
             if user_input and user_input.upper() == "Y":

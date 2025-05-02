@@ -5,8 +5,6 @@
 '''
 import os
 import re
-import shutil
-
 import constants
 import tools
 from fuzzywuzzy import fuzz
@@ -138,7 +136,7 @@ def find_matching_subtitles_create():
             else:
                 # 尝试打开字幕文件，如果文件已被占用，则设置 subtitle_path 为 None 并重试
                 try:
-                    encode = tools.detect_encoding(subtitle_path)
+                    encode = tools.detect_file_encoding(subtitle_path)
                     subtitle_path = tools.convert_to_utf8(subtitle_path, encode)
                     with open(subtitle_path, "r", encoding=encode) as f:
                         pass
@@ -181,17 +179,15 @@ def getSrt():
         subtitle_list = tools.get_file_paths_limit(subtitle_folder, *SRT_SUFFIX)
 
         keyword_processor = KeywordProcessor()
-        regex_pattern = re.escape(keywords)
 
         for subtitle_path in subtitle_list:
             subtitle_file = os.path.basename(subtitle_path)
-            srt_keyword = re.findall(regex_pattern, subtitle_file)
+
+            srt_keyword = subtitle_file.split('.')[0]
             if srt_keyword:
-                srt_keyword = ''.join(srt_keyword)
                 for video_file in video_file_list:
                     video_file = os.path.basename(video_file)
                     video_rule = video_file.strip().split('_')
-                    # print(video_rule[0])
                     keyword_processor.add_keyword(video_rule[0])
                     if srt_keyword in video_rule:
                         # 如果视频文件也存在，则保存匹配结果

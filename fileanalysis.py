@@ -3,6 +3,7 @@
 @Contact :   https://github.com/zk637/PythonTools
 @License :   Apache-2.0 license
 '''
+import imghdr
 import os
 from PIL import Image
 import cv2
@@ -10,6 +11,7 @@ import tools
 import constants
 from tqdm import tqdm
 
+from enum import Enum, StrEnum
 # 注册模块对象
 from model import tips_m, log_info_m, result_m
 
@@ -17,6 +19,16 @@ from model import tips_m, log_info_m, result_m
 from my_exception import global_exception_handler
 
 global_exception_handler = global_exception_handler
+
+
+class File_tips(StrEnum):
+    FILE_IS_NONE_TO_CHECK = "文件为空，需检查条件或参数！"
+    FILE_PROCESS = "Processing videos"
+    FILE_NOT_ACCESS_PATH = "参数有误，不是合法的路径？"
+
+
+width = 0
+height = 0
 
 
 def get_low_resolution_media_files():
@@ -48,18 +60,14 @@ def get_low_resolution_media_files():
         if ext.lower() in ('.mp4', '.avi', '.mkv', '.jpg', '.jpeg', '.png', '.gif'):
             try:
                 if ext.lower() in ('.mp4', '.avi', '.mkv'):
-                    cap = cv2.VideoCapture(file_path)
-                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    cap.release()
+                    width, height = process_low_resolution_media(file_path)
                     if width * height >= width_limit1 * height_limit1 and width * height <= width_limit2 * height_limit2:
                         files.append(file_path)
-                elif ext.lower() in ('.jpg', '.jpeg', '.png', '.gif'):
-                    width, height = Image.open(file_path).size
+                elif ext.lower() in ('.jpg', '.jpeg', '.png', '.gif') and imghdr.what(file_path) is not None:
+                    width, height = process_low_resolution_img(file_path)
                     if width >= width_limit1 and height >= height_limit1 and width <= width_limit2 and height <= height_limit2:
                         files.append(file_path)
             except Exception as e:
-
                 log_info_m.print_message(message=f"Error occurred while processing file {file_path}: {str(e)}")
 
                 global_exception_handler(type(e), e, e.__traceback__)
@@ -82,123 +90,117 @@ def get_low_resolution_media_files():
     return files
 
 
+def process_low_resolution_img(file_path):
+    try:
+        width, height = Image.open(file_path).size
+        return width, height
+    except Exception as e:
+        log_info_m.print_message(message=f"Error process_low_resolution_img file {file_path}: {str(e)}")
+
+        global_exception_handler(type(e), e, e.__traceback__)
+
+
+def process_low_resolution_media(file_path):
+    try:
+        cap = cv2.VideoCapture(file_path)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        cap.release()
+        return width, height
+    except Exception as e:
+        log_info_m.print_message(message=f"Error process_low_resolution_img file {file_path}: {str(e)}")
+
+        global_exception_handler(type(e), e, e.__traceback__)
+
+
 def get_video_duration_sorted():
     """取文件夹或列表下所有视频文件的时长并排序输出或输出时长大小相同的文件"""
+
+    # 获取输入路径和文件夹标志
     path_list, folder = tools.process_paths_list_or_folder()
-    folder_flag = False
-    if folder:
-        folder_flag = os.path.isdir(folder)
+    folder_flag = os.path.isdir(folder) if folder else False
+    paths = path_list if not folder_flag else []
 
-    # 如果输入不是文件夹，则获取文件列表
-    if not folder_flag:
-        paths = path_list
+    # 获取用户输入的模式
+    def ask_input(msg: str, default='N'):
+        tips_m.print_message(msg)
+        user_input = tools.process_input_str_limit().upper()
+        return user_input if user_input in {'Y', 'N'} else default
 
-    tips_m.print_message(message="是否输出文件时长大小一致的列表？Y/N def:N \n")
-    same_flag = tools.process_input_str_limit().upper() or 'N'
-    tips_m.print_message(message="是否纯净输出Y/N")
-    flag = tools.process_input_str_limit().upper() or ''
-    # 处理用户输入
-    tips_m.print_message(message="输出文件创建时间较晚的?Y/N def:N")
-    user_input = tools.process_input_str_limit().upper()
-    # 设置布尔值，根据用户输入和默认值进行判断
-    if user_input == "Y":
-        date_flag = False
-    elif user_input == "N":
-        date_flag = True
-    else:
-        # 默认值
-        date_flag = True
+    same_flag = ask_input("是否输出文件时长大小一致的列表？Y/N def:N \n")
+    clean_flag = ask_input("是否纯净输出Y/N", '')
+    date_flag = ask_input("输出文件创建时间较晚的?Y/N def:N") != "Y"
 
+    # 根据用户选择准备文件路径
     VIDEO_SUFFIX = constants.VIDEO_SUFFIX
-    # 如果选择不输出时长相同的列表
-    if same_flag == 'N':
-        if folder_flag:
-            paths = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
+    if folder_flag:
+        paths = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
+    else:
+        paths = tools.get_file_paths_list_limit(paths, *VIDEO_SUFFIX)
+    if not paths:
+        result_m.print_message("未找到任何有效文件")
+        return
 
-        if paths:
-            # 初始化进度条
-            progress_bar = tqdm(total=len(paths), desc="Processing Files")
-            durations = []
-            for path in paths:
-                progress_bar.update(1)
-                log_info_m.print_message(f"文件：{path}开始处理")
-                duration = tools.get_video_duration(path)
-                if duration is not None:
-                    durations.append((path, duration))
-
-            sorted_durations = sorted(durations, key=lambda x: x[1], reverse=date_flag)
-            progress_bar.close()
-
-            for path, duration in sorted_durations:
-                if flag == 'Y':
-                    path = tools.add_quotes_forpath(path)
-
-                    result_m.print_message(message=path)
-                else:
-                    log_info_m.print_message(message=f"{path}: {duration / 60:.2f} min")
-
-    # 如果选择输出时长相同的列表
+    # 输出文件时长一致的列表
     if same_flag == 'Y':
-        if folder_flag:
-            video_extensions = tools.get_file_paths_limit(folder, *VIDEO_SUFFIX)
-        else:
-            video_extensions = paths
+        file_map = {}
+        progress_bar = tqdm(total=len(paths), desc="Processing Files")
 
-        if video_extensions:
-            file_sizes = {}
-            # 初始化进度条
-            progress_bar = tqdm(total=len(video_extensions), desc="Processing Files")
+        for path in paths:
+            progress_bar.update(1)
+            log_info_m.print_message(f"文件：{path}开始处理")
+            duration = tools.get_video_duration(path)
+            if duration is not None and os.path.exists(path):
+                size = os.path.getsize(path)
+                ctime = os.path.getctime(path)
+                file_map.setdefault(size, []).append((path, duration, ctime))
 
-            for path in video_extensions:
-                progress_bar.update(1)
-                log_info_m.print_message(f"文件：{path}开始处理")
-                duration = tools.get_video_duration(path)
-                if duration is not None and os.path.exists(path):
-                    file_size = os.path.getsize(path)
-                    creation_time = os.path.getctime(path)
-                    if file_size not in file_sizes:
-                        file_sizes[file_size] = []
-                    file_sizes[file_size].append((path, duration, creation_time))
+        progress_bar.close()
+        final_list = {k: v for k, v in file_map.items() if len(v) > 1}
 
-            file_sizes = {k: v for k, v in file_sizes.items() if len(v) > 1}
-            final_list = file_sizes
+        for size, value_list in final_list.items():
+            value_list.sort(key=lambda x: x[2], reverse=date_flag)
+            dur_map = {}
+            for path, dur, _ in value_list:
+                dur_map.setdefault(dur, []).append(path)
 
-            for file_size, paths_durations_creation in file_sizes.items():
-                paths_durations_creation.sort(key=lambda x: x[2], reverse=date_flag)
-                duration_groups = {}
-                for path, duration, _ in paths_durations_creation:
-                    if duration not in duration_groups:
-                        duration_groups[duration] = []
-                    duration_groups[duration].append(path)
-
-                duration_groups = {k: v for k, v in duration_groups.items() if len(v) > 1}
-                progress_bar.close()
-
-                # 提取并打印每个列表的第一个元素
-                for duration, paths in duration_groups.items():
+            for paths in dur_map.values():
+                if len(paths) > 1:
                     for path in paths[1:]:
-                        path = tools.add_quotes_forpath(path)
+                        result_m.print_message(tools.add_quotes_forpath(path))
 
-                        result_m.print_message(path)
+        if clean_flag != 'Y' and not tools.check_is_None(final_list):
+            key_label = '文件大小：'
+            labels = ["文件路径：", "时长：", "创建时间："]
+            converters = [None, None, tools.convert_timestamp]
+            suffixes = ["字节", "", "秒", ""]
+            tools.print_dict_structure(final_list, key_label, labels, converters, suffixes)
+        elif tools.check_is_None(final_list):
+            result_m.print_message("False：没有符合条件的文件！")
+        else:
+            tips_m.print_message('\n' + '-' * 50 + '所有满足条件的文件列表并不使用日期进行过滤：' + '-' * 52)
+            for value_list in final_list.values():
+                for item in value_list:
+                    result_m.print_message(item[0])
+        return
 
-            if flag == 'N' and not tools.check_is_None(final_list):
-                key_label = '文件大小：'
-                labels = ["文件路径：", "时长：", "创建时间："]
-                converters = [None, None, tools.convert_timestamp]
-                suffixes = ["字节", "", "秒", ""]
-                tools.print_dict_structure(final_list, key_label=key_label, value_labels=labels, converters=converters,
-                                           suffixes=suffixes)
-            else:
-                tips_m.print_message(message='\n' + '-' * 50 + '所有满足条件的文件列表并不使用日期进行过滤：' + '-' * 52)
-                for key, value_list in final_list.items():
-                    for values in value_list:
-                        # 打印第一个元素
-                        result_m.print_message(values[0])
+    # 输出排序的时长列表
+    durations = []
+    progress_bar = tqdm(total=len(paths), desc="Processing Files")
+    for path in paths:
+        progress_bar.update(1)
+        log_info_m.print_message(f"文件：{path}开始处理")
+        duration = tools.get_video_duration(path)
+        if duration is not None:
+            durations.append((path, duration))
+    progress_bar.close()
 
-            if tools.check_is_None(final_list):
-                result_m.print_message("False：没有符合条件的文件！")
-                return
-
+    durations.sort(key=lambda x: x[1], reverse=date_flag)
+    for path, dur in durations:
+        if clean_flag == 'Y':
+            result_m.print_message(tools.add_quotes_forpath(path))
+        else:
+            log_info_m.print_message(f"{path}: {dur / 60:.2f} min")
 
     return paths
 
@@ -217,18 +219,14 @@ def print_video_info_list():
         folder = tools.get_file_paths_limit(video_dir, *constants.VIDEO_SUFFIX)
     else:
 
-        log_info_m.print_message(message="文件为空，需检查条件或参数！")
+        log_info_m.print_message(message=File_tips.FILE_IS_NONE_TO_CHECK)
         return
 
     if not folder:
-        log_info_m.print_message(message="文件为空，需检查条件或参数！")
+        log_info_m.print_message(message=File_tips.FILE_IS_NONE_TO_CHECK)
 
         return
 
-    # pool=ThreadPoolExecutor(1)
-    # future =pool.submit(tools.get_video_info_list,folder)
-    # future_result=future.result()
-    # video_info_list, max_path_len = future_result
     video_info_list, max_path_len = tools.get_video_info_list(folder)
     for video_info in video_info_list:
         path = video_info[0]
@@ -260,10 +258,10 @@ def get_video_audio():
     elif os.path.isdir(folder):
         folder = tools.get_file_paths_limit(folder, *constants.VIDEO_SUFFIX)
     if not folder:
-        result_m.print_message(message="文件为空，需检查条件或参数！")
+        result_m.print_message(message=File_tips.FILE_IS_NONE_TO_CHECK)
         return
     # 初始化进度条
-    progress_bar = tqdm(total=len(folder), desc="Processing videos")
+    progress_bar = tqdm(total=len(folder), desc=File_tips.FILE_PROCESS)
     for path in folder:
         progress_bar.update(1)
         log_info_m.print_message(f"文件：{path}开始处理")
@@ -298,7 +296,7 @@ def split_video():
         max_size_mb = int(tools.process_input_str_limit()) * 1024 * 1024
 
         # 初始化进度条
-        progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
+        progress_bar = tqdm(total=len(input_video_list), desc=File_tips.FILE_IS_NONE_TO_CHECK)
         output_dir = r'H:\spilt_parts_dir'
         tools.make_dir(output_dir)
         for input_video in input_video_list:
@@ -313,7 +311,7 @@ def split_video():
 
         progress_bar.close()
     elif os.path.isdir(input_video_dir):
-        filename, file_extension = os.path.splitext(input_video_dir)
+        filename, _ = os.path.splitext(input_video_dir)
 
         output_dir = os.path.join(filename, 'spilt_parts_dir')
         tools.make_dir(output_dir)
@@ -324,7 +322,7 @@ def split_video():
         input_video_list = tools.get_file_paths_limit(input_video_dir, *constants.VIDEO_SUFFIX)
         if input_video_list is not None:
             # 初始化进度条
-            progress_bar = tqdm(total=len(input_video_list), desc="Processing videos")
+            progress_bar = tqdm(total=len(input_video_list), desc=File_tips.FILE_PROCESS)
             for input_video in input_video_list:
                 progress_bar.update(1)
                 free_space = tools.get_free_space_cmd(input_video_dir)
@@ -339,7 +337,7 @@ def split_video():
 
             progress_bar.close()
     else:
-        result_m.print_message(message="参数有误，不是合法的路径？")
+        result_m.print_message(message=File_tips.FILE_NOT_ACCESS_PATH)
 
 
 def split_audio():
@@ -358,10 +356,10 @@ def split_audio():
         return
 
     # 初始化进度条
-    progress_bar = tqdm(total=len(path_list), desc="Processing videos")
+    progress_bar = tqdm(total=len(path_list), desc=File_tips.FILE_PROCESS)
     for path in path_list:
         progress_bar.update(1)
-        duration, bitrate = tools.get_audio_details(path)
+        duration, _ = tools.get_audio_details(path)
 
         # 获取路径子文件夹下的文件数量
         dir_path = os.path.dirname(path)
@@ -386,8 +384,6 @@ def split_audio():
             output_prefix_tmp = f"{output_prefix_tmp}_part{part_index + 1}{file_extension}"
             if os.path.isfile(output_prefix_tmp):
                 result_m.print_message(message=f"Skipping existing file: {output_prefix_tmp}(找到一个已存在的文件就会跳出循环)")
-                existing_file_found = True
-                output_prefix_tmp = ''
                 break  # 找到一个已存在的文件就跳出循环
             else:
                 tools.split_audio_for_duration(path, duration)
@@ -409,8 +405,7 @@ def add_srt():
     if not tools.check_is_None(video_path, srt_path):
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)
-            # base_name = os.path.basename(video_path).split('.')[0]
-            base_name, extension = os.path.splitext(video_path.split('\\')[-1])
+            base_name, _ = os.path.splitext(video_path.split('\\')[-1])
 
             log_info_m.print_message(message=base_name)
 
@@ -418,7 +413,7 @@ def add_srt():
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
             bat_file = ''
-            encode = tools.detect_encoding(srt_path)
+            encode = tools.detect_file_encoding(srt_path)
             srt_path_utf8 = tools.convert_to_utf8(srt_path, encode)
             if srt_path_utf8 == None:
                 print(f"Error：字幕文件无法转换{srt_path}为UTF-8！任务结束")
@@ -505,13 +500,13 @@ def check_files_subtitle_stream():
         video_files = tools.find_matching_files_or_folder_exclude(folder=video_dir, *constants.EXTENSIONS)
     else:
 
-        log_info_m.print_message(message="参数有误，不是合法的路径？")
+        log_info_m.print_message(message=File_tips.FILE_NOT_ACCESS_PATH)
 
         return
     videos_with_subtitle_stream = []
     videos_without_subtitle_stream = []
     # 初始化进度条
-    progress_bar = tqdm(total=len(video_files), desc="Processing videos")
+    progress_bar = tqdm(total=len(video_files), desc=File_tips.FILE_PROCESS)
 
     # 检查视频完整性
     for video_path in video_files:
@@ -553,13 +548,13 @@ def check_video_integrity():
     video_integrity = []
     video_unintegrity = {}
 
-    pattern = r"(.*)_thumbs_\[(\d{4}\.\d{2}\.\d{2}_\d{2}\.\d{2}\.\d{2})\]\.jpg\.!qB"
     # 去除不支持的文件格式和缓存
     video_files = [video_path for video_path in video_files if
                    not tools.check_in_suffix(video_path, constants.CACHE_SUFFIX)]
-
+    video_files = [video_path for video_path in video_files if
+                   tools.check_in_suffix(video_path, constants.VIDEO_SUFFIX)]
     # 初始化进度条
-    progress_bar = tqdm(total=len(video_files), desc="Processing videos")
+    progress_bar = tqdm(total=len(video_files), desc=File_tips.FILE_PROCESS)
 
     for video_path in video_files:
         # 更新进度条
@@ -627,10 +622,9 @@ def check_video_integrity():
         tips_m.print_message("是否查看不完整的视频? Y/N de:N 默认静音")
         flag = tools.process_input_str_limit().upper() or 'N'
 
-        # flag = 'Y'
         if flag == 'Y':
             # 初始化进度条
-            progress_bar = tqdm(total=len(video_unintegrity), desc="Processing videos")
+            progress_bar = tqdm(total=len(video_unintegrity), desc=File_tips.FILE_PROCESS)
             for video_path, durations in video_unintegrity.items():
                 # 更新进度条
                 progress_bar.update(1)
