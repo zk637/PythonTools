@@ -131,38 +131,35 @@ def process_input_str_limit(ui_param=None):
     while True:
         try:
             if ui_param is None and not stop_input:
-                # 从命令行获取输入
-                line = input().strip().replace('"', '')
+                line = input().strip()
+                line = line.splitlines()[0].strip().replace('"', '') if line else ''
             else:
-                # 从UI组件获取输入
-                line = ui_param.toPlainText().strip("")
+                line = ui_param.toPlainText().strip()
+                line = line.splitlines()[0].strip().replace('"', '') if line else ''
 
             temp_input.append(line)
-
-            # 输出当前拼接的输入
             log_info_m.print_message(' input：'.join(temp_input))
 
-            # 判断总长度是否超限
             if len(' '.join(temp_input)) > 195:
                 stop_input = True
-                temp_input = []  # 立即清空输入缓存，避免保留上次超限的输入
+                temp_input = []  # 超限时清空
                 line = None
-                raise my_exception.InputLengthExceededException()  # 抛出异常
+                raise my_exception.InputLengthExceededException()
 
-            return line  # 如果没有超限，正常返回输入
+            # ✅ 成功前也清空缓存
+            result = line
+            temp_input = []  # ← 关键：成功返回前主动清空
+            return result
 
         except my_exception.InputLengthExceededException as e:
-            # 处理异常，提示重新输入
             result_m.print_message(f"{e}，输入有误将返回主程序！")
-            stop_input = False  # 重置停止标志，继续输入
-            # 清空输入缓冲区
-            # clear_input_buffer()
-
-            # 返回主程序
+            stop_input = False
+            temp_input = []  # 保守起见这里也加一层
             return main.main()
+
         except Exception as e:
-            # 处理其他异常
-            stop_input = False  # 重置停止标志，继续输入
+            stop_input = False
+            temp_input = []
             global_exception_handler(type(e), e, e.__traceback__)
 
 
@@ -221,7 +218,8 @@ def check_str_is_None(args):
     else:
         return False
 
-
+from TracerProvider import trace_with_attrs
+@trace_with_attrs()
 def check_is_None(*args, **kwargs):
     """通用的单纯验空函数，接受任何参数
     Returns:
@@ -239,7 +237,8 @@ def check_is_None(*args, **kwargs):
     log_info_m.print_message(message="参数有误，为空？")
     return True  # 如果存在参数为空，则返回True
 
-
+from TracerProvider import trace_with_attrs
+@trace_with_attrs()
 def check_file_or_folder(str_list):
     """
     获取用户输入的文件路径列表和文件夹路径。
@@ -1591,7 +1590,7 @@ def read_rules_from_file():
         with open(filename, "w", encoding='UTF-8') as f:
             result_m.print_message(message="规则文件不存在，已创建空文件 file_name_rules.txt")
         return []
-    encode = detect_file_encoding(filename)
+    encode = detect_encoding(filename)
     with open(filename, encoding=encode) as f:
         content = f.read().strip()
 
@@ -2797,8 +2796,43 @@ def change_log_level(num):
         model.result_m.print_message("L0g Level Down!")
         model.LOG_LEVEL = 'INFO'
 
+def enable_feature(flag_value, expected_input, file_path, message):
+    """
+    启用特定功能的通用函数。
 
+    参数说明：
+    - flag_value: 用户输入的值（比如 "0" 或 "00"）
+    - expected_input: 触发该功能所期望的输入值
+    - file_path: 创建的文件路径，用作功能是否开启的标志
+    - message: 功能开启后需要打印的提示信息
 
+    返回：
+    - True 表示已启用该功能（即创建了对应文件）
+    - False 表示未启用（输入不匹配）
+    """
+    if flag_value == expected_input:
+        # 输入匹配，打印提示信息
+        print(message)
+        # 创建一个空文件作为功能启用的标志
+        with open(file_path, 'w', encoding='UTF-8'):
+            pass
+        return True
+    # 输入不匹配，不启用功能
+    return False
+
+def remove_files_if_exist(file_paths):
+    """
+    判断文件是否存在，如果存在则删除这些文件。
+
+    参数说明：
+    - file_paths: 一个包含文件路径的列表，函数会检查并删除这些文件
+    """
+    for file_path in file_paths:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"文件 {file_path} 已删除。\n")
+        else:
+            print(f"文件 {file_path} 不存在，无需删除。")
 
 def apply_profile_to_methods(enable_profile, methods):
     """

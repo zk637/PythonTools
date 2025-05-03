@@ -97,10 +97,10 @@ def check_zip_password_old():
     final_lists = set(final_lists)
     """遍历结果"""
     log_info_m.print_message(
-        message="--------------------------------------------------无密码----------------------------------------------------")
+        message=(50*'-'+'无密码'+50*'-'))
     tools.print_list_structure(sorted(ex_final_lists))
     log_info_m.print_message(
-        message="--------------------------------------------------有密码----------------------------------------------------")
+        message=(50*'-'+'有密码'+50*'-'))
     tools.print_list_structure(sorted(final_lists))
     # print(datetime.datetime.now())
 
@@ -224,12 +224,12 @@ def encryp_judgment():
 
         if ex_lists:
             ex_lists = ex_lists - final_lists
-            result_m.print_message(message=
-                                   "--------------------------------------------------无密码----------------------------------------------------")
+            result_m.print_message(
+                message=(50 * '-' + '无密码' + 50 * '-'))
             tools.print_list_structure(sorted(ex_lists))
         if final_lists:
-            result_m.print_message(message=
-                                   "--------------------------------------------------有密码----------------------------------------------------")
+            result_m.print_message(
+                message=(50 * '-' + '有密码' + 50 * '-'))
             tools.print_list_structure(sorted(final_lists))
         print(datetime.datetime.now())
         if not tools.check_is_None(final_lists, ex_lists):

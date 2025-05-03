@@ -34,11 +34,11 @@ height = 0
 def get_low_resolution_media_files():
     """通过视频目录查找符合区间条件分辨率的媒体文件"""
 
-    tips_m.print_message(message="-----------------------请输入第一个分辨率阈值（格式为 宽*高）：--------------------------")
+    tips_m.print_message(message=26*'-'+'请输入第一个分辨率阈值（格式为 宽*高）：'+'-'*26)
     size_limit1 = str(tools.process_input_str_limit())
     width_limit1, height_limit1 = map(int, size_limit1.split("*"))
 
-    tips_m.print_message(message="-----------------------请输入第二个分辨率阈值（格式为 宽*高）:--------------------------")
+    tips_m.print_message(message=26*'-'+'请输入第二个分辨率阈值（格式为 宽*高）；'+'-'*26)
     size_limit2 = str(tools.process_input_str_limit())
     width_limit2, height_limit2 = map(int, size_limit2.split("*"))
 
@@ -402,7 +402,7 @@ def add_srt():
     tips_m.print_message(message="硬字幕还是软字幕 Y/N def:N（硬字幕：Y,软字幕：N")
 
     flag = tools.process_input_str_limit() or 'N'
-    if not tools.check_is_None(video_path, srt_path):
+    if not tools.check_is_None(video_path, srt_path) and tools.get_file_extension(srt_path) in constants.SRT_SUFFIX:
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)
             base_name, _ = os.path.splitext(video_path.split('\\')[-1])
@@ -413,7 +413,7 @@ def add_srt():
             video_out_name = f"{base_name}_CN.mp4"
             video_out_name = os.path.join(dir_path, video_out_name)
             bat_file = ''
-            encode = tools.detect_file_encoding(srt_path)
+            encode = tools.detect_encoding(srt_path)
             srt_path_utf8 = tools.convert_to_utf8(srt_path, encode)
             if srt_path_utf8 == None:
                 print(f"Error：字幕文件无法转换{srt_path}为UTF-8！任务结束")
@@ -486,6 +486,7 @@ def add_srt():
             result = tools.subprocess_common_bat(bat_file, command)
 
             result_m.print_message(message=result)
+    result_m.print_message(message="Error:参数有误，请检查参数！")
 
 
 def check_files_subtitle_stream():
@@ -612,9 +613,9 @@ def check_video_integrity():
     video_unintegrity_list = list(video_unintegrity.keys())
 
     # 输出
-    result_m.print_message(message="True：视频文件完整的有：" + '_' * 80)
+    result_m.print_message(message="True：视频文件完整的有：" + '_' * 88)
     tools.print_list_structure(video_integrity)
-    result_m.print_message(message="False：视频文件不完整的有：" + '_' * 80)
+    result_m.print_message(message="False：视频文件不完整的有：" + '_' * 88)
     tools.print_list_structure(video_unintegrity_list)
 
     check_video_paths = []

@@ -11,7 +11,6 @@ import tools
 
 # 注册模块对象
 from model import tips_m, log_info_m, result_m
-
 # 注册全局异常处理函数
 from my_exception import global_exception_handler
 
@@ -72,7 +71,7 @@ def filter_files_by_sizeordate():
             tips_m.print_message(message="请输入最大值（MB）")
             max_size = float(tools.process_input_str_limit()) * 1024 * 1024
             log_info_m.print_message(
-                message="-------------------------------------end-------------------------------------")
+                message='-' * 50 + 'End' + '-' * 50+'\n')
             # input_logger.close()
             filtered_paths = []
             for path in paths:

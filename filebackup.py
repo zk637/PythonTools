@@ -164,12 +164,12 @@ def update_linked_items():
             if skipped_file:
                 skipped_files.append(skipped_file)
 
-    log_info_m.print_message("\n--- 未更新的文件/文件夹 ---")
+    log_info_m.print_message('\n'+50*'+'+'未更新的文件/文件夹'+'-'*50)
     for file in skipped_files:
         result_m.print_message(file)
 
     # 输出更新和未更新的文件列表
-    log_info_m.print_message("\n--- 更新的文件/文件夹 ---")
+    log_info_m.print_message('\n'+50*'+'+'更新的文件/文件夹'+'-'*50)
     for file in updated_files:
         result_m.print_message(file)
 

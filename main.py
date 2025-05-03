@@ -6,6 +6,7 @@
 import atexit
 import os
 
+import TracerProvider
 import fileSize
 import loggerconifg
 import tools
@@ -181,29 +182,29 @@ def main():
     #  38、拆分音频为两段（支持文件列表和文件夹）
     #  39、获取文件夹列表中文件夹不存在指定后缀的文件""")
         try:
-            profile_file = 'Profile'
+            Profile_file = 'Profile'
+            Trace_file ='Trace'
+            enable_monitor =True
+            methods = ResourceExplorer.Monitor_All_functions(enable_monitor, methods)
             print("# 输入对应的编号")
             print(
-                "--------------------------------------------------In-----------------------------------------------------")
+                '-'*50+'In'+'-'*50)
             # try:
             print("Enter a number: \n")
             user_input = int(tools.process_input_str_limit())
             tools.change_log_level(user_input)
-            enable_monitor =True
-            methods = ResourceExplorer.Monitor_All_functions(enable_monitor, methods)
-            if user_input == 0:
-                # 如果用户输入0，则开启 profile
-                enable_profile = True
-                print("Profile enabled.")
-                # 创建一个空的 Profile 文件
-                with open(profile_file, 'w', encoding='UTF-8'):
-                    continue
+            if tools.enable_feature(user_input, 101, Trace_file, 'Trace enabled.'):
+                # 默认注册Tools模块的链路跟踪
+                TracerProvider.register_tracing_for_user_input(methods, 0)
+                TracerProvider.register_tracing_for_user_input(methods, user_input)
+            if tools.enable_feature(user_input, 0, Profile_file, 'Profile enabled.'):
+                continue
             elif user_input == -0:
-                # 如果用户输入-0，则关闭性能分析
-                if os.path.exists(profile_file):
-                    os.remove(profile_file)
+                # 如果用户输入-0，则关闭性能分析或链路追踪
+                tools.remove_files_if_exist([Profile_file, Trace_file])
             elif user_input == -1:
                 # 如果用户输入-1，则结束进程
+                tools.remove_files_if_exist([Profile_file, Trace_file])
                 break
             if user_input == 1 or user_input == 2 or user_input == 13:
                 # 再将标准输出和标准错误输出重定向回自定义的 MyStream 对象
@@ -214,21 +215,21 @@ def main():
                     if path is None:
                         break
                     file_paths.append(path.strip('"'))
-                if os.path.exists(profile_file):
+                if os.path.exists(Profile_file):
                     enable_profile = True
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)(file_paths)
                 print(
-                    "--------------------------------------------------End----------------------------------------------------")
+                    '-' * 50 + 'End' + '-' * 50+'\n')
                 logger.stop_logging()
                 # logger.close()
             else:
-                if os.path.exists(profile_file):
+                if os.path.exists(Profile_file):
                     enable_profile = True
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)()
                 print(
-                    "--------------------------------------------------End----------------------------------------------------")
+                    '-' * 50 + 'End' + '-' * 50+'\n')
             print("是否继续执行？(Y/N)\n")
             user_input = tools.process_input_str_limit()
             if user_input and user_input.upper() == "Y":
@@ -236,8 +237,7 @@ def main():
                 continue
             elif user_input and user_input.upper() == "N":
                 # 结束循环，退出程序
-                if os.path.exists(profile_file):
-                    os.remove(profile_file)
+                tools.remove_files_if_exist([Profile_file, Trace_file])
                 print("手动终止程序\n")
                 logger.stop_logging()
                 logger.close()
@@ -248,9 +248,8 @@ def main():
                 continue
         except Exception as e:
             print(e)  # 打印异常对象 e
-            profile_file = 'Profile'
-            if os.path.exists(profile_file):
-                os.remove(profile_file)
+            # 调用通用的函数删除文件
+            tools.remove_files_if_exist([Profile_file, Trace_file])
             global_exception_handler(type(e), e, e.__traceback__)
         finally:
             logger.stop_logging()
