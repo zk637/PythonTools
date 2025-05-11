@@ -402,7 +402,7 @@ def add_srt():
     tips_m.print_message(message="硬字幕还是软字幕 Y/N def:N（硬字幕：Y,软字幕：N")
 
     flag = tools.process_input_str_limit() or 'N'
-    if not tools.check_is_None(video_path, srt_path) and tools.get_file_extension(srt_path) in constants.SRT_SUFFIX:
+    if not tools.check_is_None(video_path, srt_path) and tools.get_file_extension_one(srt_path):
         if os.path.isfile(video_path):
             dir_path = os.path.dirname(video_path)
             base_name, _ = os.path.splitext(video_path.split('\\')[-1])
@@ -459,28 +459,53 @@ def add_srt():
                 index = int(tools.process_input_str_limit()) or 2
                 preset = preset_map.get(index)
 
+                # 获取 GPU 加速相关的命令部分
+                profile = tools.get_gpu_ffmpeg_profile()
+                accel_flags = profile["acceleration_flags"]
+                encoder = profile["encoder"]
+
                 # 构建 FFmpeg 命令
                 srt_path_utf8 = srt_path_utf8.replace('\\', r'\\').replace(':', r'\:')
                 srt_path_utf8 = "'" + srt_path_utf8 + "'"
-                if media_info.get('Video', {}).get('bit_depth', 'Unknown') != 10:
+
+                # 如果返回的硬件加速命令部分不为空，则开始构建完整的命令
+                if profile and  media_info.get('Video', {}).get('bit_depth', 'Unknown') != 10:
+                    # 基础命令（包括输入和字幕）
                     # 可用格式 ffmpeg -i "H:\videos\test\Dracula _1080p.mp4" -vf subtitles="'H\:\\videos\\test\\Dracula.zh.utf8.srt'" "Dracula_1080p_CN.mp4"
                     # 'ffmpeg -i H:\\videos\\test\\Dracula _1080p.mp4 -c:v h264_nvenc -vf subtitle=H\\:\\videos\\test\\Dracula.zh.utf8.srt H:\\videos\\test\\Dracula _1080p_CN.mp4'
-                    command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+                    # command = f'ffmpeg -i "{video_path}" -c:v h264_nvenc -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
+                    # 如果是 QSV，则构建“硬解+软滤+硬编”管线
+                    if encoder.endswith("_qsv"):
+                        ffmpeg_command = (
+                            f'ffmpeg {" ".join(accel_flags)} -i "{video_path}" '
+                            f'-vf "hwdownload,format=nv12,subtitles={srt_path_utf8}" '
+                            f'-c:v {encoder} -b:v {total_bitrate}k -maxrate {total_bitrate}k '
+                            f'-bufsize {total_bitrate * 2}k -preset {preset} "{video_out_name}"'
+                        )
+                    else:
+                        # 非 QSV 方案，例如 NVIDIA NVENC，直接在滤镜中加字幕
+                        ffmpeg_command = (
+                            f'ffmpeg {" ".join(accel_flags)} -i "{video_path}" '
+                            f'-vf subtitles={srt_path_utf8} '
+                            f'-c:v {encoder} -b:v {total_bitrate}k -maxrate {total_bitrate}k '
+                            f'-bufsize {total_bitrate * 2}k -preset {preset} "{video_out_name}"'
+                        )
                 else:
-                    command = f'ffmpeg -i "{video_path}" -c:v libx265 -pix_fmt yuv420p10le -profile:v main10 -b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k ' \
-                              f'-preset {preset} -vf subtitles="{srt_path_utf8}" "{video_out_name}"'
-            else:
-                # 构建不使用质量控制的 FFmpeg 命令
-                command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
+                    # 没有硬件加速命令时，返回一个不使用硬件加速的命令
+                    ffmpeg_command = f'ffmpeg -i "{video_path}" -vf "subtitles={srt_path_utf8}" ' \
+                                     f'-b:v {total_bitrate}k -maxrate {total_bitrate}k -bufsize {total_bitrate * 2}k -preset {preset} "{video_out_name}"'
 
-            # 打印和执行命令
-            log_info_m.print_message(message=command)
-            bat_file = tools.generate_bat_script("run_addSrt.bat", command)
-            result = tools.subprocess_common_bat(bat_file, command)
+                print(ffmpeg_command)
+
+
+            log_info_m.print_message(message=ffmpeg_command)
+            bat_file = tools.generate_bat_script("run_addSrt.bat", ffmpeg_command)
+            result = tools.subprocess_common_bat(bat_file, ffmpeg_command)
 
             result_m.print_message(message=result)
         else:
             # 定义 FFmpeg 命令
+
             command = f'ffmpeg -i "{video_path}" -i "{srt_path_utf8}" -map 0:v -map 0:a -map 1:s:0 -c:v copy -c:a copy -c:s mov_text -disposition:s:0 forced "{video_out_name}"'
             bat_file = tools.generate_bat_script("run_addSrt.bat", command)
             result = tools.subprocess_common_bat(bat_file, command)

@@ -941,6 +941,40 @@ def get_listunder_fileandfolder(source_dirs):
             folders.append(abs_path)
     return files, folders
 
+def get_file_extension_one(file_path):
+    """
+       获取文件路径的后缀（包括多个扩展名的情况）
+       :param file_path: 文件路径
+       :return: 转换小写后的文件后缀
+       """
+    # 规范化文件路径
+    file_path = os.path.normpath(file_path)
+
+    # 获取文件名部分
+    file_name = os.path.basename(file_path)
+
+    # 初始化扩展名列表
+    extensions = []
+
+    iteration_count = 0  # 初始化计数器
+
+    # 迭代多个扩展名最多两次
+    while iteration_count < 1:
+        base, ext = os.path.splitext(file_name)
+        if ext:
+            # 将扩展名添加到列表中
+            extensions.append(ext)
+            # 更新文件名为当前基本文件名
+            file_name = base
+            iteration_count += 1  # 增加计数器
+        else:
+            break
+
+    # 反转扩展名列表并连接成字符串
+    file_ext = ''.join(reversed(extensions)).lower()
+
+    return file_ext
+
 
 def get_file_extension(file_path):
     """
@@ -1936,6 +1970,46 @@ def print_dict_structure(data, key_label='Key: ', value_labels=None, converters=
             else:
                 value_str = " - ".join(str(val) for val in converted_values)
             print(f"  {value_str}")
+
+
+def get_gpu_info():
+    # 使用 wmic 命令查询 GPU 信息
+    result = subprocess.run(
+        ['wmic', 'path', 'win32_videocontroller', 'get', 'caption,deviceid,driverversion'],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    return result.stdout.decode()
+
+
+def get_gpu_ffmpeg_profile():
+    gpu_info = get_gpu_info()
+
+    profile = {
+        "acceleration_flags": [],
+        "encoder": "libx264"  # 默认软编码
+    }
+
+    if "NVIDIA" in gpu_info.upper():
+        profile["encoder"] = "h264_nvenc"
+        # NVIDIA 通常不需要显式指定硬件加速前缀
+    elif "INTEL" in gpu_info.upper():
+        profile["acceleration_flags"] = [
+            "-hwaccel", "qsv",
+            "-init_hw_device", "qsv=hw",
+            "-filter_hw_device", "hw"
+        ]
+        profile["encoder"] = "h264_qsv"
+    elif "AMD" in gpu_info.upper():
+        profile["acceleration_flags"] = [
+            "-hwaccel", "vaapi",
+            "-init_hw_device", "vaapi=hw",
+            "-filter_hw_device", "hw"
+        ]
+        profile["encoder"] = "h264_vaapi"
+    else:
+        pass  # 无法识别 GPU，使用软件编码
+
+    return profile
 
 
 def get_video_info(path):
