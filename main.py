@@ -219,6 +219,7 @@ def main():
                     enable_profile = True
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)(file_paths)
+                TracerProvider.new_trace()  # 重置 trace
                 print(
                     '-' * 50 + 'End' + '-' * 50+'\n')
                 logger.stop_logging()
@@ -228,12 +229,14 @@ def main():
                     enable_profile = True
                     methods = tools.apply_profile_to_methods(enable_profile, methods)
                 methods.get(user_input, default_method)()
+                TracerProvider.new_trace()  # 重置 trace
                 print(
                     '-' * 50 + 'End' + '-' * 50+'\n')
             print("是否继续执行？(Y/N)\n")
             user_input = tools.process_input_str_limit()
             if user_input and user_input.upper() == "Y":
                 # 继续执行，回到程序开头
+                TracerProvider.new_trace()  # 重置 trace
                 continue
             elif user_input and user_input.upper() == "N":
                 # 结束循环，退出程序
@@ -245,6 +248,7 @@ def main():
             else:
                 # 提示输入有误，请重新输入
                 print("输入有误，请重新输入！")
+                TracerProvider.new_trace()  # 重置 trace
                 continue
         except Exception as e:
             print(e)  # 打印异常对象 e

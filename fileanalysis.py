@@ -245,7 +245,7 @@ def print_video_info_list():
                   end="")
 
             result_m.print_message(message=" " * (max_path_len - len(path) + 1))
-        return video_info_list
+    return video_info_list
 
 
 def get_video_audio():

@@ -1,0 +1,18 @@
+{
+    "info": {
+        "colors": ["green"],
+        "bg_color": "reset"
+    },
+    "debug": {
+        "colors": ["cyan"],
+        "bg_color": "black"
+    },
+    "warning": {
+        "colors": ["yellow"],
+        "bg_color": "reset"
+    },
+    "error": {
+        "colors": ["red"],
+        "bg_color": "reset"
+    }
+}
